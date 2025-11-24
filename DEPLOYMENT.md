@@ -31,29 +31,29 @@ This guide will help you deploy AgriSmart, a comprehensive crop and soil managem
 
 ### 1. Clone the Repository
 
-\`\`\`bash
+```bash
 git clone https://github.com/your-username/AgriSmart.git
 cd AgriSmart
-\`\`\`
+```
 
 ### 2. Install Dependencies
 
-\`\`\`bash
+```bash
 npm install
 # or
 yarn install
-\`\`\`
+```
 
 ### 3. Environment Variables
 
 Copy the environment template and configure your variables:
 
-\`\`\`bash
+```bash
 cp .env.example .env.local
-\`\`\`
+```
 
 **Required Variables:**
-\`\`\`env
+```env
 # Clerk Authentication
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 CLERK_SECRET_KEY=your_clerk_secret_key
@@ -65,7 +65,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
 # Admin Access
 NEXT_PUBLIC_ADMIN_EMAILS=admin@example.com
-\`\`\`
+```
 
 ### 4. Clerk Setup
 
@@ -82,10 +82,10 @@ NEXT_PUBLIC_ADMIN_EMAILS=admin@example.com
 2. Create a new project
 3. Run the database migration script:
 
-   \`\`\`sql
+   ```sql
    -- Copy the entire content of:
    -- scripts/run_all_migrations.sql
-   \`\`\`
+   ```
 
 4. Configure Row Level Security (RLS) policies are included in the script
 5. Set up Authentication providers in Supabase if needed
@@ -96,9 +96,9 @@ NEXT_PUBLIC_ADMIN_EMAILS=admin@example.com
 
 1. Open Supabase SQL Editor
 2. Run the consolidated migration script:
-   \`\`\`sql
+   ```sql
    -- File: scripts/run_all_migrations.sql
-   \`\`\`
+   ```
 
 This script creates:
 - Farmer profiles and fields tables
@@ -111,12 +111,12 @@ This script creates:
 
 Check that all tables were created:
 
-\`\`\`sql
+```sql
 SELECT table_name
 FROM information_schema.tables
 WHERE table_schema = 'public'
 ORDER BY table_name;
-\`\`\`
+```
 
 Expected tables include:
 - `farmer_profiles`
@@ -134,28 +134,28 @@ Expected tables include:
 
 You can run the sample data script to populate initial data:
 
-\`\`\`sql
+```sql
 -- File: scripts/002_seed_sample_data.sql
-\`\`\`
+```
 
 ## Application Deployment
 
 ### Option 1: Vercel (Recommended)
 
 1. **Install Vercel CLI:**
-   \`\`\`bash
+   ```bash
    npm i -g vercel
-   \`\`\`
+   ```
 
 2. **Login to Vercel:**
-   \`\`\`bash
+   ```bash
    vercel login
-   \`\`\`
+   ```
 
 3. **Deploy:**
-   \`\`\`bash
+   ```bash
    vercel --prod
-   \`\`\`
+   ```
 
 4. **Set Environment Variables:**
    - Go to Vercel Dashboard → Project Settings → Environment Variables
@@ -164,44 +164,44 @@ You can run the sample data script to populate initial data:
 ### Option 2: Netlify
 
 1. **Build the application:**
-   \`\`\`bash
+   ```bash
    npm run build
-   \`\`\`
+   ```
 
 2. **Deploy to Netlify:**
-   \`\`\`bash
+   ```bash
    npx netlify deploy --prod --dir=.next
-   \`\`\`
+   ```
 
 3. **Set environment variables in Netlify dashboard**
 
 ### Option 3: Docker Deployment
 
 1. **Build Docker image:**
-   \`\`\`bash
+   ```bash
    docker build -t agrismart .
-   \`\`\`
+   ```
 
 2. **Run container:**
-   \`\`\`bash
+   ```bash
    docker run -p 3000:3000 --env-file .env.local agrismart
-   \`\`\`
+   ```
 
 ### Environment-Specific Configurations
 
 #### Production (.env.production)
-\`\`\`env
+```env
 NODE_ENV=production
 NEXT_PUBLIC_DEBUG_MODE=false
 NEXT_PUBLIC_APP_URL=https://your-domain.com
-\`\`\`
+```
 
 #### Development (.env.development)
-\`\`\`env
+```env
 NODE_ENV=development
 NEXT_PUBLIC_DEBUG_MODE=true
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-\`\`\`
+```
 
 ## Post-Deployment Checklist
 
@@ -247,16 +247,16 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ### Error Tracking
 Set up Sentry for error monitoring:
-\`\`\`env
+```env
 NEXT_PUBLIC_SENTRY_DSN=your_public_sentry_dsn
 SENTRY_DSN=your_private_sentry_dsn
-\`\`\`
+```
 
 ### Performance Monitoring
 - Google Analytics:
-  \`\`\`env
+  ```env
   NEXT_PUBLIC_GA_ID=GA_MEASUREMENT_ID
-  \`\`\`
+  ```
 
 ### Database Maintenance
 1. **Regular Backups:** Enable in Supabase dashboard
@@ -306,16 +306,16 @@ Monitor application logs for:
 
 ### Debug Mode
 Enable debug mode for development:
-\`\`\`env
+```env
 NEXT_PUBLIC_DEBUG_MODE=true
-\`\`\`
+```
 
 ### Performance Optimization
 
 1. **Image Optimization:**
-   \`\`\`bash
+   ```bash
    npm install next/image-optimization
-   \`\`\`
+   ```
 
 2. **Database Optimization:**
    - Add indexes to frequently queried columns

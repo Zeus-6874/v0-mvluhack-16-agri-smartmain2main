@@ -81,7 +81,7 @@ This guide shows you exactly what data you need to populate your database for a 
 
 For a **basic test run**, you need at least:
 
-\`\`\`bash
+```bash
 # 1. Run database migrations (one-time setup)
 # In Supabase SQL Editor, run:
 # - scripts/005_create_knowledge_schema.sql
@@ -96,7 +96,7 @@ pnpm seed:crops      # 3 crops
 # 3. Optional but recommended
 pnpm seed:cropsap    # 2 alerts (for dashboard)
 pnpm seed:district   # 2 stats (for KPIs)
-\`\`\`
+```
 
 **Minimum Test Data**: 6 records (3 schemes + 3 crops)
 
@@ -104,14 +104,14 @@ pnpm seed:district   # 2 stats (for KPIs)
 
 For **comprehensive testing** of all features:
 
-\`\`\`bash
+```bash
 # All seed scripts
 pnpm seed:schemes    # 3-10 schemes
 pnpm seed:crops      # 3-10 crops
 pnpm seed:cropsap    # 5-10 alerts
 pnpm seed:district   # 5-10 district records
 pnpm seed:market     # Fetches real-time from Agmarknet
-\`\`\`
+```
 
 **Recommended Test Data**: 20-40 records across all types
 
@@ -152,7 +152,7 @@ pnpm seed:market     # Fetches real-time from Agmarknet
 ## 📝 Data Structure Examples
 
 ### Scheme Record Structure
-\`\`\`json
+```json
 {
   "name": "PM-KISAN",
   "name_local": "प्रधानमंत्री किसान सम्मान निधि",
@@ -162,10 +162,10 @@ pnpm seed:market     # Fetches real-time from Agmarknet
   "eligibility": "...",
   "benefits": "..."
 }
-\`\`\`
+```
 
 ### Crop Record Structure
-\`\`\`json
+```json
 {
   "common_name": "Pomegranate",
   "local_name": "डाळिंब",
@@ -175,10 +175,10 @@ pnpm seed:market     # Fetches real-time from Agmarknet
   "soil_type": "...",
   "planting_season": "..."
 }
-\`\`\`
+```
 
 ### CROPSAP Alert Structure
-\`\`\`json
+```json
 {
   "district": "Pune",
   "crop": "Pomegranate",
@@ -186,10 +186,10 @@ pnpm seed:market     # Fetches real-time from Agmarknet
   "severity": "High",
   "advisory": "Spray Spinosad..."
 }
-\`\`\`
+```
 
 ### District Stat Structure
-\`\`\`json
+```json
 {
   "district": "Pune",
   "crop": "Sugarcane",
@@ -198,7 +198,7 @@ pnpm seed:market     # Fetches real-time from Agmarknet
   "yield_mt_per_ha": 80.8,
   "rainfall_mm": 735
 }
-\`\`\`
+```
 
 ## 🔄 Data Sources
 
@@ -237,3 +237,4 @@ After seeding data, verify:
 ---
 
 **Note**: Market prices are fetched in real-time from Agmarknet API, so you don't need to seed them manually unless you want historical data.
+

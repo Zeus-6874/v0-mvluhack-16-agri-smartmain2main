@@ -1,30 +1,63 @@
-# MVLUHACK16AgriSmartmain2main
+# AgriSmart - An Comprehensive Crop and Soil Management System
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A comprehensive agricultural management platform built with Next.js 14, Supabase, and modern web technologies.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/zwerrs-projects/v0-mvluhack-16-agri-smartmain2main-gz)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/mFYjeGGHKO2)
+## Features
 
-## Overview
+- **Disease Detection**: AI-powered crop disease identification with treatment recommendations
+- **Market Prices**: Real-time agricultural commodity pricing information
+- **Crop Recommendations**: Soil-based crop suggestions with yield predictions
+- **Weather Integration**: Location-based weather data for farming decisions
+- **Agricultural Encyclopedia**: Comprehensive crop information database
+- **Government Schemes**: Information about agricultural schemes and subsidies
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Tech Stack
 
-## Deployment
+- **Frontend**: Next.js 14, React 18, TypeScript
+- **Backend**: Next.js API Routes, Supabase
+- **Database**: PostgreSQL (via Supabase)
+- **Styling**: Tailwind CSS, shadcn/ui
+- **Authentication**: Supabase Auth
+- **Deployment**: Vercel (recommended)
 
-Your project is live at:
+## Quick Start
 
-**[https://vercel.com/zwerrs-projects/v0-mvluhack-16-agri-smartmain2main-gz](https://vercel.com/zwerrs-projects/v0-mvluhack-16-agri-smartmain2main-gz)**
+1. **Clone the repository**
+   ```bash
+   gh repo clone Zeus6666784/MVLUHACK16_AgriSmart
+   ```
 
-## Build your app
+2️⃣ Install dependencies
 
-Continue building your app on:
+```bash
+npm install
+```
 
-**[https://v0.app/chat/mFYjeGGHKO2](https://v0.app/chat/mFYjeGGHKO2)**
+3️⃣ Run locally
 
-## How It Works
+```bash
+npm run dev
+```
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+4️⃣ Open in browser → `http://localhost:3000`
+
+---
+
+## 🚀 Deployment
+
+The app is live on **Vercel**. Each push to `main` auto-deploys.
+
+---
+
+## 📌 Roadmap
+
+* ✅ Soil Test with recommendations
+* 🔄 Farmer Dashboard + Supabase Auth
+* 🔄 AI-powered crop yield prediction
+* 🔄 Marketplace for farmer-to-consumer
+
+---
+
+## 📜 License
+
+This project is licensed under the MIT License.
