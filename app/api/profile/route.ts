@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { auth } from "@clerk/nextjs/server"
-import { createClient } from "@/lib/supabase/server"
+import { createClient } from "@supabase/supabase-js"
 
 export async function GET() {
   try {
@@ -9,7 +9,12 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
     const { data, error } = await supabase.from("farmers").select("*").eq("user_id", userId).maybeSingle()
 
     if (error) {
@@ -35,7 +40,12 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Creating profile for user:", userId)
     console.log("[v0] Payload:", payload)
 
-    const supabase = await createClient()
+    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+      },
+    })
 
     const { data: existingProfile } = await supabase.from("farmers").select("id").eq("user_id", userId).maybeSingle()
 
