@@ -25,21 +25,10 @@ export default async function FieldManagementPage() {
   const user = await currentUser()
 
   const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from("farmer_profiles")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle()
-
-  if (!profile) {
-    redirect("/onboarding")
-  }
+  const { data: profile } = await supabase.from("farmer_profiles").select("*").eq("user_id", userId).maybeSingle()
 
   // Fetch field statistics
-  const { data: fields } = await supabase
-    .from("fields")
-    .select("area_hectares")
-    .eq("farmer_id", userId)
+  const { data: fields } = await supabase.from("fields").select("area_hectares").eq("farmer_id", userId)
 
   const totalArea = fields?.reduce((sum, field) => sum + (field.area_hectares || 0), 0) || 0
 
@@ -64,12 +53,8 @@ export default async function FieldManagementPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Field Management
-          </h1>
-          <p className="text-gray-600">
-            Manage your fields, crop cycles, and agricultural resources
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Field Management</h1>
+          <p className="text-gray-600">Manage your fields, crop cycles, and agricultural resources</p>
         </div>
 
         {/* Summary Cards */}
@@ -81,9 +66,7 @@ export default async function FieldManagementPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{fields?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Registered fields
-              </p>
+              <p className="text-xs text-muted-foreground">Registered fields</p>
             </CardContent>
           </Card>
 
@@ -94,9 +77,7 @@ export default async function FieldManagementPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalArea.toFixed(1)}</div>
-              <p className="text-xs text-muted-foreground">
-                Hectares under cultivation
-              </p>
+              <p className="text-xs text-muted-foreground">Hectares under cultivation</p>
             </CardContent>
           </Card>
 
@@ -107,9 +88,7 @@ export default async function FieldManagementPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{activeCrops?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Currently growing
-              </p>
+              <p className="text-xs text-muted-foreground">Currently growing</p>
             </CardContent>
           </Card>
 
@@ -120,9 +99,7 @@ export default async function FieldManagementPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">3</div>
-              <p className="text-xs text-muted-foreground">
-                Types of resources tracked
-              </p>
+              <p className="text-xs text-muted-foreground">Types of resources tracked</p>
             </CardContent>
           </Card>
         </div>

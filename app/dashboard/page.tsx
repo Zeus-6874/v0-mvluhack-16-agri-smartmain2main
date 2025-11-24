@@ -10,10 +10,6 @@ export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: profile } = await supabase.from("farmers").select("*").eq("user_id", userId).maybeSingle()
 
-  if (!profile) {
-    redirect("/onboarding")
-  }
-
   const user = await currentUser()
 
   return <DashboardClient profile={profile} clerkUser={user} />

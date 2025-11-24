@@ -24,15 +24,7 @@ export default async function AdvancedSoilHealthPage() {
   const user = await currentUser()
 
   const supabase = await createClient()
-  const { data: profile } = await supabase
-    .from("farmer_profiles")
-    .select("*")
-    .eq("user_id", userId)
-    .maybeSingle()
-
-  if (!profile) {
-    redirect("/onboarding")
-  }
+  const { data: profile } = await supabase.from("farmer_profiles").select("*").eq("user_id", userId).maybeSingle()
 
   // Fetch recent soil analyses
   const { data: soilAnalyses } = await supabase
@@ -64,9 +56,7 @@ export default async function AdvancedSoilHealthPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Advanced Soil Health Monitoring
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Advanced Soil Health Monitoring</h1>
           <p className="text-gray-600">
             Comprehensive soil analysis, historical tracking, and improvement recommendations
           </p>
@@ -81,9 +71,7 @@ export default async function AdvancedSoilHealthPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{healthScore}/100</div>
-              <p className="text-xs text-muted-foreground">
-                {healthStatus}
-              </p>
+              <p className="text-xs text-muted-foreground">{healthStatus}</p>
             </CardContent>
           </Card>
 
@@ -94,9 +82,7 @@ export default async function AdvancedSoilHealthPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{soilAnalyses?.length || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Historical records
-              </p>
+              <p className="text-xs text-muted-foreground">Historical records</p>
             </CardContent>
           </Card>
 
@@ -107,9 +93,7 @@ export default async function AdvancedSoilHealthPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{latestAnalysis?.ph_level?.toFixed(1) || "-"}</div>
-              <p className="text-xs text-muted-foreground">
-                Current soil pH
-              </p>
+              <p className="text-xs text-muted-foreground">Current soil pH</p>
             </CardContent>
           </Card>
 
@@ -122,9 +106,7 @@ export default async function AdvancedSoilHealthPage() {
               <div className="text-2xl font-bold text-orange-600">
                 {latestAnalysis ? countDeficiencies(latestAnalysis) : "-"}
               </div>
-              <p className="text-xs text-muted-foreground">
-                Nutrient deficiencies
-              </p>
+              <p className="text-xs text-muted-foreground">Nutrient deficiencies</p>
             </CardContent>
           </Card>
         </div>
@@ -147,27 +129,15 @@ export default async function AdvancedSoilHealthPage() {
           </TabsList>
 
           <TabsContent value="history" className="mt-6">
-            <SoilHealthHistory
-              farmerId={userId}
-              analyses={soilAnalyses || []}
-              latestAnalysis={latestAnalysis}
-            />
+            <SoilHealthHistory farmerId={userId} analyses={soilAnalyses || []} latestAnalysis={latestAnalysis} />
           </TabsContent>
 
           <TabsContent value="improvement" className="mt-6">
-            <SoilImprovementPlan
-              farmerId={userId}
-              latestAnalysis={latestAnalysis}
-              profile={profile}
-            />
+            <SoilImprovementPlan farmerId={userId} latestAnalysis={latestAnalysis} profile={profile} />
           </TabsContent>
 
           <TabsContent value="alerts" className="mt-6">
-            <NutrientDeficiencyAlert
-              farmerId={userId}
-              latestAnalysis={latestAnalysis}
-              analyses={soilAnalyses || []}
-            />
+            <NutrientDeficiencyAlert farmerId={userId} latestAnalysis={latestAnalysis} analyses={soilAnalyses || []} />
           </TabsContent>
         </Tabs>
       </main>
