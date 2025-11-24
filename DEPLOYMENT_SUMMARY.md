@@ -64,31 +64,31 @@ This document provides a complete summary of all changes made to prepare AgriSma
 ### Quick Start (5 minutes)
 
 1. **Set up Supabase**
-   ```bash
+   \`\`\`bash
    # Run the migration script in Supabase SQL Editor
    # Copy content from: scripts/run_all_migrations.sql
-   ```
+   \`\`\`
 
 2. **Configure Environment**
-   ```bash
+   \`\`\`bash
    cp .env.example .env.local
    # Edit .env.local with your Supabase and Clerk keys
-   ```
+   \`\`\`
 
 3. **Deploy to Vercel**
-   ```bash
+   \`\`\`bash
    npm install
    npx vercel --prod
    # Add environment variables in Vercel dashboard
-   ```
+   \`\`\`
 
 4. **Test Deployment**
-   ```bash
+   \`\`\`bash
    node scripts/test-api-endpoints.js
-   ```
+   \`\`\`
 
 ### Required Environment Variables
-```env
+\`\`\`env
 # Required
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -98,7 +98,7 @@ CLERK_SECRET_KEY=your_clerk_secret
 # Recommended
 NEXT_PUBLIC_ADMIN_EMAILS=admin@example.com
 WEATHER_API_KEY=your_openweather_key (optional)
-```
+\`\`\`
 
 ## ✅ Pre-Deployment Checklist
 

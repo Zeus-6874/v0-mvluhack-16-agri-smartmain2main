@@ -44,19 +44,19 @@ Create a file named `.env.local` in the root directory of your project (same lev
 
 Copy the contents from `.env.example` to `.env.local`:
 
-```bash
+\`\`\`bash
 # On Windows (PowerShell)
 Copy-Item .env.example .env.local
 
 # On Mac/Linux
 cp .env.example .env.local
-```
+\`\`\`
 
 ### Step 3: Fill in your API keys
 
 Open `.env.local` and replace the placeholder values with your actual API keys:
 
-```env
+\`\`\`env
 # Clerk
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_YOUR_ACTUAL_KEY_HERE
 CLERK_SECRET_KEY=sk_test_YOUR_ACTUAL_KEY_HERE
@@ -68,15 +68,15 @@ SUPABASE_SERVICE_ROLE_KEY=YOUR_SERVICE_ROLE_KEY_HERE
 
 # OpenWeatherMap (Optional)
 OPENWEATHER_API_KEY=YOUR_WEATHER_API_KEY_HERE
-```
+\`\`\`
 
 ### Step 4: Verify setup
 
 Run the development server to check if everything is configured:
 
-```bash
+\`\`\`bash
 pnpm dev
-```
+\`\`\`
 
 If you see any errors about missing environment variables, double-check your `.env.local` file.
 
@@ -125,7 +125,3 @@ If you see any errors about missing environment variables, double-check your `.e
 - Verify `NEXT_PUBLIC_SUPABASE_URL` is your full project URL
 - Check that your Supabase project is not paused
 - Verify RLS (Row Level Security) policies are set up correctly
-
-
-
-

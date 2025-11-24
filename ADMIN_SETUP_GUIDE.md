@@ -24,10 +24,10 @@ The admin panel (`/admin/data`) is protected by Clerk authentication and an opti
 2. Open your browser's Developer Tools (F12 or Right-click → Inspect)
 3. Go to the **Console** tab
 4. Run this JavaScript code:
-   ```javascript
+   \`\`\`javascript
    // This will log your Clerk user ID
    fetch('/api/user-id').then(r => r.json()).then(console.log)
-   ```
+   \`\`\`
    Or check the browser's Application/Storage → Local Storage for Clerk session data.
 
 ### Method 3: Create a Temporary API Route
@@ -35,7 +35,7 @@ The admin panel (`/admin/data`) is protected by Clerk authentication and an opti
 If the above methods don't work, you can temporarily add this route to see your user ID:
 
 1. Create `app/api/user-id/route.ts`:
-   ```typescript
+   \`\`\`typescript
    import { auth } from "@clerk/nextjs/server"
    import { NextResponse } from "next/server"
 
@@ -43,7 +43,7 @@ If the above methods don't work, you can temporarily add this route to see your 
      const { userId } = await auth()
      return NextResponse.json({ userId })
    }
-   ```
+   \`\`\`
 
 2. Visit `http://localhost:3000/api/user-id` while logged in
 3. Copy the `userId` from the JSON response
@@ -54,9 +54,9 @@ If the above methods don't work, you can temporarily add this route to see your 
 1. Open your `.env.local` file (or create it if it doesn't exist)
 2. Add or update the `ADMIN_USER_IDS` variable:
 
-   ```env
+   \`\`\`env
    ADMIN_USER_IDS=user_xxxxxxxxxxxxx,user_yyyyyyyyyyyyy
-   ```
+   \`\`\`
 
    - Separate multiple admin user IDs with commas
    - No spaces around commas (or trim them in code)
@@ -64,9 +64,9 @@ If the above methods don't work, you can temporarily add this route to see your 
 
 3. Save the file
 4. Restart your development server:
-   ```bash
+   \`\`\`bash
    pnpm dev
-   ```
+   \`\`\`
 
 ## Step 3: Verify Admin Access
 
@@ -126,4 +126,3 @@ When deploying to production (Vercel, Railway, etc.):
 ---
 
 **Need Help?** Check the main `SETUP_INSTRUCTIONS.md` or review the admin route code in `app/api/admin/*/route.ts` to understand the authentication logic.
-

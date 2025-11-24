@@ -6,14 +6,14 @@ This document details the PostgreSQL-specific features and optimizations impleme
 
 ### Core PostgreSQL Extensions Used
 
-```sql
+\`\`\`sql
 -- Essential extensions for AgriSmart
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";     -- UUID generation
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";      -- Cryptographic functions
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";       -- Trigram matching for text search
 CREATE EXTENSION IF NOT EXISTS "btree_gin";     -- GIN index support
 CREATE EXTENSION IF NOT EXISTS "btree_gist";    -- GiST index support
-```
+\`\`\`
 
 ## 🗃️ PostgreSQL Data Types
 
@@ -21,7 +21,7 @@ CREATE EXTENSION IF NOT EXISTS "btree_gist";    -- GiST index support
 
 Instead of plain text fields, we use PostgreSQL enums for constrained values:
 
-```sql
+\`\`\`sql
 -- Crop status tracking
 CREATE TYPE crop_status_enum AS ENUM (
     'planning', 'planted', 'growing', 'harvested', 'failed'
@@ -41,7 +41,7 @@ CREATE TYPE irrigation_type_enum AS ENUM (
 CREATE TYPE weather_condition_enum AS ENUM (
     'clear', 'partly-cloudy', 'cloudy', 'fog', 'rain', 'snow', 'thunderstorm'
 );
-```
+\`\`\`
 
 **Benefits:**
 - Type safety at database level
@@ -53,7 +53,7 @@ CREATE TYPE weather_condition_enum AS ENUM (
 
 Custom domain types provide automatic data validation:
 
-```sql
+\`\`\`sql
 -- Phone number validation
 CREATE DOMAIN phone_number AS VARCHAR(20)
 CHECK (VALUE ~ '^[+]?[0-9\s\-\(\)]{10,20}$');
@@ -65,7 +65,7 @@ CHECK (VALUE ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$');
 -- Land size with reasonable constraints
 CREATE DOMAIN land_size_hectares AS NUMERIC(8,2)
 CHECK (VALUE >= 0.01 AND VALUE <= 10000);
-```
+\`\`\`
 
 **Benefits:**
 - Centralized validation logic
@@ -77,7 +77,7 @@ CHECK (VALUE >= 0.01 AND VALUE <= 10000);
 
 PostgreSQL arrays for list data:
 
-```sql
+\`\`\`sql
 -- Store multiple disease names
 CREATE TABLE encyclopedia (
     common_diseases TEXT[],  -- Array of disease names
@@ -89,7 +89,7 @@ CREATE TABLE encyclopedia (
 CREATE TABLE schemes (
     tags TEXT[]  -- Array of categorization tags
 );
-```
+\`\`\`
 
 **Benefits:**
 - Native array operations
@@ -101,7 +101,7 @@ CREATE TABLE schemes (
 
 PostgreSQL JSONB for flexible, structured data with indexing:
 
-```sql
+\`\`\`sql
 -- Complex structured data
 CREATE TABLE schemes (
     benefits JSONB,                    -- Nested benefit information
@@ -109,7 +109,7 @@ CREATE TABLE schemes (
     contact_info JSONB,                -- Contact details
     fertilizer_needs JSONB            -- Nutrient requirements
 );
-```
+\`\`\`
 
 **Benefits:**
 - Flexible schema
@@ -121,7 +121,7 @@ CREATE TABLE schemes (
 
 PostGIS integration for geographic data:
 
-```sql
+\`\`\`sql
 -- Field locations with geographic precision
 CREATE TABLE fields (
     coordinates GEOGRAPHY(POINT, 4326),  -- Precise GPS coordinates
@@ -133,7 +133,7 @@ CREATE TABLE weather_data (
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8)
 );
-```
+\`\`\`
 
 **Benefits:**
 - Geographic calculations
@@ -147,7 +147,7 @@ CREATE TABLE weather_data (
 
 #### GIN Indexes for Full-Text Search
 
-```sql
+\`\`\`sql
 -- Trigram search for crop names and descriptions
 CREATE INDEX idx_encyclopedia_gin_search ON encyclopedia
 USING gin(crop_name gin_trgm_ops);
@@ -163,11 +163,11 @@ USING gin(
 -- JSONB indexing
 CREATE INDEX idx_schemes_benefits ON schemes
 USING gin(benefits);
-```
+\`\`\`
 
 #### GiST Indexes for Geographic Data
 
-```sql
+\`\`\`sql
 -- Spatial indexing for field locations
 CREATE INDEX idx_fields_gis ON fields
 USING gist(coordinates);
@@ -175,11 +175,11 @@ USING gist(coordinates);
 -- Weather location indexing
 CREATE INDEX idx_weather_coords ON weather_data
 USING gist(longitude, latitude);
-```
+\`\`\`
 
 #### B-tree Indexes for Range Queries
 
-```sql
+\`\`\`sql
 -- Time-based queries
 CREATE INDEX idx_market_prices_date ON market_prices(arrival_date DESC);
 
@@ -188,13 +188,13 @@ CREATE INDEX idx_soil_health_score ON soil_analysis(health_score DESC);
 
 -- Composite indexes for common query patterns
 CREATE INDEX idx_crop_cycles_composite ON crop_cycles(field_id, status, planting_date);
-```
+\`\`\`
 
 ### 2. Generated Columns
 
 Automatic calculation of derived values:
 
-```sql
+\`\`\`sql
 -- Area conversion (hectares to acres)
 CREATE TABLE fields (
     area_hectares land_size_hectares,
@@ -218,13 +218,13 @@ CREATE TABLE crop_cycles (
         END
     ) STORED
 );
-```
+\`\`\`
 
 ### 3. Query Optimization
 
 #### Views for Complex Queries
 
-```sql
+\`\`\`sql
 -- Farmer dashboard summary view
 CREATE VIEW farmer_dashboard_summary AS
 SELECT
@@ -237,11 +237,11 @@ LEFT JOIN fields f ON fp.id = f.farmer_id
 LEFT JOIN crop_cycles cc ON f.id = cc.field_id
 LEFT JOIN soil_analysis sa ON fp.id = sa.farmer_id
 GROUP BY fp.id, fp.full_name, fp.land_size;
-```
+\`\`\`
 
 #### Materialized Views for Heavy Analytics
 
-```sql
+\`\`\`sql
 -- Market price trends (refreshed daily)
 CREATE MATERIALIZED VIEW market_price_trends AS
 SELECT
@@ -252,7 +252,7 @@ SELECT
 FROM market_prices
 WHERE arrival_date >= CURRENT_DATE - INTERVAL '30 days'
 GROUP BY commodity, state;
-```
+\`\`\`
 
 ## 🔒 Security Enhancements
 
@@ -260,7 +260,7 @@ GROUP BY commodity, state;
 
 Advanced RLS policies for granular access control:
 
-```sql
+\`\`\`sql
 -- Farmers can only access their own data
 CREATE POLICY "farmers_own_fields" ON fields
 FOR ALL USING (
@@ -274,13 +274,13 @@ FOR ALL USING (
 -- Public access for reference data
 CREATE POLICY "public_read_schemes" ON schemes
 FOR SELECT USING (is_active = true);
-```
+\`\`\`
 
 ### 2. Cryptographic Functions
 
 Secure data storage and verification:
 
-```sql
+\`\`\`sql
 -- Hash sensitive data
 INSERT INTO farmer_profiles (aadhaar_number)
 VALUES (crypt('123456789012', gen_salt('bf')));
@@ -288,13 +288,13 @@ VALUES (crypt('123456789012', gen_salt('bf')));
 -- Verification
 SELECT * FROM farmer_profiles
 WHERE aadhaar_number = crypt('123456789012', aadhaar_number);
-```
+\`\`\`
 
 ## ⚡ Performance Monitoring
 
 ### 1. Query Performance Analysis
 
-```sql
+\`\`\`sql
 -- Analyze slow queries
 SELECT
     query,
@@ -316,11 +316,11 @@ SELECT
     idx_tup_fetch
 FROM pg_stat_user_indexes
 ORDER BY idx_scan DESC;
-```
+\`\`\`
 
 ### 2. Database Statistics
 
-```sql
+\`\`\`sql
 -- Table size analysis
 SELECT
     schemaname,
@@ -330,13 +330,13 @@ SELECT
 FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY size_bytes DESC;
-```
+\`\`\`
 
 ## 🛠️ Maintenance and Optimization
 
 ### 1. Automated Maintenance
 
-```sql
+\`\`\`sql
 -- Update statistics
 ANALYZE farmer_profiles;
 ANALYZE market_prices;
@@ -346,11 +346,11 @@ REINDEX INDEX CONCURRENTLY idx_market_prices_date;
 
 -- Vacuum specific tables
 VACUUM ANALYZE crop_cycles;
-```
+\`\`\`
 
 ### 2. Performance Tuning
 
-```sql
+\`\`\`sql
 -- Set work_mem for complex queries
 SET work_mem = '64MB';
 
@@ -359,16 +359,16 @@ SET max_parallel_workers_per_gather = 4;
 
 -- Configure statement timeout
 SET statement_timeout = '30s';
-```
+\`\`\`
 
 ## 📊 Testing PostgreSQL Features
 
 Use the provided test script to verify PostgreSQL optimizations:
 
-```bash
+\`\`\`bash
 # Run PostgreSQL features test
 node scripts/test_postgresql_features.js
-```
+\`\`\`
 
 The script tests:
 - ✅ JSONB structured data
@@ -384,7 +384,7 @@ The script tests:
 
 ### Production Settings
 
-```sql
+\`\`\`sql
 -- Memory settings
 SET shared_buffers = '256MB';
 SET effective_cache_size = '1GB';
@@ -398,11 +398,11 @@ SET shared_preload_libraries = 'pg_stat_statements';
 -- Query optimization
 SET random_page_cost = 1.1;
 SET effective_io_concurrency = 200;
-```
+\`\`\`
 
 ### Monitoring Setup
 
-```sql
+\`\`\`sql
 -- Enable pg_stat_statements
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 
@@ -417,7 +417,7 @@ SELECT
     state
 FROM pg_stat_activity
 WHERE (now() - pg_stat_activity.query_start) > interval '5 minutes';
-```
+\`\`\`
 
 ## 🎯 Benefits of PostgreSQL Optimizations
 

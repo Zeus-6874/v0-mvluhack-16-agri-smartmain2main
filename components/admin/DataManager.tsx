@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useEffect, useMemo, useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
@@ -326,10 +328,7 @@ export default function DataManager({ schemeCategories, cropCategories }: DataMa
               ) : schemes.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No schemes found.</p>
               ) : (
-                schemes.map((sche
-                  
-                  
-                  me) => (
+                schemes.map((scheme) => (
                   <div key={scheme.id} className="border rounded-lg p-3">
                     <div className="flex justify-between items-center">
                       <div>

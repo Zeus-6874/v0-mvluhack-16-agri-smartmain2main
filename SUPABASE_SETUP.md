@@ -53,11 +53,11 @@ When using the PostgreSQL-optimized migration, you get:
 
 ## Required Environment Variables
 
-```env
+\`\`\`env
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
-```
+\`\`\`
 
 ## Essential Setup Data
 
@@ -94,36 +94,36 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
 #### Minimum Required Data for Testing
 
 1. **Government Schemes** (Optional but Recommended):
-```sql
+\`\`\`sql
 -- Basic schemes to test the system
 INSERT INTO schemes (name, description, state, category, benefits) VALUES
 ('PM-KISAN', 'Direct income support to farmers', 'All India', 'Financial Support', 'Rs. 6000 per year'),
 ('Soil Health Card', 'Soil testing and nutrient management', 'All India', 'Soil Management', 'Free soil testing');
-```
+\`\`\`
 
 2. **Crop Encyclopedia** (Optional but Recommended):
-```sql
+\`\`\`sql
 -- Basic crop data
 INSERT INTO encyclopedia (crop_name, planting_season, harvest_time, water_requirements) VALUES
 ('Wheat', 'Rabi', '3-4 months', 'Medium'),
 ('Rice', 'Kharif', '3-4 months', 'High'),
 ('Corn', 'Kharif', '2-3 months', 'Medium');
-```
+\`\`\`
 
 3. **Sample Market Prices** (Optional but Recommended):
-```sql
+\`\`\`sql
 -- Recent market prices
 INSERT INTO market_prices (commodity, market_name, state, modal_price, arrival_date) VALUES
 ('Wheat', 'Delhi Mandi', 'Delhi', 2200, CURRENT_DATE),
 ('Rice', 'Mumbai Market', 'Maharashtra', 3200, CURRENT_DATE);
-```
+\`\`\`
 
 ### Authentication Configuration
 
 #### JWT Template Settings
 Go to Authentication → JWT Templates and ensure these fields are included in your default JWT template:
 
-```json
+\`\`\`json
 {
   "aud": "authenticated",
   "exp": 0,
@@ -134,22 +134,22 @@ Go to Authentication → JWT Templates and ensure these fields are included in y
   "user_metadata": {},
   "role": "authenticated"
 }
-```
+\`\`\`
 
 #### Redirect URLs
 Add these URLs to Authentication → Settings:
 
-```
+\`\`\`
 http://localhost:3000/auth/callback
 https://your-domain.com/auth/callback
-```
+\`\`\`
 
 #### Site URL
 Set your site URL:
-```
+\`\`\`
 http://localhost:3000  # For development
 https://your-domain.com # For production
-```
+\`\`\`
 
 ### Row Level Security (RLS) Configuration
 
@@ -178,13 +178,13 @@ The migration script automatically configures RLS policies, but here's what they
    - Add `https://your-domain.com` for production
 
 #### Recommended API Settings
-```json
+\`\`\`json
 {
   "db_extra_search_path": "public",
   "max_rows": 1000,
   "realtime_channels": ["*"]
 }
-```
+\`\`\`
 
 ### Optional External APIs
 
@@ -192,21 +192,21 @@ The migration script automatically configures RLS policies, but here's what they
 1. Sign up at [OpenWeatherMap](https://openweathermap.org/api)
 2. Get your API key
 3. Add to environment variables:
-   ```env
+   \`\`\`env
    WEATHER_API_KEY=your_openweather_api_key
-   ```
+   \`\`\`
 
 #### Government Schemes API (Optional)
 If you have access to government APIs:
-```env
+\`\`\`env
 SCHEMES_API_URL=https://api.gov.in/schemes
 SCHEMES_API_KEY=your_schemes_api_key
-```
+\`\`\`
 
 ### Testing Your Setup
 
 #### 1. Test Database Connection
-```javascript
+\`\`\`javascript
 // Test in browser console
 const { data, error } = await supabase
   .from('encyclopedia')
@@ -214,24 +214,24 @@ const { data, error } = await supabase
   .limit(1);
 
 console.log('Database test:', { data, error });
-```
+\`\`\`
 
 #### 2. Test Authentication
-```javascript
+\`\`\`javascript
 // Test auth functionality
 const { data, error } = await supabase.auth.signInWithPassword({
   email: 'test@example.com',
   password: 'password'
 });
-```
+\`\`\`
 
 #### 3. Test RLS Policies
-```javascript
+\`\`\`javascript
 // Test that users can only access their data
 const { data, error } = await supabase
   .from('farmer_profiles')
   .select('*');
-```
+\`\`\`
 
 ### Production Considerations
 
@@ -277,7 +277,7 @@ const { data, error } = await supabase
 
 #### Debug Queries
 
-```sql
+\`\`\`sql
 -- Check if tables exist
 SELECT table_name FROM information_schema.tables
 WHERE table_schema = 'public';
@@ -289,7 +289,7 @@ WHERE schemaname = 'public';
 
 -- Test user access
 SELECT session.user, current_setting('request.jwt.claims', true);
-```
+\`\`\`
 
 ### Minimum Data Checklist
 

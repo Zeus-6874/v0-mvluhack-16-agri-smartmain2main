@@ -6,12 +6,12 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "next lint",
-    "start": "next start",
-    "seed:schemes": "tsx scripts/seed_schemes.ts",
     "seed:crops": "tsx scripts/seed_crops.ts",
     "seed:cropsap": "tsx scripts/seed_cropsap.ts",
     "seed:district": "tsx scripts/seed_district_stats.ts",
-    "seed:market": "tsx scripts/ingest_agmarknet.ts"
+    "seed:market": "tsx scripts/ingest_agmarknet.ts",
+    "seed:schemes": "tsx scripts/seed_schemes.ts",
+    "start": "next start"
   },
   "dependencies": {
     "@clerk/nextjs": "latest",
@@ -64,6 +64,7 @@
     "lucide-react": "^0.454.0",
     "next": "16.0.3",
     "next-themes": "latest",
+    "path": "latest",
     "react": "^19.2.0",
     "react-day-picker": "latest",
     "react-dom": "^19.2.0",
@@ -79,7 +80,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
+    "@types/node": "^22",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
     "dotenv": "^17.2.3",

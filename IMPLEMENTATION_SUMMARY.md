@@ -158,7 +158,7 @@ Successfully implemented Phase 1 of the comprehensive crop and soil management e
 ## 📊 Data Models
 
 ### Field Model
-```typescript
+\`\`\`typescript
 interface Field {
   id: string
   farmer_id: string
@@ -168,10 +168,10 @@ interface Field {
   soil_type: string
   irrigation_type: string
 }
-```
+\`\`\`
 
 ### Crop Cycle Model
-```typescript
+\`\`\`typescript
 interface CropCycle {
   id: string
   field_id: string
@@ -183,10 +183,10 @@ interface CropCycle {
   status: "planning" | "planted" | "growing" | "harvested"
   notes: string
 }
-```
+\`\`\`
 
 ### Field Activity Model
-```typescript
+\`\`\`typescript
 interface FieldActivity {
   id: string
   crop_cycle_id: string
@@ -196,7 +196,7 @@ interface FieldActivity {
   cost: number
   notes: string
 }
-```
+\`\`\`
 
 ## 🔍 Key Features Implemented
 

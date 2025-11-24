@@ -1,20 +1,23 @@
+import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import AdminDashboard from "@/components/admin/AdminDashboard"
 
 export default async function AdminDashboardPage() {
-  const supabase = await createClient()
+  const { userId } = await auth()
 
-  const { data, error } = await supabase.auth.getUser()
-  if (error || !data?.user) {
-    redirect("/admin/login")
+  // Redirect to sign-in if not authenticated
+  if (!userId) {
+    redirect("/sign-in")
   }
 
-  // Check if user has admin privileges
-  const isAdmin = data.user.email?.includes("admin") || data.user.user_metadata?.role === "admin"
-  if (!isAdmin) {
-    redirect("/admin/login")
+  // Check if user has admin privileges using ADMIN_USER_IDS from env
+  const adminUserIds = process.env.ADMIN_USER_IDS?.split(",").map((id) => id.trim()) || []
+
+  if (!adminUserIds.includes(userId)) {
+    redirect("/dashboard")
   }
 
-  return <AdminDashboard user={data.user} />
+  // Return a mock user object for compatibility with AdminDashboard component
+  // In production, fetch from Clerk API if needed
+  return <AdminDashboard user={{ userId, email: "admin@agrismart.local" } as any} />
 }

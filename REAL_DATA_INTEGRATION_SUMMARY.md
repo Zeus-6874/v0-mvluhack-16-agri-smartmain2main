@@ -68,26 +68,26 @@ This document summarizes the changes made to replace mock data with real data so
 
 ### 1. Database Setup
 Run the SQL migration scripts in order:
-```bash
+\`\`\`bash
 # Run in Supabase SQL Editor or via migration tool
 scripts/007_create_cropsap_schema.sql
-```
+\`\`\`
 
 ### 2. Seed Real Data
-```bash
+\`\`\`bash
 # Seed CROPSAP alerts (if you have real data)
 pnpm seed:cropsap
 
 # Seed district statistics (if you have real data)
 pnpm seed:district
-```
+\`\`\`
 
 ### 3. Admin Access Setup
 1. Get your Clerk user ID (see `ADMIN_SETUP_GUIDE.md`)
 2. Add to `.env.local`:
-   ```env
+   \`\`\`env
    ADMIN_USER_IDS=user_xxxxxxxxxxxxx
-   ```
+   \`\`\`
 3. Restart development server
 4. Access `/admin/data` to manage schemes and crops
 
@@ -136,4 +136,3 @@ To verify real data integration:
 ---
 
 **Last Updated**: After Stage 3 completion (CROPSAP + District Statistics integration)
-

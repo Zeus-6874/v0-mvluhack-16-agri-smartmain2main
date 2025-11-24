@@ -23,21 +23,21 @@ A comprehensive agricultural management platform built with Next.js 14, Supabase
 ## Quick Start
 
 1. **Clone the repository**
-   ```bash
+   \`\`\`bash
    gh repo clone Zeus6666784/MVLUHACK16_AgriSmart
-   ```
+   \`\`\`
 
 2️⃣ Install dependencies
 
-```bash
+\`\`\`bash
 npm install
-```
+\`\`\`
 
 3️⃣ Run locally
 
-```bash
+\`\`\`bash
 npm run dev
-```
+\`\`\`
 
 4️⃣ Open in browser → `http://localhost:3000`
 

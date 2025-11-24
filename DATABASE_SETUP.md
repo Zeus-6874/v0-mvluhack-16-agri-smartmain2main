@@ -12,39 +12,39 @@ This guide will help you set up your Supabase database with all required tables.
 Run these SQL scripts **in order** in your Supabase SQL Editor:
 
 ### 1. Base Schema
-```sql
+\`\`\`sql
 -- Run: scripts/001_create_database_schema.sql
-```
+\`\`\`
 Creates: `farmers`, `encyclopedia`, `schemes`, `market_prices`, `crop_varieties`, `weather_data`, `soil_analysis`, `disease_reports`
 
 ### 2. Auth Integration
-```sql
+\`\`\`sql
 -- Run: scripts/003_update_schema_for_auth.sql
-```
+\`\`\`
 Updates: Adds `user_id` to farmers, creates auth triggers, updates RLS policies
 
 ### 3. Market Data Schema
-```sql
+\`\`\`sql
 -- Run: scripts/004_create_market_data_schema.sql
-```
+\`\`\`
 Creates: `market_price_sources`, `market_prices`, `market_price_history` (new structure)
 
 ### 4. Knowledge Base Schema ⚠️ **REQUIRED FOR SEED SCRIPTS**
-```sql
+\`\`\`sql
 -- Run: scripts/005_create_knowledge_schema.sql
-```
+\`\`\`
 Creates: `scheme_categories`, `schemes` (new structure), `crop_categories`, `crops`, `crop_notes`
 
 ### 5. Farmer Profiles
-```sql
+\`\`\`sql
 -- Run: scripts/006_create_farmer_profiles.sql
-```
+\`\`\`
 Creates: `farmer_profiles` table
 
 ### 6. CROPSAP & District Stats
-```sql
+\`\`\`sql
 -- Run: scripts/007_create_cropsap_schema.sql
-```
+\`\`\`
 Creates: `cropsap_alerts`, `district_statistics`
 
 ## ⚠️ IMPORTANT: If You Already Have a Schemes Table
@@ -75,7 +75,7 @@ This script will:
 
 ### Option 2: Using Supabase CLI (Advanced)
 
-```bash
+\`\`\`bash
 # Install Supabase CLI
 npm install -g supabase
 
@@ -87,19 +87,19 @@ supabase link --project-ref your-project-ref
 
 # Run migrations
 supabase db push
-```
+\`\`\`
 
 ## Verification
 
 After running all migrations, verify tables exist:
 
-```sql
+\`\`\`sql
 -- Run this in SQL Editor to check all tables
 SELECT table_name 
 FROM information_schema.tables 
 WHERE table_schema = 'public' 
 ORDER BY table_name;
-```
+\`\`\`
 
 You should see:
 - `crop_categories`
@@ -119,7 +119,7 @@ You should see:
 
 Once all tables are created, you can run seed scripts:
 
-```bash
+\`\`\`bash
 # Seed schemes (requires scheme_categories table)
 pnpm seed:schemes
 
@@ -134,7 +134,7 @@ pnpm seed:district
 
 # Ingest market prices from Agmarknet
 pnpm seed:market
-```
+\`\`\`
 
 ## Troubleshooting
 
@@ -159,4 +159,3 @@ pnpm seed:market
 ---
 
 **Need Help?** Check the individual SQL files for comments explaining what each migration does.
-
