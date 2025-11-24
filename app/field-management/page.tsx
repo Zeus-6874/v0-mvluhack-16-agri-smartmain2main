@@ -1,4 +1,3 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import FieldManager from "@/components/field/FieldManager"
 import CropCalendar from "@/components/field/CropCalendar"
@@ -7,25 +6,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Calendar, Package, BarChart3 } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
+import { getSession } from "@/lib/auth/session"
 import Navbar from "@/components/Navbar"
 
-interface FarmerProfile {
-  id: string
-  full_name: string
-  location?: string
-  land_size?: number
-}
-
 export default async function FieldManagementPage() {
-  const { userId } = await auth()
-  if (!userId) {
-    redirect("/sign-in")
+  const session = await getSession()
+  if (!session) {
+    redirect("/")
   }
 
-  const user = await currentUser()
-
+  const userId = session.userId
   const supabase = await createClient()
-  const { data: profile } = await supabase.from("farmer_profiles").select("*").eq("user_id", userId).maybeSingle()
+  const { data: profile } = await supabase.from("farmers").select("*").eq("user_id", userId).maybeSingle()
 
   // Fetch field statistics
   const { data: fields } = await supabase.from("fields").select("area_hectares").eq("farmer_id", userId)

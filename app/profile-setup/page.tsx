@@ -5,16 +5,24 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-export default function HomePage() {
+export default function ProfileSetupPage() {
   const router = useRouter()
-  const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    confirmPassword: "",
+    full_name: "",
+    phone: "",
+    district: "",
+    state: "",
+    land_area: "",
   })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    })
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,42 +30,27 @@ export default function HomePage() {
     setLoading(true)
 
     try {
-      if (!isLogin && formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match")
-        setLoading(false)
-        return
-      }
-
-      const endpoint = isLogin ? "/api/auth/login" : "/api/auth/signup"
-      const response = await fetch(endpoint, {
+      const response = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
+        body: JSON.stringify(formData),
       })
 
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Something went wrong")
+        setError(data.error || "Failed to save profile")
         setLoading(false)
         return
       }
 
-      router.push("/profile-setup")
+      console.log("[v0] Profile created successfully:", data)
+      router.push("/dashboard")
     } catch (err) {
+      console.error("[v0] Profile setup error:", err)
       setError("An error occurred. Please try again.")
       setLoading(false)
     }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
   }
 
   return (
@@ -74,7 +67,7 @@ export default function HomePage() {
       <div
         style={{
           width: "100%",
-          maxWidth: "28rem",
+          maxWidth: "42rem",
           padding: "2rem",
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
           borderRadius: "0.5rem",
@@ -111,7 +104,7 @@ export default function HomePage() {
             marginBottom: "0.5rem",
           }}
         >
-          AgriSmart
+          Complete Your Profile
         </h1>
         <p
           style={{
@@ -120,19 +113,19 @@ export default function HomePage() {
             marginBottom: "2rem",
           }}
         >
-          Empower Your Farming with AI
+          Help us know more about your farming to provide better recommendations
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div>
             <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-              Email
+              Full Name
             </label>
             <input
-              type="email"
-              name="email"
-              placeholder="your@email.com"
-              value={formData.email}
+              type="text"
+              name="full_name"
+              placeholder="Your name"
+              value={formData.full_name}
               onChange={handleChange}
               required
               style={{
@@ -141,19 +134,20 @@ export default function HomePage() {
                 border: "1px solid rgb(203, 213, 225)",
                 borderRadius: "0.375rem",
                 fontFamily: "inherit",
+                boxSizing: "border-box",
               }}
             />
           </div>
 
           <div>
             <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-              Password
+              Phone Number
             </label>
             <input
-              type="password"
-              name="password"
-              placeholder="••••••••"
-              value={formData.password}
+              type="tel"
+              name="phone"
+              placeholder="Your phone number"
+              value={formData.phone}
               onChange={handleChange}
               required
               style={{
@@ -162,20 +156,21 @@ export default function HomePage() {
                 border: "1px solid rgb(203, 213, 225)",
                 borderRadius: "0.375rem",
                 fontFamily: "inherit",
+                boxSizing: "border-box",
               }}
             />
           </div>
 
-          {!isLogin && (
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                Confirm Password
+                District
               </label>
               <input
-                type="password"
-                name="confirmPassword"
-                placeholder="••••••••"
-                value={formData.confirmPassword}
+                type="text"
+                name="district"
+                placeholder="Your district"
+                value={formData.district}
                 onChange={handleChange}
                 required
                 style={{
@@ -184,10 +179,55 @@ export default function HomePage() {
                   border: "1px solid rgb(203, 213, 225)",
                   borderRadius: "0.375rem",
                   fontFamily: "inherit",
+                  boxSizing: "border-box",
                 }}
               />
             </div>
-          )}
+            <div>
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
+                State
+              </label>
+              <input
+                type="text"
+                name="state"
+                placeholder="Your state"
+                value={formData.state}
+                onChange={handleChange}
+                required
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "1px solid rgb(203, 213, 225)",
+                  borderRadius: "0.375rem",
+                  fontFamily: "inherit",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
+              Land Area (hectares)
+            </label>
+            <input
+              type="number"
+              name="land_area"
+              placeholder="Land area in hectares"
+              value={formData.land_area}
+              onChange={handleChange}
+              required
+              step="0.01"
+              style={{
+                width: "100%",
+                padding: "0.75rem",
+                border: "1px solid rgb(203, 213, 225)",
+                borderRadius: "0.375rem",
+                fontFamily: "inherit",
+                boxSizing: "border-box",
+              }}
+            />
+          </div>
 
           {error && (
             <div
@@ -219,35 +259,9 @@ export default function HomePage() {
               fontFamily: "inherit",
             }}
           >
-            {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+            {loading ? "Setting up..." : "Complete Setup"}
           </button>
         </form>
-
-        <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
-          <p style={{ fontSize: "0.875rem", color: "rgb(75, 85, 99)" }}>
-            {isLogin ? "Don't have an account?" : "Already have an account?"}
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogin(!isLogin)
-                setError("")
-                setFormData({ email: "", password: "", confirmPassword: "" })
-              }}
-              style={{
-                marginLeft: "0.25rem",
-                color: "rgb(22, 163, 74)",
-                fontWeight: "500",
-                textDecoration: "underline",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              {isLogin ? "Sign Up" : "Sign In"}
-            </button>
-          </p>
-        </div>
       </div>
     </div>
   )

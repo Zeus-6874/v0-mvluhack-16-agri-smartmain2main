@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
 import { createClient } from "@/lib/supabase/server"
+import { getCurrentUserId } from "@/lib/auth/utils"
 
 function assertAdmin(userId?: string | null) {
   const adminIds = process.env.ADMIN_USER_IDS?.split(",").map((id) => id.trim()) || []
@@ -10,7 +10,7 @@ function assertAdmin(userId?: string | null) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     assertAdmin(userId)
 
     const payload = await request.json()

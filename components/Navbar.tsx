@@ -5,9 +5,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { Menu, Globe } from "lucide-react"
+import { Menu, Globe, LogOut } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
-import { UserButton } from "@clerk/nextjs"
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -52,7 +51,12 @@ export default function Navbar() {
   const isActive = (href: string) => pathname === href
 
   const toggleLanguage = () => {
-    setLanguage(language === "en" ? "hi" : "en")
+    setLanguage(language === "en" ? "hi" : language === "hi" ? "mr" : "en")
+  }
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" })
+    window.location.href = "/"
   }
 
   return (
@@ -61,7 +65,10 @@ export default function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center space-x-2" aria-label="AgriSmart Home">
-            <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center" aria-hidden="true">
+            <div
+              className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center"
+              aria-hidden="true"
+            >
               <span className="text-white font-bold text-sm">AS</span>
             </div>
             <span className="text-xl font-bold text-gray-900">AgriSmart</span>
@@ -83,21 +90,28 @@ export default function Navbar() {
             ))}
           </div>
 
-          {/* Language Toggle, User Button & Mobile Menu */}
+          {/* Language Toggle & Logout */}
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={toggleLanguage}
               className="hidden sm:flex items-center space-x-1"
-              aria-label={language === "en" ? "Switch to Hindi" : "Switch to English"}
+              aria-label="Switch language"
             >
               <Globe className="h-4 w-4" aria-hidden="true" />
-              <span>{language === "en" ? "हिं" : "EN"}</span>
+              <span>{language === "en" ? "EN" : language === "hi" ? "हिं" : "मराठी"}</span>
             </Button>
-            <div className="hidden sm:block">
-              <UserButton afterSignOutUrl="/sign-in" />
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              className="hidden sm:flex items-center space-x-1 text-red-600 hover:text-red-700"
+              aria-label="Logout"
+            >
+              <LogOut className="h-4 w-4" aria-hidden="true" />
+              <span>Logout</span>
+            </Button>
 
             {/* Mobile Menu */}
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -126,14 +140,16 @@ export default function Navbar() {
                     variant="ghost"
                     onClick={toggleLanguage}
                     className="flex items-center space-x-2 justify-start mt-8"
-                    aria-label={language === "en" ? "Switch to Hindi" : "Switch to English"}
+                    aria-label="Switch language"
                   >
                     <Globe className="h-4 w-4" aria-hidden="true" />
-                    <span>{language === "en" ? "Switch to Hindi" : "Switch to English"}</span>
+                    <span>{language === "en" ? "EN" : language === "hi" ? "हिं" : "मराठी"}</span>
                   </Button>
-                  
+
                   <div className="mt-4 pt-4 border-t">
-                    <UserButton afterSignOutUrl="/sign-in" />
+                    <Button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 text-white">
+                      Logout
+                    </Button>
                   </div>
                 </div>
               </SheetContent>

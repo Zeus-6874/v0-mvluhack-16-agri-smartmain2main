@@ -1,10 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
+import { getCurrentUserId } from "@/lib/auth/utils"
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       fields: fields || [],
-      total: fields?.length || 0
+      total: fields?.length || 0,
     })
   } catch (error) {
     console.error("API Error:", error)
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -56,15 +56,21 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!field_name || !area_hectares) {
-      return NextResponse.json({
-        error: "Field name and area are required"
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Field name and area are required",
+        },
+        { status: 400 },
+      )
     }
 
     if (area_hectares <= 0) {
-      return NextResponse.json({
-        error: "Area must be greater than 0"
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Area must be greater than 0",
+        },
+        { status: 400 },
+      )
     }
 
     const supabase = await createClient()
@@ -75,10 +81,10 @@ export async function POST(request: NextRequest) {
       .insert({
         farmer_id: userId,
         field_name: field_name.trim(),
-        area_hectares: parseFloat(area_hectares),
+        area_hectares: Number.parseFloat(area_hectares),
         coordinates: coordinates || null,
         soil_type: soil_type || null,
-        irrigation_type: irrigation_type || null
+        irrigation_type: irrigation_type || null,
       })
       .select()
       .single()
@@ -90,7 +96,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      field
+      field,
     })
   } catch (error) {
     console.error("API Error:", error)

@@ -1,20 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { auth } from "@clerk/nextjs/server"
+import { getCurrentUserId } from "@/lib/auth/utils"
 import { createClient } from "@supabase/supabase-js"
 
 export async function GET() {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
+      auth: { persistSession: false, autoRefreshToken: false },
     })
+
     const { data, error } = await supabase.from("farmers").select("*").eq("user_id", userId).maybeSingle()
 
     if (error) {
@@ -31,7 +29,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -41,10 +39,7 @@ export async function POST(request: NextRequest) {
     console.log("[v0] Payload:", payload)
 
     const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-      },
+      auth: { persistSession: false, autoRefreshToken: false },
     })
 
     const { data: existingProfile } = await supabase.from("farmers").select("id").eq("user_id", userId).maybeSingle()
@@ -52,8 +47,6 @@ export async function POST(request: NextRequest) {
     let data, error
 
     if (existingProfile) {
-      // Update existing profile
-      console.log("[v0] Updating existing profile:", existingProfile.id)
       const updateResult = await supabase
         .from("farmers")
         .update({
@@ -70,8 +63,6 @@ export async function POST(request: NextRequest) {
       data = updateResult.data
       error = updateResult.error
     } else {
-      // Insert new profile
-      console.log("[v0] Inserting new profile")
       const insertResult = await supabase
         .from("farmers")
         .insert({
@@ -90,14 +81,13 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error("[v0] Profile save error:", error)
-      console.error("[v0] Error details:", error.message)
-      return NextResponse.json({ error: "Failed to save profile", details: error.message }, { status: 500 })
+      return NextResponse.json({ error: "Failed to save profile" }, { status: 500 })
     }
 
-    console.log("[v0] Profile saved successfully:", data)
+    console.log("[v0] Profile saved successfully")
     return NextResponse.json({ success: true, profile: data })
   } catch (error) {
     console.error("[v0] Profile POST error:", error)
-    return NextResponse.json({ error: "Internal server error", details: String(error) }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
