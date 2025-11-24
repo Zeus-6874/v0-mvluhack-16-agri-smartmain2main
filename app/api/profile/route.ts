@@ -32,31 +32,62 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = await request.json()
+    console.log("[v0] Creating profile for user:", userId)
+    console.log("[v0] Payload:", payload)
+
     const supabase = await createClient()
 
-    const { data, error } = await supabase
-      .from("farmers")
-      .upsert(
-        {
+    const { data: existingProfile } = await supabase.from("farmers").select("id").eq("user_id", userId).maybeSingle()
+
+    let data, error
+
+    if (existingProfile) {
+      // Update existing profile
+      console.log("[v0] Updating existing profile:", existingProfile.id)
+      const updateResult = await supabase
+        .from("farmers")
+        .update({
+          name: payload.full_name,
+          phone: payload.phone,
+          location: `${payload.district}, ${payload.state}`,
+          farm_size: payload.land_area ? Number(payload.land_area) : null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", userId)
+        .select()
+        .single()
+
+      data = updateResult.data
+      error = updateResult.error
+    } else {
+      // Insert new profile
+      console.log("[v0] Inserting new profile")
+      const insertResult = await supabase
+        .from("farmers")
+        .insert({
           user_id: userId,
           name: payload.full_name,
           phone: payload.phone,
           location: `${payload.district}, ${payload.state}`,
           farm_size: payload.land_area ? Number(payload.land_area) : null,
-        },
-        { onConflict: "user_id" },
-      )
-      .select()
-      .single()
+        })
+        .select()
+        .single()
 
-    if (error) {
-      console.error("[v0] Profile upsert error:", error)
-      return NextResponse.json({ error: "Failed to save profile" }, { status: 500 })
+      data = insertResult.data
+      error = insertResult.error
     }
 
+    if (error) {
+      console.error("[v0] Profile save error:", error)
+      console.error("[v0] Error details:", error.message)
+      return NextResponse.json({ error: "Failed to save profile", details: error.message }, { status: 500 })
+    }
+
+    console.log("[v0] Profile saved successfully:", data)
     return NextResponse.json({ success: true, profile: data })
   } catch (error) {
     console.error("[v0] Profile POST error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ error: "Internal server error", details: String(error) }, { status: 500 })
   }
 }
