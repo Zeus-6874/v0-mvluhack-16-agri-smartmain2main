@@ -1,5 +1,3 @@
-"use server"
-
 import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
@@ -12,7 +10,7 @@ export default async function OnboardingPage() {
   }
 
   const supabase = await createClient()
-  const { data: profile } = await supabase.from("farmer_profiles").select("*").eq("user_id", userId).maybeSingle()
+  const { data: profile } = await supabase.from("farmers").select("*").eq("user_id", userId).maybeSingle()
   if (profile) {
     redirect("/dashboard")
   }

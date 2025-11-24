@@ -10,16 +10,16 @@ export async function GET() {
     }
 
     const supabase = await createClient()
-    const { data, error } = await supabase.from("farmer_profiles").select("*").eq("user_id", userId).maybeSingle()
+    const { data, error } = await supabase.from("farmers").select("*").eq("user_id", userId).maybeSingle()
 
     if (error) {
-      console.error("Profile fetch error:", error)
+      console.error("[v0] Profile fetch error:", error)
       return NextResponse.json({ error: "Failed to fetch profile" }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, profile: data })
   } catch (error) {
-    console.error("Profile GET error:", error)
+    console.error("[v0] Profile GET error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
@@ -35,19 +35,14 @@ export async function POST(request: NextRequest) {
     const supabase = await createClient()
 
     const { data, error } = await supabase
-      .from("farmer_profiles")
+      .from("farmers")
       .upsert(
         {
           user_id: userId,
-          full_name: payload.full_name,
-          contact_number: payload.phone || payload.contact_number,
-          location: payload.district ? `${payload.district}, ${payload.state || ""}`.trim() : payload.location,
-          land_size: payload.land_area ? Number(payload.land_area) : null,
-          primary_crop: payload.primary_crop,
-          irrigation_method: payload.irrigation || payload.irrigation_method,
-          // Additional fields for compatibility
-          farm_name: payload.farm_name,
-          // Store extra data in a JSON field if available, or ignore for now
+          name: payload.full_name,
+          phone: payload.phone,
+          location: `${payload.district}, ${payload.state}`,
+          farm_size: payload.land_area ? Number(payload.land_area) : null,
         },
         { onConflict: "user_id" },
       )
@@ -55,13 +50,13 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (error) {
-      console.error("Profile upsert error:", error)
+      console.error("[v0] Profile upsert error:", error)
       return NextResponse.json({ error: "Failed to save profile" }, { status: 500 })
     }
 
     return NextResponse.json({ success: true, profile: data })
   } catch (error) {
-    console.error("Profile POST error:", error)
+    console.error("[v0] Profile POST error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

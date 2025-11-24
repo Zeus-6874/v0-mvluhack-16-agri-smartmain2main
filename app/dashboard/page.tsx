@@ -8,7 +8,7 @@ export default async function DashboardPage() {
   if (!userId) redirect("/sign-in")
 
   const supabase = await createClient()
-  const { data: profile } = await supabase.from("farmer_profiles").select("*").eq("user_id", userId).maybeSingle()
+  const { data: profile } = await supabase.from("farmers").select("*").eq("user_id", userId).maybeSingle()
 
   if (!profile) {
     redirect("/onboarding")
