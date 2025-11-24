@@ -6,6 +6,13 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  turbopack: {
+    resolveAlias: {
+      fs: false,
+      path: false,
+      crypto: false,
+    },
+  },
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
