@@ -22,6 +22,7 @@ export default function Navbar() {
     { href: "/encyclopedia", label: t("nav.encyclopedia") },
     { href: "/weather", label: t("nav.weather") },
     { href: "/market-prices", label: t("nav.marketPrices") },
+    { href: "/schemes", label: t("nav.schemes") }, // Added schemes nav item
     { href: "/knowledge", label: t("nav.knowledge") },
   ]
 

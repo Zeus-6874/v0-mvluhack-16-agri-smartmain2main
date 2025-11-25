@@ -12,6 +12,61 @@ import { Switch } from "@/components/ui/switch"
 import { useI18n } from "@/lib/i18n/context"
 import { User, Bell, Globe, Save, Loader2, Check } from "lucide-react"
 
+const indianStates = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+]
+
+const districtsByState: Record<string, string[]> = {
+  Maharashtra: [
+    "Pune",
+    "Mumbai",
+    "Nagpur",
+    "Nashik",
+    "Aurangabad",
+    "Solapur",
+    "Kolhapur",
+    "Satara",
+    "Sangli",
+    "Ahmednagar",
+  ],
+  Gujarat: ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", "Gandhinagar"],
+  Punjab: ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur"],
+  Default: ["Select State First"],
+}
+
+const villagesByDistrict: Record<string, string[]> = {
+  Pune: ["Khed", "Maval", "Mulshi", "Bhor", "Baramati", "Indapur", "Daund", "Purandar"],
+  Mumbai: ["Andheri", "Borivali", "Bandra", "Kurla", "Malad", "Goregaon", "Vikhroli"],
+  Default: ["Select District First"],
+}
+
 interface Profile {
   full_name: string
   phone: string
@@ -47,7 +102,17 @@ export default function SettingsPage() {
       const response = await fetch("/api/profile")
       const data = await response.json()
       if (data.success && data.profile) {
-        setProfile(data.profile)
+        setProfile({
+          full_name: data.profile.name || "",
+          phone: data.profile.phone || "",
+          state: data.profile.state || "",
+          district: data.profile.district || "",
+          village: data.profile.village || "",
+          farm_size: data.profile.farm_size || 0,
+          main_crops: data.profile.main_crops || "",
+          soil_type: data.profile.soil_type || "",
+          irrigation_type: data.profile.irrigation_type || "",
+        })
       }
     } catch (error) {
       console.error("Failed to fetch profile:", error)
@@ -80,6 +145,13 @@ export default function SettingsPage() {
     setProfile((prev) => (prev ? { ...prev, [field]: value } : null))
   }
 
+  const districts = profile?.state
+    ? districtsByState[profile.state] || districtsByState["Default"]
+    : districtsByState["Default"]
+  const villages = profile?.district
+    ? villagesByDistrict[profile.district] || villagesByDistrict["Default"]
+    : villagesByDistrict["Default"]
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -96,16 +168,8 @@ export default function SettingsPage() {
       <Navbar />
       <main className="max-w-4xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">
-            {language === "hi" ? "सेटिंग्स" : language === "mr" ? "सेटिंग्ज" : "Settings"}
-          </h1>
-          <p className="text-gray-600 mt-1">
-            {language === "hi"
-              ? "अपनी प्रोफ़ाइल और प्राथमिकताएं प्रबंधित करें"
-              : language === "mr"
-                ? "तुमचे प्रोफाइल आणि प्राधान्ये व्यवस्थापित करा"
-                : "Manage your profile and preferences"}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900">{t("settings.title")}</h1>
+          <p className="text-gray-600 mt-1">{t("settings.subtitle")}</p>
         </div>
 
         <div className="space-y-6">
@@ -114,45 +178,88 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <User className="h-5 w-5 text-green-600" />
-                <span>{language === "hi" ? "प्रोफ़ाइल" : "Profile"}</span>
+                <span>{t("settings.profile")}</span>
               </CardTitle>
               <CardDescription>
-                {language === "hi" ? "अपनी व्यक्तिगत जानकारी अपडेट करें" : "Update your personal information"}
+                {language === "hi"
+                  ? "अपनी व्यक्तिगत जानकारी अपडेट करें"
+                  : language === "mr"
+                    ? "तुमची वैयक्तिक माहिती अद्यतनित करा"
+                    : "Update your personal information"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>{language === "hi" ? "पूरा नाम" : "Full Name"}</Label>
+                  <Label>{t("profile.fullName")}</Label>
                   <Input
                     value={profile?.full_name || ""}
                     onChange={(e) => handleProfileChange("full_name", e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>{language === "hi" ? "फ़ोन नंबर" : "Phone Number"}</Label>
+                  <Label>{t("profile.phone")}</Label>
                   <Input value={profile?.phone || ""} onChange={(e) => handleProfileChange("phone", e.target.value)} />
                 </div>
+
                 <div className="space-y-2">
-                  <Label>{language === "hi" ? "राज्य" : "State"}</Label>
-                  <Input value={profile?.state || ""} onChange={(e) => handleProfileChange("state", e.target.value)} />
+                  <Label>{t("profile.state")}</Label>
+                  <Select value={profile?.state || ""} onValueChange={(value) => handleProfileChange("state", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select State" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {indianStates.map((state) => (
+                        <SelectItem key={state} value={state}>
+                          {state}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <Label>{language === "hi" ? "जिला" : "District"}</Label>
-                  <Input
+                  <Label>{t("profile.district")}</Label>
+                  <Select
                     value={profile?.district || ""}
-                    onChange={(e) => handleProfileChange("district", e.target.value)}
-                  />
+                    onValueChange={(value) => handleProfileChange("district", value)}
+                    disabled={!profile?.state}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select District" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {districts.map((district) => (
+                        <SelectItem key={district} value={district}>
+                          {district}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <Label>{language === "hi" ? "गांव" : "Village"}</Label>
-                  <Input
+                  <Label>{t("profile.village")}</Label>
+                  <Select
                     value={profile?.village || ""}
-                    onChange={(e) => handleProfileChange("village", e.target.value)}
-                  />
+                    onValueChange={(value) => handleProfileChange("village", value)}
+                    disabled={!profile?.district}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select Village" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {villages.map((village) => (
+                        <SelectItem key={village} value={village}>
+                          {village}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
                 <div className="space-y-2">
-                  <Label>{language === "hi" ? "खेत का आकार (एकड़)" : "Farm Size (acres)"}</Label>
+                  <Label>{t("profile.farmSize")}</Label>
                   <Input
                     type="number"
                     value={profile?.farm_size || ""}
@@ -168,10 +275,14 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Globe className="h-5 w-5 text-blue-600" />
-                <span>{language === "hi" ? "भाषा" : "Language"}</span>
+                <span>{t("settings.language")}</span>
               </CardTitle>
               <CardDescription>
-                {language === "hi" ? "अपनी पसंदीदा भाषा चुनें" : "Choose your preferred language"}
+                {language === "hi"
+                  ? "अपनी पसंदीदा भाषा चुनें"
+                  : language === "mr"
+                    ? "तुमची पसंतीची भाषा निवडा"
+                    : "Choose your preferred language"}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -193,18 +304,26 @@ export default function SettingsPage() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Bell className="h-5 w-5 text-yellow-600" />
-                <span>{language === "hi" ? "सूचनाएं" : "Notifications"}</span>
+                <span>{t("settings.notifications")}</span>
               </CardTitle>
               <CardDescription>
-                {language === "hi" ? "अपनी सूचना प्राथमिकताएं प्रबंधित करें" : "Manage your notification preferences"}
+                {language === "hi"
+                  ? "अपनी सूचना प्राथमिकताएं प्रबंधित करें"
+                  : language === "mr"
+                    ? "तुमची सूचना प्राधान्ये व्यवस्थापित करा"
+                    : "Manage your notification preferences"}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{language === "hi" ? "मौसम अलर्ट" : "Weather Alerts"}</p>
+                  <p className="font-medium">{t("settings.weatherAlerts")}</p>
                   <p className="text-sm text-gray-500">
-                    {language === "hi" ? "मौसम परिवर्तन की सूचनाएं प्राप्त करें" : "Get notified about weather changes"}
+                    {language === "hi"
+                      ? "मौसम परिवर्तन की सूचनाएं प्राप्त करें"
+                      : language === "mr"
+                        ? "हवामान बदलाच्या सूचना मिळवा"
+                        : "Get notified about weather changes"}
                   </p>
                 </div>
                 <Switch
@@ -214,9 +333,13 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{language === "hi" ? "बाजार अपडेट" : "Market Updates"}</p>
+                  <p className="font-medium">{t("settings.priceAlerts")}</p>
                   <p className="text-sm text-gray-500">
-                    {language === "hi" ? "मूल्य परिवर्तन की सूचनाएं" : "Price change notifications"}
+                    {language === "hi"
+                      ? "मूल्य परिवर्तन की सूचनाएं"
+                      : language === "mr"
+                        ? "किंमत बदलाच्या सूचना"
+                        : "Price change notifications"}
                   </p>
                 </div>
                 <Switch
@@ -226,9 +349,13 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{language === "hi" ? "रोग अलर्ट" : "Disease Alerts"}</p>
+                  <p className="font-medium">{t("settings.diseaseAlerts")}</p>
                   <p className="text-sm text-gray-500">
-                    {language === "hi" ? "फसल रोग चेतावनी" : "Crop disease warnings"}
+                    {language === "hi"
+                      ? "फसल रोग चेतावनी"
+                      : language === "mr"
+                        ? "पीक रोग चेतावणी"
+                        : "Crop disease warnings"}
                   </p>
                 </div>
                 <Switch
@@ -238,9 +365,13 @@ export default function SettingsPage() {
               </div>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{language === "hi" ? "कार्य रिमाइंडर" : "Task Reminders"}</p>
+                  <p className="font-medium">{t("settings.taskReminders")}</p>
                   <p className="text-sm text-gray-500">
-                    {language === "hi" ? "आगामी कार्यों की याद दिलाएं" : "Reminders for upcoming tasks"}
+                    {language === "hi"
+                      ? "आगामी कार्यों की याद दिलाएं"
+                      : language === "mr"
+                        ? "आगामी कार्यांची आठवण"
+                        : "Reminders for upcoming tasks"}
                   </p>
                 </div>
                 <Switch
@@ -261,7 +392,17 @@ export default function SettingsPage() {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              {saved ? (language === "hi" ? "सहेजा गया!" : "Saved!") : language === "hi" ? "सहेजें" : "Save Changes"}
+              {saved
+                ? language === "hi"
+                  ? "सहेजा गया!"
+                  : language === "mr"
+                    ? "जतन केले!"
+                    : "Saved!"
+                : language === "hi"
+                  ? "सहेजें"
+                  : language === "mr"
+                    ? "जतन करा"
+                    : "Save Changes"}
             </Button>
           </div>
         </div>

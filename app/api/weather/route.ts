@@ -15,15 +15,40 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const lat = searchParams.get("lat")
     const lon = searchParams.get("lon")
-    const location = (searchParams.get("location") || "Delhi").toLowerCase()
+    const location = searchParams.get("location") || ""
+
+    console.log("[v0] Weather request - lat:", lat, "lon:", lon, "location:", location)
+
+    if (lat && lon) {
+      console.log("[v0] Using coordinates for weather lookup")
+      const weatherData = await fetchOpenWeatherMap(lat, lon, await getDb())
+      if (weatherData) {
+        return NextResponse.json({
+          success: true,
+          weather: weatherData,
+          current: weatherData,
+          main: {
+            temp: weatherData.temperature,
+            humidity: weatherData.humidity,
+            pressure: weatherData.pressure,
+          },
+          wind: {
+            speed: weatherData.windSpeed / 3.6, // Convert km/h to m/s
+          },
+          weather: [
+            {
+              main: weatherData.condition.charAt(0).toUpperCase() + weatherData.condition.slice(1),
+              description: weatherData.condition,
+            },
+          ],
+          name: weatherData.location,
+        })
+      }
+    }
 
     const db = await getDb()
 
     let weatherData = null
-
-    if (lat && lon) {
-      weatherData = await fetchOpenWeatherMap(lat, lon, db)
-    }
 
     if (!weatherData) {
       const dbWeatherData = await db

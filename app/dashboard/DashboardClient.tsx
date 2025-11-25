@@ -16,12 +16,9 @@ import {
   Stethoscope,
   BookOpen,
   MapPin,
-  Sun,
   Wind,
-  Loader2,
-  AlertTriangle,
-  Info,
-  X,
+  Cloud,
+  AlertCircle,
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 
@@ -59,8 +56,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   const { language, t } = useI18n()
   const [weather, setWeather] = useState<any>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
-  const [alerts, setAlerts] = useState<any[]>([])
-  const [alertsLoading, setAlertsLoading] = useState(true)
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
 
   useEffect(() => {
@@ -80,30 +75,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     }
     fetchWeather()
   }, [profile])
-
-  useEffect(() => {
-    const fetchAlerts = async () => {
-      try {
-        const location = profile?.district || profile?.state || "Delhi"
-        const response = await fetch(`/api/weather/alerts?location=${encodeURIComponent(location)}`)
-        const data = await response.json()
-        if (data.success && data.alerts) {
-          setAlerts(data.alerts)
-        }
-      } catch (error) {
-        console.error("Alerts fetch error:", error)
-      } finally {
-        setAlertsLoading(false)
-      }
-    }
-    fetchAlerts()
-  }, [profile])
-
-  const dismissAlert = (alertId: string) => {
-    setDismissedAlerts((prev) => new Set(prev).add(alertId))
-  }
-
-  const visibleAlerts = alerts.filter((alert) => !dismissedAlerts.has(alert.id))
 
   const activeCrops = [
     {
@@ -273,62 +244,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
         </div>
       </div>
 
-      {visibleAlerts.length > 0 && (
-        <div className="space-y-2">
-          {visibleAlerts.slice(0, 3).map((alert) => (
-            <Card
-              key={alert.id}
-              className={`border-l-4 ${
-                alert.type === "danger"
-                  ? "border-l-red-500 bg-red-50"
-                  : alert.type === "warning"
-                    ? "border-l-yellow-500 bg-yellow-50"
-                    : "border-l-blue-500 bg-blue-50"
-              }`}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        alert.type === "danger"
-                          ? "bg-red-100"
-                          : alert.type === "warning"
-                            ? "bg-yellow-100"
-                            : "bg-blue-100"
-                      }`}
-                    >
-                      {alert.type === "danger" || alert.type === "warning" ? (
-                        <AlertTriangle
-                          className={`h-5 w-5 ${alert.type === "danger" ? "text-red-600" : "text-yellow-600"}`}
-                        />
-                      ) : (
-                        <Info className="h-5 w-5 text-blue-600" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-sm text-gray-900">{alert.title[language] || alert.title.en}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{alert.message[language] || alert.message.en}</p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        {language === "hi" ? "अभी" : language === "mr" ? "आत्ता" : "Now"}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 w-6 p-0 hover:bg-gray-100"
-                    onClick={() => dismissAlert(alert.id)}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
-
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat, index) => (
@@ -466,63 +381,83 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
         {/* Right Column - Weather & Tasks */}
         <div className="space-y-4 sm:space-y-6">
           {/* Weather Widget */}
-          <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-500 to-cyan-500 text-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center justify-between text-white text-lg">
-                <span>{language === "hi" ? "मौसम" : language === "mr" ? "हवामान" : "Weather"}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-white/80 hover:text-white hover:bg-white/10 h-8 px-2"
-                  onClick={() => router.push("/weather")}
-                >
-                  {language === "hi" ? "और देखें" : "View More"}
-                </Button>
+          <Card className="lg:col-span-1">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Cloud className="w-5 h-5" />
+                {t("dashboard.weather")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {weatherLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-white/70" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : weather ? (
+                <div className="space-y-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="text-4xl font-bold">{Math.round(weather.main.temp)}°C</div>
+                      <p className="text-sm text-muted-foreground mt-1 capitalize">{weather.weather[0].description}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{weather.name}</p>
+                    </div>
+                    <div className="text-6xl">
+                      {weather.weather[0].main === "Clear"
+                        ? "☀️"
+                        : weather.weather[0].main === "Clouds"
+                          ? "☁️"
+                          : weather.weather[0].main === "Rain"
+                            ? "🌧️"
+                            : weather.weather[0].main === "Snow"
+                              ? "❄️"
+                              : "🌤️"}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                    <div className="flex items-center gap-2">
+                      <Droplets className="w-4 h-4 text-blue-500" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">{t("weather.humidity")}</p>
+                        <p className="text-sm font-semibold">{weather.main.humidity}%</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Wind className="w-4 h-4 text-gray-500" />
+                      <div>
+                        <p className="text-xs text-muted-foreground">{t("weather.wind")}</p>
+                        <p className="text-sm font-semibold">{weather.wind.speed} m/s</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {(weather.main.temp > 35 ||
+                    weather.main.temp < 10 ||
+                    weather.main.humidity > 80 ||
+                    weather.weather[0].main === "Rain") && (
+                    <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
+                            {t("dashboard.weatherAlert")}
+                          </p>
+                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                            {weather.main.temp > 35
+                              ? t("weather.alerts.highTemp")
+                              : weather.main.temp < 10
+                                ? t("weather.alerts.lowTemp")
+                                : weather.main.humidity > 80
+                                  ? t("weather.alerts.highHumidity")
+                                  : t("weather.alerts.rain")}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-3xl font-bold">{weather?.temperature || 28}°C</p>
-                      <p className="text-white/80 text-sm flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {profile?.district || profile?.state || "Delhi"}
-                      </p>
-                    </div>
-                    <div className="text-5xl">
-                      {weather?.condition?.toLowerCase().includes("rain")
-                        ? "🌧️"
-                        : weather?.condition?.toLowerCase().includes("cloud")
-                          ? "☁️"
-                          : weather?.condition?.toLowerCase().includes("sun")
-                            ? "☀️"
-                            : "🌤️"}
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/20">
-                    <div className="text-center">
-                      <Droplets className="h-4 w-4 mx-auto mb-1 text-white/80" />
-                      <p className="text-sm font-medium">{weather?.humidity || 65}%</p>
-                      <p className="text-xs text-white/60">{language === "hi" ? "नमी" : "Humidity"}</p>
-                    </div>
-                    <div className="text-center">
-                      <Wind className="h-4 w-4 mx-auto mb-1 text-white/80" />
-                      <p className="text-sm font-medium">{weather?.wind_speed || 12} km/h</p>
-                      <p className="text-xs text-white/60">{language === "hi" ? "हवा" : "Wind"}</p>
-                    </div>
-                    <div className="text-center">
-                      <Sun className="h-4 w-4 mx-auto mb-1 text-white/80" />
-                      <p className="text-sm font-medium">{weather?.rainfall || 0} mm</p>
-                      <p className="text-xs text-white/60">{language === "hi" ? "बारिश" : "Rain"}</p>
-                    </div>
-                  </div>
-                </div>
+                <p className="text-sm text-muted-foreground py-4 text-center">{t("weather.unavailable")}</p>
               )}
             </CardContent>
           </Card>

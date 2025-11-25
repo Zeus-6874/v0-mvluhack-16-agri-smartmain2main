@@ -27,19 +27,20 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = await request.json()
-    console.log("[v0] Creating profile for user:", userId)
-    console.log("[v0] Payload:", payload)
+    console.log("[v0] Creating/updating profile for user:", userId)
 
     const farmersCollection = await getCollection(COLLECTIONS.FARMERS)
-
     const existingProfile = await farmersCollection.findOne({ user_id: userId })
 
     const profileData = {
       user_id: userId,
       name: payload.full_name,
       phone: payload.phone,
-      location: `${payload.district}, ${payload.state}`,
-      farm_size: payload.land_area ? Number(payload.land_area) : null,
+      state: payload.state,
+      district: payload.district,
+      village: payload.village || "",
+      location: `${payload.village || payload.district}, ${payload.district}, ${payload.state}`,
+      farm_size: payload.land_area ? Number(payload.land_area) : payload.farm_size ? Number(payload.farm_size) : null,
       updated_at: new Date(),
     }
 

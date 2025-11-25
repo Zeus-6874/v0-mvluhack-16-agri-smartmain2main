@@ -1,27 +1,92 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useI18n } from "@/lib/i18n/context"
+
+const indianStates = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+]
+
+const districtsByState: Record<string, string[]> = {
+  Maharashtra: [
+    "Pune",
+    "Mumbai",
+    "Nagpur",
+    "Nashik",
+    "Aurangabad",
+    "Solapur",
+    "Kolhapur",
+    "Satara",
+    "Sangli",
+    "Ahmednagar",
+  ],
+  Gujarat: ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", "Gandhinagar"],
+  Punjab: ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur"],
+  Haryana: ["Gurgaon", "Faridabad", "Panipat", "Ambala", "Yamunanagar", "Rohtak", "Hisar"],
+  "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi", "Meerut", "Allahabad", "Bareilly"],
+  Default: ["Select State First"],
+}
+
+const villagesByDistrict: Record<string, string[]> = {
+  Pune: ["Khed", "Maval", "Mulshi", "Bhor", "Baramati", "Indapur", "Daund", "Purandar"],
+  Mumbai: ["Andheri", "Borivali", "Bandra", "Kurla", "Malad", "Goregaon", "Vikhroli"],
+  Nagpur: ["Kamptee", "Ramtek", "Saoner", "Katol", "Narkhed", "Hingna", "Parseoni"],
+  Default: ["Select District First"],
+}
 
 export default function ProfileSetupPage() {
   const router = useRouter()
+  const { language, t } = useI18n()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
     full_name: "",
     phone: "",
-    district: "",
     state: "",
+    district: "",
+    village: "",
     land_area: "",
   })
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+
+    if (name === "state") {
+      setFormData({ ...formData, state: value, district: "", village: "" })
+    } else if (name === "district") {
+      setFormData({ ...formData, district: value, village: "" })
+    } else {
+      setFormData({ ...formData, [name]: value })
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,6 +117,13 @@ export default function ProfileSetupPage() {
       setLoading(false)
     }
   }
+
+  const districts = formData.state
+    ? districtsByState[formData.state] || districtsByState["Default"]
+    : districtsByState["Default"]
+  const villages = formData.district
+    ? villagesByDistrict[formData.district] || villagesByDistrict["Default"]
+    : villagesByDistrict["Default"]
 
   return (
     <div
@@ -104,7 +176,7 @@ export default function ProfileSetupPage() {
             marginBottom: "0.5rem",
           }}
         >
-          Complete Your Profile
+          {t("profile.title")}
         </h1>
         <p
           style={{
@@ -113,19 +185,19 @@ export default function ProfileSetupPage() {
             marginBottom: "2rem",
           }}
         >
-          Help us know more about your farming to provide better recommendations
+          {t("profile.subtitle")}
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                Full Name
+                {t("profile.fullName")}
               </label>
               <input
                 type="text"
                 name="full_name"
-                placeholder="Your name"
+                placeholder={t("profile.fullName")}
                 value={formData.full_name}
                 onChange={handleChange}
                 required
@@ -143,12 +215,12 @@ export default function ProfileSetupPage() {
 
             <div>
               <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                Phone Number
+                {t("profile.phone")}
               </label>
               <input
                 type="tel"
                 name="phone"
-                placeholder="Your phone number"
+                placeholder={t("profile.phone")}
                 value={formData.phone}
                 onChange={handleChange}
                 required
@@ -168,34 +240,10 @@ export default function ProfileSetupPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                District
+                {t("profile.state")}
               </label>
-              <input
-                type="text"
-                name="district"
-                placeholder="Your district"
-                value={formData.district}
-                onChange={handleChange}
-                required
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid rgb(203, 213, 225)",
-                  borderRadius: "0.375rem",
-                  fontFamily: "inherit",
-                  fontSize: "1rem",
-                  boxSizing: "border-box",
-                }}
-              />
-            </div>
-            <div>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                State
-              </label>
-              <input
-                type="text"
+              <select
                 name="state"
-                placeholder="Your state"
                 value={formData.state}
                 onChange={handleChange}
                 required
@@ -207,19 +255,89 @@ export default function ProfileSetupPage() {
                   fontFamily: "inherit",
                   fontSize: "1rem",
                   boxSizing: "border-box",
+                  backgroundColor: "white",
                 }}
-              />
+              >
+                <option value="">Select State</option>
+                {indianStates.map((state) => (
+                  <option key={state} value={state}>
+                    {state}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
+                {t("profile.district")}
+              </label>
+              <select
+                name="district"
+                value={formData.district}
+                onChange={handleChange}
+                required
+                disabled={!formData.state}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "1px solid rgb(203, 213, 225)",
+                  borderRadius: "0.375rem",
+                  fontFamily: "inherit",
+                  fontSize: "1rem",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                  opacity: !formData.state ? 0.5 : 1,
+                }}
+              >
+                <option value="">Select District</option>
+                {districts.map((district) => (
+                  <option key={district} value={district}>
+                    {district}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
+                {t("profile.village")}
+              </label>
+              <select
+                name="village"
+                value={formData.village}
+                onChange={handleChange}
+                required
+                disabled={!formData.district}
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "1px solid rgb(203, 213, 225)",
+                  borderRadius: "0.375rem",
+                  fontFamily: "inherit",
+                  fontSize: "1rem",
+                  boxSizing: "border-box",
+                  backgroundColor: "white",
+                  opacity: !formData.district ? 0.5 : 1,
+                }}
+              >
+                <option value="">Select Village</option>
+                {villages.map((village) => (
+                  <option key={village} value={village}>
+                    {village}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div>
             <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-              Land Area (hectares)
+              {t("profile.farmSize")}
             </label>
             <input
               type="number"
               name="land_area"
-              placeholder="Land area in hectares"
+              placeholder="Enter farm size"
               value={formData.land_area}
               onChange={handleChange}
               required
@@ -267,7 +385,7 @@ export default function ProfileSetupPage() {
               fontFamily: "inherit",
             }}
           >
-            {loading ? "Setting up..." : "Complete Setup"}
+            {loading ? t("profile.saving") : t("profile.submit")}
           </button>
         </form>
       </div>

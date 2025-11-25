@@ -13,8 +13,8 @@ export const translations = {
       cropManagement: "Crop Management",
       weather: "Weather",
       marketPrices: "Market Prices",
-      knowledge: "Knowledge",
-      schemes: "Schemes",
+      schemes: "Government Schemes", // Added schemes translation
+      knowledge: "Knowledge Hub",
       settings: "Settings",
       logout: "Logout",
       login: "Login",
@@ -128,6 +128,12 @@ export const translations = {
       goodForSpraying: "Good conditions for spraying",
       avoidIrrigation: "Avoid irrigation today",
       harvestRecommended: "Good harvest conditions",
+      alerts: {
+        highTemp: "High temperature detected. Ensure adequate irrigation and protect sensitive crops.",
+        lowTemp: "Low temperature alert. Consider frost protection measures for vulnerable crops.",
+        highHumidity: "High humidity levels. Monitor for fungal diseases and reduce watering.",
+        rain: "Rain expected. Postpone spraying activities and adjust irrigation schedule.",
+      },
     },
 
     // Profile
@@ -409,8 +415,8 @@ export const translations = {
       cropManagement: "फसल प्रबंधन",
       weather: "मौसम",
       marketPrices: "बाजार भाव",
-      knowledge: "ज्ञान",
-      schemes: "योजनाएं",
+      schemes: "सरकारी योजनाएं", // Added Hindi translation
+      knowledge: "ज्ञान केंद्र",
       settings: "सेटिंग्स",
       logout: "लॉग आउट",
       login: "लॉग इन",
@@ -524,6 +530,12 @@ export const translations = {
       goodForSpraying: "छिड़काव के लिए अच्छी स्थिति",
       avoidIrrigation: "आज सिंचाई से बचें",
       harvestRecommended: "कटाई के लिए अच्छी स्थिति",
+      alerts: {
+        highTemp: "उच्च तापमान का पता चला। पर्याप्त सिंचाई सुनिश्चित करें और संवेदनशील फसलों की रक्षा करें।",
+        lowTemp: "कम तापमान चेतावनी। कमजोर फसलों के लिए पाला संरक्षण उपाय पर विचार करें।",
+        highHumidity: "उच्च आर्द्रता स्तर। फंगल रोगों की निगरानी करें और पानी देना कम करें।",
+        rain: "बारिश की उम्मीद है। छिड़काव गतिविधियों को स्थगित करें और सिंचाई कार्यक्रम समायोजित करें।",
+      },
     },
 
     // Profile
@@ -764,8 +776,8 @@ export const translations = {
       cropManagement: "पीक व्यवस्थापन",
       weather: "हवामान",
       marketPrices: "बाजार भाव",
-      knowledge: "ज्ञान",
-      schemes: "योजना",
+      schemes: "सरकारी योजना", // Added Marathi translation
+      knowledge: "ज्ञान केंद्र",
       settings: "सेटिंग्ज",
       logout: "लॉग आउट",
       login: "लॉग इन",
@@ -879,6 +891,12 @@ export const translations = {
       goodForSpraying: "फवारणीसाठी चांगली स्थिती",
       avoidIrrigation: "आज सिंचन टाळा",
       harvestRecommended: "कापणीसाठी चांगली स्थिती",
+      alerts: {
+        highTemp: "उच्च तापमान आढळले. पुरेसे सिंचन सुनिश्चित करा आणि संवेदनशील पिकांचे संरक्षण करा.",
+        lowTemp: "कमी तापमान सतर्कता. असुरक्षित पिकांसाठी दंव संरक्षण उपायांचा विचार करा.",
+        highHumidity: "उच्च आर्द्रता पातळी. बुरशीजन्य रोगांवर लक्ष ठेवा आणि पाणी देणे कमी करा.",
+        rain: "पाऊस अपेक्षित आहे. फवारणी क्रियाकलाप पुढे ढकला आणि सिंचन वेळापत्रक समायोजित करा.",
+      },
     },
 
     // Profile
