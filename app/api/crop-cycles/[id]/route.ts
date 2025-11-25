@@ -1,13 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
+import { getCurrentUserId } from "@/lib/auth/utils"
+import { getDb } from "@/lib/mongodb/client"
+import { ObjectId } from "mongodb"
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -15,111 +13,84 @@ export async function PUT(
     const body = await request.json()
     const { crop_name, variety, planting_date, expected_harvest_date, actual_harvest_date, status, notes } = body
 
-    const supabase = await createClient()
+    const db = await getDb()
 
-    // Verify ownership and update crop cycle
-    const { data: cropCycle, error } = await supabase
-      .from("crop_cycles")
-      .from("crop_cycles")
-      .select(`
-        id,
-        fields!inner (
-          farmer_id
-        )
-      `)
-      .eq("id", params.id)
-      .eq("fields.farmer_id", userId)
-      .single()
-
-    if (error || !cropCycle) {
-      return NextResponse.json({ error: "Crop cycle not found" }, { status: 404 })
-    }
-
-    // Update the crop cycle
-    const { data: updatedCycle, error: updateError } = await supabase
-      .from("crop_cycles")
-      .update({
-        crop_name: crop_name?.trim() || undefined,
-        variety: variety?.trim() || null,
-        planting_date: planting_date || null,
-        expected_harvest_date: expected_harvest_date || null,
-        actual_harvest_date: actual_harvest_date || null,
-        status: status || undefined,
-        notes: notes?.trim() || null,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", params.id)
-      .select(`
-        *,
-        fields (
-          id,
-          field_name,
-          area_hectares
-        )
-      `)
-      .single()
-
-    if (updateError) {
-      console.error("Error updating crop cycle:", updateError)
-      return NextResponse.json({ error: "Failed to update crop cycle" }, { status: 500 })
-    }
-
-    return NextResponse.json({
-      success: true,
-      crop_cycle: updatedCycle
+    // Verify ownership via field
+    const cropCycle = await db.collection("crop_cycles").findOne({
+      _id: new ObjectId(params.id),
     })
-  } catch (error) {
-    console.error("API Error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
-}
-
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const { userId } = await auth()
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
-
-    const supabase = await createClient()
-
-    // Verify ownership
-    const { data: cropCycle } = await supabase
-      .from("crop_cycles")
-      .select(`
-        id,
-        fields!inner (
-          farmer_id
-        )
-      `)
-      .eq("id", params.id)
-      .eq("fields.farmer_id", userId)
-      .single()
 
     if (!cropCycle) {
       return NextResponse.json({ error: "Crop cycle not found" }, { status: 404 })
     }
 
-    // Delete the crop cycle (cascade will handle field_activities)
-    const { error } = await supabase
-      .from("crop_cycles")
-      .delete()
-      .eq("id", params.id)
+    const field = await db.collection("fields").findOne({
+      _id: new ObjectId(cropCycle.field_id),
+      farmer_id: userId,
+    })
 
-    if (error) {
-      console.error("Error deleting crop cycle:", error)
-      return NextResponse.json({ error: "Failed to delete crop cycle" }, { status: 500 })
+    if (!field) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Crop cycle deleted successfully"
-    })
+    // Update the crop cycle
+    const result = await db.collection("crop_cycles").findOneAndUpdate(
+      { _id: new ObjectId(params.id) },
+      {
+        $set: {
+          crop_name: crop_name?.trim(),
+          variety: variety?.trim() || null,
+          planting_date: planting_date ? new Date(planting_date) : null,
+          expected_harvest_date: expected_harvest_date ? new Date(expected_harvest_date) : null,
+          actual_harvest_date: actual_harvest_date ? new Date(actual_harvest_date) : null,
+          status,
+          notes: notes?.trim() || null,
+          updated_at: new Date(),
+        },
+      },
+      { returnDocument: "after" },
+    )
+
+    return NextResponse.json({ success: true, crop_cycle: result })
   } catch (error) {
-    console.error("API Error:", error)
+    console.error("[v0] API Error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const userId = await getCurrentUserId()
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const db = await getDb()
+
+    // Verify ownership via field
+    const cropCycle = await db.collection("crop_cycles").findOne({
+      _id: new ObjectId(params.id),
+    })
+
+    if (!cropCycle) {
+      return NextResponse.json({ error: "Crop cycle not found" }, { status: 404 })
+    }
+
+    const field = await db.collection("fields").findOne({
+      _id: new ObjectId(cropCycle.field_id),
+      farmer_id: userId,
+    })
+
+    if (!field) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+    }
+
+    //Delete the crop cycle
+    await db.collection("crop_cycles").deleteOne({ _id: new ObjectId(params.id) })
+
+    return NextResponse.json({ success: true, message: "Crop cycle deleted successfully" })
+  } catch (error) {
+    console.error("[v0] API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

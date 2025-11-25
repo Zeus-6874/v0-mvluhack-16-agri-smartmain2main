@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import DashboardClient from "./DashboardClient"
-import { createClient } from "@/lib/supabase/server"
 import { getSession } from "@/lib/auth/session"
+import { getDb } from "@/lib/mongodb/client"
 
 export default async function DashboardPage() {
   const session = await getSession()
@@ -9,8 +9,8 @@ export default async function DashboardPage() {
     redirect("/")
   }
 
-  const supabase = await createClient()
-  const { data: profile } = await supabase.from("farmers").select("*").eq("user_id", session.userId).maybeSingle()
+  const db = await getDb()
+  const profile = await db.collection("farmers").findOne({ user_id: session.userId })
 
   return <DashboardClient profile={profile} />
 }

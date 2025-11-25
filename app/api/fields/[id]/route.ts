@@ -1,67 +1,39 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
+import { getCurrentUserId } from "@/lib/auth/utils"
+import { getDb } from "@/lib/mongodb/client"
+import { ObjectId } from "mongodb"
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    const db = await getDb()
 
-    // Fetch field with related data
-    const { data: field, error } = await supabase
-      .from("fields")
-      .select(`
-        *,
-        crop_cycles (
-          id,
-          crop_name,
-          variety,
-          planting_date,
-          expected_harvest_date,
-          actual_harvest_date,
-          status,
-          notes,
-          field_activities (
-            id,
-            activity_type,
-            activity_date,
-            materials_used,
-            cost,
-            notes
-          )
-        )
-      `)
-      .eq("id", params.id)
-      .eq("farmer_id", userId)
-      .single()
+    const field = await db.collection("fields").findOne({
+      _id: new ObjectId(params.id),
+      farmer_id: userId,
+    })
 
-    if (error || !field) {
+    if (!field) {
       return NextResponse.json({ error: "Field not found" }, { status: 404 })
     }
 
-    return NextResponse.json({
-      success: true,
-      field
-    })
+    // Fetch related crop cycles
+    const cropCycles = await db.collection("crop_cycles").find({ field_id: params.id }).toArray()
+
+    return NextResponse.json({ success: true, field: { ...field, crop_cycles: cropCycles } })
   } catch (error) {
-    console.error("API Error:", error)
+    console.error("[v0] API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -69,95 +41,74 @@ export async function PUT(
     const body = await request.json()
     const { field_name, area_hectares, coordinates, soil_type, irrigation_type } = body
 
-    // Validate required fields
     if (!field_name || !area_hectares) {
-      return NextResponse.json({
-        error: "Field name and area are required"
-      }, { status: 400 })
+      return NextResponse.json({ error: "Field name and area are required" }, { status: 400 })
     }
 
     if (area_hectares <= 0) {
-      return NextResponse.json({
-        error: "Area must be greater than 0"
-      }, { status: 400 })
+      return NextResponse.json({ error: "Area must be greater than 0" }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const db = await getDb()
 
-    // Verify ownership and update field
-    const { data: field, error } = await supabase
-      .from("fields")
-      .update({
-        field_name: field_name.trim(),
-        area_hectares: parseFloat(area_hectares),
-        coordinates: coordinates || null,
-        soil_type: soil_type || null,
-        irrigation_type: irrigation_type || null,
-        updated_at: new Date().toISOString()
-      })
-      .eq("id", params.id)
-      .eq("farmer_id", userId)
-      .select()
-      .single()
+    const result = await db.collection("fields").findOneAndUpdate(
+      { _id: new ObjectId(params.id), farmer_id: userId },
+      {
+        $set: {
+          field_name: field_name.trim(),
+          area_hectares: Number.parseFloat(area_hectares),
+          coordinates: coordinates || null,
+          soil_type: soil_type || null,
+          irrigation_type: irrigation_type || null,
+          updated_at: new Date(),
+        },
+      },
+      { returnDocument: "after" },
+    )
 
-    if (error || !field) {
+    if (!result) {
       return NextResponse.json({ error: "Field not found or update failed" }, { status: 404 })
     }
 
-    return NextResponse.json({
-      success: true,
-      field
-    })
+    return NextResponse.json({ success: true, field: result })
   } catch (error) {
-    console.error("API Error:", error)
+    console.error("[v0] API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    const db = await getDb()
 
-    // Check if field has active crop cycles
-    const { data: activeCycles } = await supabase
-      .from("crop_cycles")
-      .select("id")
-      .eq("field_id", params.id)
-      .in("status", ["planning", "planted", "growing"])
+    // Check for active crop cycles
+    const activeCycles = await db
+      .collection("crop_cycles")
+      .find({ field_id: params.id, status: { $in: ["planning", "planted", "growing"] } })
       .limit(1)
+      .toArray()
 
-    if (activeCycles && activeCycles.length > 0) {
-      return NextResponse.json({
-        error: "Cannot delete field with active crop cycles"
-      }, { status: 400 })
+    if (activeCycles.length > 0) {
+      return NextResponse.json({ error: "Cannot delete field with active crop cycles" }, { status: 400 })
     }
 
-    // Delete the field
-    const { error } = await supabase
-      .from("fields")
-      .delete()
-      .eq("id", params.id)
-      .eq("farmer_id", userId)
+    const result = await db.collection("fields").deleteOne({
+      _id: new ObjectId(params.id),
+      farmer_id: userId,
+    })
 
-    if (error) {
-      console.error("Error deleting field:", error)
+    if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Failed to delete field" }, { status: 500 })
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "Field deleted successfully"
-    })
+    return NextResponse.json({ success: true, message: "Field deleted successfully" })
   } catch (error) {
-    console.error("API Error:", error)
+    console.error("[v0] API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

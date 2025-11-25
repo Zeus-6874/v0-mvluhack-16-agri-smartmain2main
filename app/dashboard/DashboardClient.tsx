@@ -64,7 +64,6 @@ interface DistrictStat {
 
 interface DashboardClientProps {
   profile: any
-  clerkUser: any
 }
 
 export default function DashboardClient({ profile }: DashboardClientProps) {
@@ -100,7 +99,9 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
 
       // Fetch CROPSAP alerts - filter by user's district if available
       const district = profile?.location ? extractDistrict(profile.location) : null
-      const cropsapUrl = district ? `/api/cropsap?district=${encodeURIComponent(district)}&limit=5` : "/api/cropsap?limit=5"
+      const cropsapUrl = district
+        ? `/api/cropsap?district=${encodeURIComponent(district)}&limit=5`
+        : "/api/cropsap?limit=5"
       const cropsapResponse = await fetch(cropsapUrl)
       const cropsapData = await cropsapResponse.json()
       if (cropsapData.success && cropsapData.alerts) {
@@ -108,7 +109,9 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
       }
 
       // Fetch district statistics - filter by user's district if available
-      const statsUrl = district ? `/api/district-stats?district=${encodeURIComponent(district)}&limit=50` : "/api/district-stats?limit=50"
+      const statsUrl = district
+        ? `/api/district-stats?district=${encodeURIComponent(district)}&limit=50`
+        : "/api/district-stats?limit=50"
       const statsResponse = await fetch(statsUrl)
       const statsData = await statsResponse.json()
       if (statsData.success && statsData.stats) {
@@ -186,12 +189,14 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
 
     const totalArea = latestStats.reduce((sum, s) => sum + (Number(s.area_ha) || 0), 0)
     const uniqueCrops = new Set(latestStats.map((s) => s.crop).filter(Boolean))
-    const avgYield = latestStats.length > 0
-      ? latestStats.reduce((sum, s) => sum + (Number(s.yield_mt_per_ha) || 0), 0) / latestStats.length
-      : 0
-    const avgRainfall = latestStats.length > 0
-      ? latestStats.reduce((sum, s) => sum + (Number(s.rainfall_mm) || 0), 0) / latestStats.length
-      : 0
+    const avgYield =
+      latestStats.length > 0
+        ? latestStats.reduce((sum, s) => sum + (Number(s.yield_mt_per_ha) || 0), 0) / latestStats.length
+        : 0
+    const avgRainfall =
+      latestStats.length > 0
+        ? latestStats.reduce((sum, s) => sum + (Number(s.rainfall_mm) || 0), 0) / latestStats.length
+        : 0
 
     return {
       totalArea: totalArea > 0 ? totalArea.toFixed(1) : profile?.land_size ? `${profile.land_size}` : "0",
@@ -284,36 +289,42 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   }
 
   // Convert CROPSAP alerts to display format
-  const alerts: AlertDisplay[] = cropsapAlerts.length > 0
-    ? cropsapAlerts.slice(0, 5).map((alert) => {
-        const severity = alert.severity?.toLowerCase() || "info"
-        const alertType = severity.includes("high") || severity.includes("critical") ? "error" : severity.includes("medium") ? "warning" : "info"
-        const cropName = alert.crop || "Crop"
-        const issue = alert.pest || alert.disease || "Issue detected"
-        const location = [alert.district, alert.taluka, alert.village].filter(Boolean).join(", ") || "Your region"
-        const advisory = alert.advisory || ""
+  const alerts: AlertDisplay[] =
+    cropsapAlerts.length > 0
+      ? cropsapAlerts.slice(0, 5).map((alert) => {
+          const severity = alert.severity?.toLowerCase() || "info"
+          const alertType =
+            severity.includes("high") || severity.includes("critical")
+              ? "error"
+              : severity.includes("medium")
+                ? "warning"
+                : "info"
+          const cropName = alert.crop || "Crop"
+          const issue = alert.pest || alert.disease || "Issue detected"
+          const location = [alert.district, alert.taluka, alert.village].filter(Boolean).join(", ") || "Your region"
+          const advisory = alert.advisory || ""
 
-        return {
-          type: alertType,
-          titleEn: `${cropName} Alert`,
-          titleHi: `${cropName} चेतावनी`,
-          descEn: `${issue} detected in ${location}. ${advisory}`.trim(),
-          descHi: `${location} में ${issue} पाया गया। ${advisory}`.trim(),
-          severity: alert.severity,
-          reportedDate: alert.reported_on,
-        }
-      })
-    : weatherData
-      ? [
-          {
-            type: "info",
-            titleEn: "Weather Alert",
-            titleHi: "मौसम चेतावनी",
-            descEn: `${weatherData.weather_condition} - ${weatherData.temperature}°C`,
-            descHi: `${weatherData.weather_condition} - ${weatherData.temperature}°C`,
-          },
-        ]
-      : []
+          return {
+            type: alertType,
+            titleEn: `${cropName} Alert`,
+            titleHi: `${cropName} चेतावनी`,
+            descEn: `${issue} detected in ${location}. ${advisory}`.trim(),
+            descHi: `${location} में ${issue} पाया गया। ${advisory}`.trim(),
+            severity: alert.severity,
+            reportedDate: alert.reported_on,
+          }
+        })
+      : weatherData
+        ? [
+            {
+              type: "info",
+              titleEn: "Weather Alert",
+              titleHi: "मौसम चेतावनी",
+              descEn: `${weatherData.weather_condition} - ${weatherData.temperature}°C`,
+              descHi: `${weatherData.weather_condition} - ${weatherData.temperature}°C`,
+            },
+          ]
+        : []
 
   const upcomingTasks = [
     {
@@ -463,11 +474,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                   <div className="space-y-4">
                     {alerts.map((alert, index) => {
                       const bgColor =
-                        alert.type === "error"
-                          ? "bg-red-50"
-                          : alert.type === "warning"
-                            ? "bg-orange-50"
-                            : "bg-blue-50"
+                        alert.type === "error" ? "bg-red-50" : alert.type === "warning" ? "bg-orange-50" : "bg-blue-50"
                       const iconColor =
                         alert.type === "error"
                           ? "text-red-600"
@@ -476,19 +483,27 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                             : "text-blue-600"
 
                       return (
-                        <div key={`${alert.titleEn}-${index}`} className={`flex items-start space-x-3 rounded-lg ${bgColor} p-4`}>
+                        <div
+                          key={`${alert.titleEn}-${index}`}
+                          className={`flex items-start space-x-3 rounded-lg ${bgColor} p-4`}
+                        >
                           <AlertTriangle className={`mt-0.5 h-5 w-5 ${iconColor}`} aria-hidden="true" />
                           <div className="flex-1">
                             <div className="flex items-center justify-between">
-                              <h4 className="font-medium text-gray-900">{language === "hi" ? alert.titleHi : alert.titleEn}</h4>
+                              <h4 className="font-medium text-gray-900">
+                                {language === "hi" ? alert.titleHi : alert.titleEn}
+                              </h4>
                               {"severity" in alert && alert.severity && (
                                 <span className="text-xs font-medium text-gray-500 uppercase">{alert.severity}</span>
                               )}
                             </div>
-                            <p className="text-sm text-gray-600 mt-1">{language === "hi" ? alert.descHi : alert.descEn}</p>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {language === "hi" ? alert.descHi : alert.descEn}
+                            </p>
                             {"reportedDate" in alert && alert.reportedDate && (
                               <p className="text-xs text-gray-500 mt-1">
-                                {language === "hi" ? "रिपोर्ट की तारीख" : "Reported"}: {new Date(alert.reportedDate).toLocaleDateString()}
+                                {language === "hi" ? "रिपोर्ट की तारीख" : "Reported"}:{" "}
+                                {new Date(alert.reportedDate).toLocaleDateString()}
                               </p>
                             )}
                           </div>
@@ -517,12 +532,18 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                     <div key={task.titleEn} className="flex items-center space-x-3 rounded-lg bg-gray-50 p-3">
                       <div
                         className={`h-3 w-3 rounded-full ${
-                          task.priority === "high" ? "bg-red-500" : task.priority === "medium" ? "bg-yellow-500" : "bg-green-500"
+                          task.priority === "high"
+                            ? "bg-red-500"
+                            : task.priority === "medium"
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
                         }`}
                         aria-hidden="true"
                       />
                       <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">{language === "hi" ? task.titleHi : task.titleEn}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {language === "hi" ? task.titleHi : task.titleEn}
+                        </p>
                         <p className="text-xs text-gray-500">{task.date}</p>
                       </div>
                     </div>

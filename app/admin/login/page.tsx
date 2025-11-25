@@ -1,44 +1,50 @@
-"use client"; // must be the first line
+"use client"
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import type React from "react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+    e.preventDefault()
+    setError(null)
+    setLoading(true)
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
 
-    setLoading(false);
+      const data = await response.json()
 
-    if (error) {
-      setError(error.message);
-    } else {
-      // Check if user has admin privileges
-      const isAdmin = data.user?.email?.includes("admin") ||
-                     data.user?.user_metadata?.role === "admin" ||
-                     process.env.NEXT_PUBLIC_ADMIN_EMAILS?.split(",").includes(data.user?.email || "");
-
-      if (isAdmin) {
-        router.push("/admin/dashboard");
-      } else {
-        setError("Access denied. Admin privileges required.");
-        await supabase.auth.signOut();
+      if (!response.ok) {
+        setError(data.error || "Login failed")
+        setLoading(false)
+        return
       }
+
+      if (data.user?.is_admin) {
+        router.push("/admin/dashboard")
+      } else {
+        setError("Access denied. Admin privileges required.")
+        // Logout non-admin user
+        await fetch("/api/auth/logout", { method: "POST" })
+      }
+    } catch (err) {
+      setError("An error occurred during login")
+      console.error("[v0] Admin login error:", err)
+    } finally {
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -62,7 +68,7 @@ export default function LoginPage() {
             <input
               id="email"
               type="email"
-              placeholder="admin@example.com"
+              placeholder="admin@agrismart.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -95,14 +101,11 @@ export default function LoginPage() {
         </form>
 
         <div className="mt-6 text-center">
-          <a
-            href="/"
-            className="text-sm text-blue-600 hover:text-blue-500"
-          >
+          <a href="/" className="text-sm text-blue-600 hover:text-blue-500">
             ← Back to main site
           </a>
         </div>
       </div>
     </div>
-  );
+  )
 }

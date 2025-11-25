@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getDb } from "@/lib/mongodb/client"
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,24 +7,18 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get("state")
     const category = searchParams.get("category")
 
-    const supabase = await createClient()
-
-    let query = supabase.from("schemes").select("*").eq("is_active", true).order("scheme_name")
+    const db = await getDb()
+    const filter: any = { is_active: true }
 
     if (state && state !== "All India") {
-      query = query.or(`state.eq.${state},state.eq.All India`)
+      filter.$or = [{ state: state }, { state: "All India" }]
     }
 
     if (category) {
-      query = query.eq("category", category)
+      filter.category = category
     }
 
-    const { data: schemesData, error } = await query
-
-    if (error) {
-      console.error("Database error:", error)
-      return NextResponse.json({ error: "Failed to fetch schemes data" }, { status: 500 })
-    }
+    const schemesData = await db.collection("schemes").find(filter).sort({ scheme_name: 1 }).toArray()
 
     return NextResponse.json({
       success: true,
@@ -33,7 +27,7 @@ export async function GET(request: NextRequest) {
       filters: { state, category },
     })
   } catch (error) {
-    console.error("API Error:", error)
+    console.error("[v0] Schemes API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

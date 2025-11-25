@@ -1,22 +1,19 @@
-"use server"
-
-import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { getSession } from "@/lib/auth/session"
+import { getDb } from "@/lib/mongodb/client"
 import DataManager from "@/components/admin/DataManager"
 
 export default async function AdminDataPage() {
-  const { userId } = await auth()
-  if (!userId) {
+  const session = await getSession()
+  if (!session || !session.isAdmin) {
     redirect("/admin/login")
   }
 
-  const supabase = await createClient()
+  const db = await getDb()
 
-  const [{ data: schemeCategories }, { data: cropCategories }] = await Promise.all([
-    supabase.from("scheme_categories").select("id,name").order("name"),
-    supabase.from("crop_categories").select("id,name").order("name"),
-  ])
+  const schemeCategories = await db.collection("scheme_categories").find({}).sort({ name: 1 }).toArray()
+
+  const cropCategories = await db.collection("crop_categories").find({}).sort({ name: 1 }).toArray()
 
   return (
     <div className="max-w-6xl mx-auto py-8">

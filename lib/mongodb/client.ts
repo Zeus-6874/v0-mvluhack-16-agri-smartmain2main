@@ -5,7 +5,7 @@ if (!process.env.MONGODB_URI) {
 }
 
 const uri = process.env.MONGODB_URI
-const dbName = process.env.MONGODB_DB || "mydatabase"
+const dbName = process.env.MONGODB_DB || "agrismart"
 
 let client: MongoClient
 let clientPromise: Promise<MongoClient>

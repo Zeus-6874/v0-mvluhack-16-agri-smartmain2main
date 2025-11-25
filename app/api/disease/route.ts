@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getDb } from "@/lib/mongodb/client"
 
 // Enhanced disease database with more comprehensive information
 const DISEASE_DATABASE = {
@@ -212,32 +212,23 @@ export async function POST(request: NextRequest) {
 
     const detection = await performAdvancedDiseaseDetection(cropName, image)
 
-    const supabase = await createClient()
-
-    // Store disease report in database
-    const { data: reportData, error: reportError } = await supabase
-      .from("disease_reports")
-      .insert({
-        crop_name: cropName,
-        disease_name: detection.disease_name,
-        confidence_score: detection.confidence,
-        symptoms: detection.symptoms,
-        treatment_recommendations: detection.treatments,
-      })
-      .select()
-      .single()
-
-    if (reportError) {
-      console.error("Database error:", reportError)
-    }
+    const db = await getDb()
+    const reportData = await db.collection("disease_reports").insertOne({
+      crop_name: cropName,
+      disease_name: detection.disease_name,
+      confidence_score: detection.confidence,
+      symptoms: detection.symptoms,
+      treatment_recommendations: detection.treatments,
+      created_at: new Date(),
+    })
 
     return NextResponse.json({
       success: true,
-      report_id: reportData?.id,
+      report_id: reportData.insertedId.toString(),
       detection: detection,
     })
   } catch (error) {
-    console.error("API Error:", error)
+    console.error("[v0] Disease API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

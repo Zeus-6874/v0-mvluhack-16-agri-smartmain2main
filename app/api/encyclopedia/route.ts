@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getDb } from "@/lib/mongodb/client"
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,24 +7,21 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")
     const crop = searchParams.get("crop")
 
-    const supabase = await createClient()
-
-    let query = supabase.from("encyclopedia").select("*").order("crop_name")
+    const db = await getDb()
+    const filter: any = {}
 
     if (search) {
-      query = query.or(`crop_name.ilike.%${search}%,description.ilike.%${search}%`)
+      filter.$or = [
+        { crop_name: { $regex: search, $options: "i" } },
+        { description: { $regex: search, $options: "i" } },
+      ]
     }
 
     if (crop) {
-      query = query.eq("crop_name", crop)
+      filter.crop_name = crop
     }
 
-    const { data: encyclopediaData, error } = await query
-
-    if (error) {
-      console.error("Database error:", error)
-      return NextResponse.json({ error: "Failed to fetch encyclopedia data" }, { status: 500 })
-    }
+    const encyclopediaData = await db.collection("encyclopedia").find(filter).sort({ crop_name: 1 }).toArray()
 
     return NextResponse.json({
       success: true,
@@ -33,7 +30,7 @@ export async function GET(request: NextRequest) {
       filters: { search, crop },
     })
   } catch (error) {
-    console.error("API Error:", error)
+    console.error("[v0] Encyclopedia API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

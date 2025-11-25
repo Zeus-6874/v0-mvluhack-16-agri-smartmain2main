@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getDb } from "@/lib/mongodb/client"
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,31 +8,26 @@ export async function GET(request: NextRequest) {
     const crop = searchParams.get("crop")
     const severity = searchParams.get("severity")
 
-    const supabase = await createClient()
-    let query = supabase.from("cropsap_alerts").select("*").order("reported_on", { ascending: false }).limit(100)
+    const db = await getDb()
+    const filter: any = {}
 
     if (district) {
-      query = query.ilike("district", `%${district}%`)
+      filter.district = { $regex: district, $options: "i" }
     }
 
     if (crop) {
-      query = query.ilike("crop", `%${crop}%`)
+      filter.crop = { $regex: crop, $options: "i" }
     }
 
     if (severity) {
-      query = query.eq("severity", severity)
+      filter.severity = severity
     }
 
-    const { data, error } = await query
-
-    if (error) {
-      console.error("CROPSAP fetch error:", error)
-      return NextResponse.json({ error: "Failed to fetch alerts" }, { status: 500 })
-    }
+    const data = await db.collection("cropsap_alerts").find(filter).sort({ reported_on: -1 }).limit(100).toArray()
 
     return NextResponse.json({ success: true, alerts: data })
   } catch (error) {
-    console.error("CROPSAP API error:", error)
+    console.error("[v0] CROPSAP API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

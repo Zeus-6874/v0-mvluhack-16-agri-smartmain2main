@@ -1,6 +1,6 @@
-import { auth, currentUser } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { getSession } from "@/lib/auth/session"
+import { getDb } from "@/lib/mongodb/client"
 import SoilHealthHistory from "@/components/soil/SoilHealthHistory"
 import SoilImprovementPlan from "@/components/soil/SoilImprovementPlan"
 import NutrientDeficiencyAlert from "@/components/soil/NutrientDeficiencyAlert"
@@ -16,34 +16,24 @@ interface FarmerProfile {
 }
 
 export default async function AdvancedSoilHealthPage() {
-  const { userId } = await auth()
-  if (!userId) {
-    redirect("/sign-in")
+  const session = await getSession()
+
+  if (!session) {
+    redirect("/")
   }
 
-  const user = await currentUser()
+  const userId = session.userId
 
-  const supabase = await createClient()
-  const { data: profile } = await supabase.from("farmer_profiles").select("*").eq("user_id", userId).maybeSingle()
+  const db = await getDb()
+  const profile = await db.collection("farmers").findOne({ user_id: userId })
 
   // Fetch recent soil analyses
-  const { data: soilAnalyses } = await supabase
-    .from("soil_analysis")
-    .select(`
-      id,
-      nitrogen_level,
-      phosphorus_level,
-      potassium_level,
-      ph_level,
-      organic_matter,
-      recommendations,
-      suitable_crops,
-      analysis_date,
-      created_at
-    `)
-    .eq("farmer_id", userId)
-    .order("analysis_date", { ascending: false })
+  const soilAnalyses = await db
+    .collection("soil_analysis")
+    .find({ farmer_id: userId })
+    .sort({ analysis_date: -1 })
     .limit(10)
+    .toArray()
 
   // Calculate soil health metrics
   const latestAnalysis = soilAnalyses?.[0]

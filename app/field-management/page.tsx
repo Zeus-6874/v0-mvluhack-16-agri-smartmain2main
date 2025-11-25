@@ -5,8 +5,8 @@ import ResourceTracker from "@/components/field/ResourceTracker"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MapPin, Calendar, Package, BarChart3 } from "lucide-react"
-import { createClient } from "@/lib/supabase/server"
 import { getSession } from "@/lib/auth/session"
+import { getDb } from "@/lib/mongodb/client"
 import Navbar from "@/components/Navbar"
 
 export default async function FieldManagementPage() {
@@ -16,28 +16,22 @@ export default async function FieldManagementPage() {
   }
 
   const userId = session.userId
-  const supabase = await createClient()
-  const { data: profile } = await supabase.from("farmers").select("*").eq("user_id", userId).maybeSingle()
+  const db = await getDb()
+  const profile = await db.collection("farmers").findOne({ user_id: userId })
 
   // Fetch field statistics
-  const { data: fields } = await supabase.from("fields").select("area_hectares").eq("farmer_id", userId)
+  const fields = await db.collection("fields").find({ farmer_id: userId }).toArray()
 
-  const totalArea = fields?.reduce((sum, field) => sum + (field.area_hectares || 0), 0) || 0
+  const totalArea = fields?.reduce((sum: any, field: any) => sum + (field.area_hectares || 0), 0) || 0
 
   // Fetch active crop cycles
-  const { data: activeCrops } = await supabase
-    .from("crop_cycles")
-    .select(`
-      id,
-      crop_name,
-      status,
-      fields (
-        field_name,
-        area_hectares
-      )
-    `)
-    .eq("fields.farmer_id", userId)
-    .in("status", ["planted", "growing"])
+  const activeCrops = await db
+    .collection("crop_cycles")
+    .find({
+      farmer_id: userId,
+      status: { $in: ["planted", "growing"] },
+    })
+    .toArray()
 
   return (
     <div className="min-h-screen bg-gray-50">
