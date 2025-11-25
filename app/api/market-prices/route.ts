@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getDb } from "@/lib/mongodb/client"
 
 export async function GET(request: NextRequest) {
   try {
@@ -8,27 +8,18 @@ export async function GET(request: NextRequest) {
     const state = searchParams.get("state")
     const limit = Number.parseInt(searchParams.get("limit") || "50")
 
-    const supabase = await createClient()
+    const db = await getDb()
+    const collection = db.collection("market_prices")
 
-    let query = supabase
-      .from("market_prices")
-      .select("*")
-      .order("arrival_date", { ascending: false })
-
+    const filter: any = {}
     if (crop) {
-      query = query.ilike("commodity", `%${crop}%`)
+      filter.commodity = new RegExp(crop, "i")
     }
-
     if (state) {
-      query = query.ilike("state", `%${state}%`)
+      filter.state = new RegExp(state, "i")
     }
 
-    const { data: pricesData, error } = await query.limit(limit)
-
-    if (error) {
-      console.error("Database error:", error)
-      return NextResponse.json({ error: "Failed to fetch market prices" }, { status: 500 })
-    }
+    const pricesData = await collection.find(filter).sort({ arrival_date: -1 }).limit(limit).toArray()
 
     // Calculate trends from price history
     const processedPrices =

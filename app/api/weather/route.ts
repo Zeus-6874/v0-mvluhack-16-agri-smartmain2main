@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getDb } from "@/lib/mongodb/client"
 
 const defaultCoordinates = {
   delhi: { lat: 28.6139, lon: 77.209 },
@@ -17,26 +17,23 @@ export async function GET(request: NextRequest) {
     const lon = searchParams.get("lon")
     const location = (searchParams.get("location") || "Delhi").toLowerCase()
 
-    const supabase = await createClient()
+    const db = await getDb()
 
     let weatherData = null
-    let currentWeather = null
 
-    // Try to fetch from OpenWeatherMap API if coordinates are provided
     if (lat && lon) {
-      weatherData = await fetchOpenWeatherMap(lat, lon, supabase)
+      weatherData = await fetchOpenWeatherMap(lat, lon, db)
     }
 
-    // Fallback to database cache
     if (!weatherData) {
-      const { data: dbWeatherData, error } = await supabase
-        .from("weather_data")
-        .select("*")
-        .eq("location", capitalizeLocation(location))
-        .order("date", { ascending: false })
+      const dbWeatherData = await db
+        .collection("weather_data")
+        .find({ location: capitalizeLocation(location) })
+        .sort({ date: -1 })
         .limit(7)
+        .toArray()
 
-      if (!error && dbWeatherData && dbWeatherData.length > 0) {
+      if (dbWeatherData && dbWeatherData.length > 0) {
         const current = dbWeatherData[0]
         weatherData = {
           temperature: current.temperature,
@@ -48,7 +45,7 @@ export async function GET(request: NextRequest) {
           pressure: 1013,
           uvIndex: 5,
           location: current.location,
-          forecast: dbWeatherData.slice(0, 5).map((item, index) => ({
+          forecast: dbWeatherData.slice(0, 5).map((item: any, index: number) => ({
             day:
               index === 0
                 ? "Today"
@@ -63,26 +60,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Final fallback to Open-Meteo (no API key required)
     if (!weatherData) {
-      const coords = lat && lon ? { lat: Number(lat), lon: Number(lon) } : defaultCoordinates[location] || defaultCoordinates.delhi
-      weatherData = await fetchOpenMeteo(coords.lat, coords.lon, capitalizeLocation(location))
-
-      if (weatherData) {
-        try {
-          await supabase.from("weather_data").insert({
-            location: weatherData.location,
-            temperature: weatherData.temperature,
-            humidity: weatherData.humidity,
-            rainfall: weatherData.rainfall,
-            wind_speed: weatherData.windSpeed,
-            weather_condition: weatherData.condition,
-            date: new Date().toISOString().split("T")[0],
-          })
-        } catch (dbError) {
-          console.log("Failed to cache Open-Meteo weather data:", dbError)
-        }
-      }
+      const coords =
+        lat && lon
+          ? { lat: Number(lat), lon: Number(lon) }
+          : defaultCoordinates[location as keyof typeof defaultCoordinates] || defaultCoordinates.delhi
+      weatherData = await fetchOpenMeteo(coords.lat, coords.lon, capitalizeLocation(location), db)
     }
 
     if (!weatherData) {
@@ -92,6 +75,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       weather: weatherData,
+      current: weatherData,
     })
   } catch (error) {
     console.error("Weather API Error:", error)
@@ -99,7 +83,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function fetchOpenWeatherMap(lat: string, lon: string, supabase: Awaited<ReturnType<typeof createClient>>) {
+async function fetchOpenWeatherMap(lat: string, lon: string, db: any) {
   try {
     const openWeatherApiKey = process.env.OPENWEATHER_API_KEY
     if (!openWeatherApiKey) return null
@@ -159,7 +143,7 @@ async function fetchOpenWeatherMap(lat: string, lon: string, supabase: Awaited<R
     }
 
     try {
-      await supabase.from("weather_data").insert({
+      await db.collection("weather_data").insertOne({
         location: weatherPayload.location,
         temperature: weatherPayload.temperature,
         humidity: weatherPayload.humidity,
@@ -167,6 +151,7 @@ async function fetchOpenWeatherMap(lat: string, lon: string, supabase: Awaited<R
         wind_speed: weatherPayload.windSpeed,
         weather_condition: weatherPayload.condition,
         date: new Date().toISOString().split("T")[0],
+        created_at: new Date(),
       })
     } catch (dbError) {
       console.log("Failed to cache OpenWeatherMap data:", dbError)
@@ -179,7 +164,7 @@ async function fetchOpenWeatherMap(lat: string, lon: string, supabase: Awaited<R
   }
 }
 
-async function fetchOpenMeteo(lat: number, lon: number, locationName: string) {
+async function fetchOpenMeteo(lat: number, lon: number, locationName: string, db: any) {
   try {
     const params = new URLSearchParams({
       latitude: lat.toString(),
@@ -199,15 +184,20 @@ async function fetchOpenMeteo(lat: number, lon: number, locationName: string) {
     const humidity = data.hourly?.relativehumidity_2m?.[0] ?? 60
     const rainfall = data.hourly?.precipitation?.[0] ?? 0
 
-    const forecast = data.daily?.time?.slice(0, 5).map((date: string, index: number) => ({
-      day:
-        index === 0 ? "Today" : index === 1 ? "Tomorrow" : new Date(date).toLocaleDateString("en", { weekday: "short" }),
-      temp: Math.round(data.daily.temperature_2m_max?.[index] ?? data.current_weather.temperature),
-      condition: mapWeatherCodeToCondition(data.daily.weathercode?.[index]),
-      rain: data.daily.precipitation_probability_max?.[index] ?? 0,
-    })) || []
+    const forecast =
+      data.daily?.time?.slice(0, 5).map((date: string, index: number) => ({
+        day:
+          index === 0
+            ? "Today"
+            : index === 1
+              ? "Tomorrow"
+              : new Date(date).toLocaleDateString("en", { weekday: "short" }),
+        temp: Math.round(data.daily.temperature_2m_max?.[index] ?? data.current_weather.temperature),
+        condition: mapWeatherCodeToCondition(data.daily.weathercode?.[index]),
+        rain: data.daily.precipitation_probability_max?.[index] ?? 0,
+      })) || []
 
-    return {
+    const weatherPayload = {
       temperature: Math.round(data.current_weather.temperature),
       condition: mapWeatherCodeToCondition(data.current_weather.weathercode),
       humidity: Math.round(humidity),
@@ -219,6 +209,23 @@ async function fetchOpenMeteo(lat: number, lon: number, locationName: string) {
       location: locationName,
       forecast,
     }
+
+    try {
+      await db.collection("weather_data").insertOne({
+        location: weatherPayload.location,
+        temperature: weatherPayload.temperature,
+        humidity: weatherPayload.humidity,
+        rainfall: weatherPayload.rainfall,
+        wind_speed: weatherPayload.windSpeed,
+        weather_condition: weatherPayload.condition,
+        date: new Date().toISOString().split("T")[0],
+        created_at: new Date(),
+      })
+    } catch (dbError) {
+      console.log("Failed to cache Open-Meteo data:", dbError)
+    }
+
+    return weatherPayload
   } catch (error) {
     console.error("Open-Meteo API error:", error)
     return null

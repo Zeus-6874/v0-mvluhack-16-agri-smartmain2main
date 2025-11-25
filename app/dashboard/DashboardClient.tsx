@@ -12,6 +12,7 @@ import {
   Settings,
   Sprout,
   TrendingUp,
+  BookOpen,
 } from "lucide-react"
 import Navbar from "@/components/Navbar"
 import CropCard from "@/components/CropCard"
@@ -351,40 +352,49 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <main className="mx-auto max-w-7xl px-4 py-8">
-        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">{t("dashboard.title")}</h1>
-            <p className="mt-1 text-gray-600">
+      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 break-words">{t("dashboard.title")}</h1>
+            <p className="mt-1 text-sm sm:text-base text-gray-600 break-words">
               {profile?.full_name ? `${t("dashboard.subtitle")} – ${profile.full_name}` : t("dashboard.subtitle")}
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="outline" size="sm" className="bg-white text-gray-900 hover:bg-gray-50">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white text-gray-900 hover:bg-gray-50 flex-1 sm:flex-none"
+              onClick={() => (window.location.href = "/profile-setup")}
+            >
               <Settings className="mr-2 h-4 w-4" aria-hidden="true" />
               {t("dashboard.settings")}
             </Button>
-            <Button size="sm" className="bg-green-600 hover:bg-green-700">
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
+              onClick={() => (window.location.href = "/field-management")}
+            >
               <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
               {t("dashboard.addCrop")}
             </Button>
           </div>
         </div>
 
-        <section className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <section className="mb-6 sm:mb-8 grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
           {quickStats.map((stat) => (
-            <Card key={stat.title} role="region" aria-label={stat.title}>
-              <CardContent className="p-6">
+            <Card key={stat.title} role="region" aria-label={stat.title} className="min-w-0">
+              <CardContent className="p-3 sm:p-4 lg:p-6">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                    <div className="flex items-baseline space-x-1">
-                      <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                      <p className="text-sm text-gray-500">{stat.unit}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">{stat.title}</p>
+                    <div className="flex items-baseline space-x-1 mt-1">
+                      <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 truncate">{stat.value}</p>
+                      <p className="text-xs sm:text-sm text-gray-500 truncate">{stat.unit}</p>
                     </div>
-                    <p className="text-xs font-medium text-green-600">{stat.trend}</p>
+                    {stat.trend && <p className="text-xs font-medium text-green-600 mt-0.5">{stat.trend}</p>}
                   </div>
-                  <div className="rounded-full bg-gray-50 p-3" aria-hidden="true">
+                  <div className="rounded-full bg-gray-50 p-2 lg:p-3 ml-2" aria-hidden="true">
                     {stat.icon}
                   </div>
                 </div>
@@ -556,33 +566,31 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               <CardHeader>
                 <CardTitle>{language === "hi" ? "त्वरित कार्य" : "Quick Actions"}</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Link href="/soil-health">
-                    <Button variant="outline" className="w-full justify-start bg-white text-gray-900 hover:bg-gray-50">
-                      <BarChart3 className="mr-2 h-4 w-4" aria-hidden="true" />
-                      {language === "hi" ? "मिट्टी परीक्षण" : "Soil Analysis"}
-                    </Button>
-                  </Link>
-                  <Link href="/disease-detection">
-                    <Button variant="outline" className="w-full justify-start bg-white text-gray-900 hover:bg-gray-50">
-                      <AlertTriangle className="mr-2 h-4 w-4" aria-hidden="true" />
-                      {language === "hi" ? "रोग पहचान" : "Disease Detection"}
-                    </Button>
-                  </Link>
-                  <Link href="/market-prices">
-                    <Button variant="outline" className="w-full justify-start bg-white text-gray-900 hover:bg-gray-50">
-                      <TrendingUp className="mr-2 h-4 w-4" aria-hidden="true" />
-                      {language === "hi" ? "बाजार मूल्य देखें" : "View Market Prices"}
-                    </Button>
-                  </Link>
-                  <Link href="/encyclopedia">
-                    <Button variant="outline" className="w-full justify-start bg-white text-gray-900 hover:bg-gray-50">
-                      <Sprout className="mr-2 h-4 w-4" aria-hidden="true" />
-                      {language === "hi" ? "फसल विश्वकोश" : "Crop Encyclopedia"}
-                    </Button>
-                  </Link>
-                </div>
+              <CardContent className="grid grid-cols-1 gap-3">
+                <Link href="/soil-health" className="w-full">
+                  <Button variant="outline" className="w-full justify-start bg-transparent text-sm sm:text-base">
+                    <Sprout className="mr-2 h-4 w-4" />
+                    {language === "hi" ? "मिट्टी स्वास्थ्य जांच" : "Soil Health Check"}
+                  </Button>
+                </Link>
+                <Link href="/disease-detection" className="w-full">
+                  <Button variant="outline" className="w-full justify-start bg-transparent text-sm sm:text-base">
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    {language === "hi" ? "रोग निदान" : "Disease Detection"}
+                  </Button>
+                </Link>
+                <Link href="/market-prices" className="w-full">
+                  <Button variant="outline" className="w-full justify-start bg-transparent text-sm sm:text-base">
+                    <TrendingUp className="mr-2 h-4 w-4" />
+                    {language === "hi" ? "बाजार मूल्य" : "Market Prices"}
+                  </Button>
+                </Link>
+                <Link href="/encyclopedia" className="w-full">
+                  <Button variant="outline" className="w-full justify-start bg-transparent text-sm sm:text-base">
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {language === "hi" ? "कृषि ज्ञान" : "Agri Knowledge"}
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
           </div>

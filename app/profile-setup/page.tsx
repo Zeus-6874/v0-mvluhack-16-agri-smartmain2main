@@ -45,7 +45,7 @@ export default function ProfileSetupPage() {
       }
 
       console.log("[v0] Profile created successfully:", data)
-      router.push("/dashboard")
+      window.location.href = "/dashboard"
     } catch (err) {
       console.error("[v0] Profile setup error:", err)
       setError("An error occurred. Please try again.")
@@ -117,51 +117,55 @@ export default function ProfileSetupPage() {
         </p>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-              Full Name
-            </label>
-            <input
-              type="text"
-              name="full_name"
-              placeholder="Your name"
-              value={formData.full_name}
-              onChange={handleChange}
-              required
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                border: "1px solid rgb(203, 213, 225)",
-                borderRadius: "0.375rem",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-              }}
-            />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
+            <div>
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
+                Full Name
+              </label>
+              <input
+                type="text"
+                name="full_name"
+                placeholder="Your name"
+                value={formData.full_name}
+                onChange={handleChange}
+                required
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "1px solid rgb(203, 213, 225)",
+                  borderRadius: "0.375rem",
+                  fontFamily: "inherit",
+                  fontSize: "1rem",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Your phone number"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                style={{
+                  width: "100%",
+                  padding: "0.75rem",
+                  border: "1px solid rgb(203, 213, 225)",
+                  borderRadius: "0.375rem",
+                  fontFamily: "inherit",
+                  fontSize: "1rem",
+                  boxSizing: "border-box",
+                }}
+              />
+            </div>
           </div>
 
-          <div>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-              Phone Number
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              placeholder="Your phone number"
-              value={formData.phone}
-              onChange={handleChange}
-              required
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                border: "1px solid rgb(203, 213, 225)",
-                borderRadius: "0.375rem",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
             <div>
               <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
                 District
@@ -179,6 +183,7 @@ export default function ProfileSetupPage() {
                   border: "1px solid rgb(203, 213, 225)",
                   borderRadius: "0.375rem",
                   fontFamily: "inherit",
+                  fontSize: "1rem",
                   boxSizing: "border-box",
                 }}
               />
@@ -200,6 +205,7 @@ export default function ProfileSetupPage() {
                   border: "1px solid rgb(203, 213, 225)",
                   borderRadius: "0.375rem",
                   fontFamily: "inherit",
+                  fontSize: "1rem",
                   boxSizing: "border-box",
                 }}
               />
@@ -218,12 +224,14 @@ export default function ProfileSetupPage() {
               onChange={handleChange}
               required
               step="0.01"
+              min="0"
               style={{
                 width: "100%",
                 padding: "0.75rem",
                 border: "1px solid rgb(203, 213, 225)",
                 borderRadius: "0.375rem",
                 fontFamily: "inherit",
+                fontSize: "1rem",
                 boxSizing: "border-box",
               }}
             />

@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getDb } from "@/lib/mongodb/client"
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required soil parameters" }, { status: 400 })
     }
 
-    const supabase = await createClient()
+    const db = await getDb()
 
     // Generate enhanced crop recommendations
     const recommendations = await generateEnhancedCropRecommendations({
@@ -22,34 +22,30 @@ export async function POST(request: NextRequest) {
       season: season || "all",
       rainfall: rainfall ? Number.parseFloat(rainfall) : null,
       temperature: temperature ? Number.parseFloat(temperature) : null,
-      supabase, // Pass supabase for market data fetching
+      db, // Pass db for market data fetching
     })
 
     // Store enhanced soil analysis in database
-    const { data: analysisData, error: analysisError } = await supabase
-      .from("soil_analysis")
-      .insert({
+    try {
+      await db.collection("soil_analysis").insertOne({
         nitrogen_level: Number.parseFloat(nitrogen),
         phosphorus_level: Number.parseFloat(phosphorus),
         potassium_level: Number.parseFloat(potassium),
         ph_level: Number.parseFloat(ph),
         recommendations: recommendations.fertilizer_recommendations,
-        suitable_crops: recommendations.crop_recommendations.map((c) => c.name),
+        suitable_crops: recommendations.crop_recommendations.map((c: any) => c.name),
         location: location,
         season: season,
         rainfall: rainfall ? Number.parseFloat(rainfall) : null,
         temperature: temperature ? Number.parseFloat(temperature) : null,
+        created_at: new Date(),
       })
-      .select()
-      .single()
-
-    if (analysisError) {
-      console.error("Database error:", analysisError)
+    } catch (dbError) {
+      console.error("Database error:", dbError)
     }
 
     return NextResponse.json({
       success: true,
-      analysis_id: analysisData?.id,
       soil_health: recommendations.soil_health,
       crop_recommendations: recommendations.crop_recommendations,
       fertilizer_recommendations: recommendations.fertilizer_recommendations,
@@ -81,7 +77,7 @@ async function generateEnhancedCropRecommendations(params: {
   season: string
   rainfall: number | null
   temperature: number | null
-  supabase: any
+  db: any
 }) {
   const { nitrogen, phosphorus, potassium, ph, location, season, rainfall, temperature } = params
 
@@ -139,7 +135,7 @@ async function generateEnhancedCropRecommendations(params: {
   const risk_assessment = generateRiskAssessment(params, issues)
 
   // Market insights - fetch real data from database
-  const market_insights = await generateMarketInsights(crop_recommendations, params.supabase)
+  const market_insights = await generateMarketInsights(crop_recommendations, params.db)
 
   return {
     soil_health,
@@ -544,16 +540,16 @@ function generateRiskAssessment(params: any, issues: string[]) {
   }
 }
 
-async function generateMarketInsights(cropRecommendations: any[], supabase: any) {
+async function generateMarketInsights(cropRecommendations: any[], db: any) {
   // Fetch real market prices from database
   const cropNames = cropRecommendations.slice(0, 3).map((c) => c.name)
-  
-  const { data: pricesData, error } = await supabase
-    .from("market_prices")
-    .select("commodity, modal_price, min_price, max_price, arrival_date, state, district")
-    .in("commodity", cropNames)
-    .order("arrival_date", { ascending: false })
+
+  const { data: pricesData, error } = await db
+    .collection("market_prices")
+    .find({ commodity: { $in: cropNames } })
+    .sort({ arrival_date: -1 })
     .limit(50)
+    .toArray()
 
   if (error) {
     console.error("Error fetching market prices:", error)
@@ -572,14 +568,14 @@ async function generateMarketInsights(cropRecommendations: any[], supabase: any)
   return cropRecommendations.slice(0, 3).map((crop) => {
     const cropPrices = priceMap.get(crop.name) || []
     const latestPrice = cropPrices[0]
-    
+
     // Calculate trend from price history
     let price_trend = "stable"
     let current_price = 2000 // Default fallback
-    
+
     if (latestPrice) {
       current_price = latestPrice.modal_price || latestPrice.max_price || latestPrice.min_price || 2000
-      
+
       if (cropPrices.length > 1) {
         const recent = cropPrices.slice(0, 3)
         const older = cropPrices.slice(3, 6)

@@ -12,5 +12,9 @@ export default async function DashboardPage() {
   const db = await getDb()
   const profile = await db.collection("farmers").findOne({ user_id: session.userId })
 
+  if (!profile) {
+    redirect("/profile-setup")
+  }
+
   return <DashboardClient profile={profile} />
 }

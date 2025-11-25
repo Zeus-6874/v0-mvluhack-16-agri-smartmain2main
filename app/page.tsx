@@ -46,7 +46,20 @@ export default function HomePage() {
         return
       }
 
-      router.push("/profile-setup")
+      if (isLogin) {
+        // Check if user has profile
+        const profileResponse = await fetch("/api/profile")
+        const profileData = await profileResponse.json()
+
+        if (profileData.success && profileData.profile) {
+          router.push("/dashboard")
+        } else {
+          router.push("/profile-setup")
+        }
+      } else {
+        // After signup, always go to profile setup
+        router.push("/profile-setup")
+      }
     } catch (err) {
       setError("An error occurred. Please try again.")
       setLoading(false)
@@ -141,6 +154,8 @@ export default function HomePage() {
                 border: "1px solid rgb(203, 213, 225)",
                 borderRadius: "0.375rem",
                 fontFamily: "inherit",
+                fontSize: "1rem",
+                boxSizing: "border-box",
               }}
             />
           </div>
@@ -162,6 +177,8 @@ export default function HomePage() {
                 border: "1px solid rgb(203, 213, 225)",
                 borderRadius: "0.375rem",
                 fontFamily: "inherit",
+                fontSize: "1rem",
+                boxSizing: "border-box",
               }}
             />
           </div>
@@ -184,6 +201,8 @@ export default function HomePage() {
                   border: "1px solid rgb(203, 213, 225)",
                   borderRadius: "0.375rem",
                   fontFamily: "inherit",
+                  fontSize: "1rem",
+                  boxSizing: "border-box",
                 }}
               />
             </div>

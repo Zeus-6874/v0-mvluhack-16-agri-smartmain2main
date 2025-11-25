@@ -1,38 +1,85 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Navbar from "@/components/Navbar"
 import WeatherWidget from "@/components/WeatherWidget"
-import { Droplets, AlertTriangle, Info, Bell, Thermometer } from "lucide-react"
+import { Droplets, AlertTriangle, Info, Bell, Thermometer, Loader2, RefreshCw } from "lucide-react"
+import { useI18n } from "@/lib/i18n/context"
 
 export default function WeatherAlerts() {
-  const [language, setLanguage] = useState("en")
+  const { language, t } = useI18n()
+  const [weatherAlerts, setWeatherAlerts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const weatherAlerts = [
-    {
-      type: "warning",
-      title: language === "hi" ? "भारी बारिश चेतावनी" : "Heavy Rainfall Warning",
-      message:
-        language === "hi"
-          ? "48 घंटों में 50-75mm बारिश की संभावना। जल निकासी की व्यवस्था करें।"
-          : "Expected 50-75mm rainfall in next 48 hours. Prepare drainage systems.",
-      time: "2 hours ago",
-      severity: "high",
-    },
-    {
-      type: "info",
-      title: language === "hi" ? "अनुकूल तापमान" : "Favorable Temperature",
-      message:
-        language === "hi"
-          ? "गेहूं के अंकुरण के लिए आदर्श तापमान (20-25°C) अगले सप्ताह तक बना रहेगा।"
-          : "Ideal temperature for wheat germination (20-25°C) will continue next week.",
-      time: "6 hours ago",
-      severity: "low",
-    },
-  ]
+  const fetchWeatherData = async () => {
+    try {
+      const response = await fetch("/api/weather?location=Delhi")
+      const data = await response.json()
+
+      if (data.success && data.weather) {
+        // Create alerts based on weather conditions
+        const alerts: any[] = []
+
+        if (data.weather.rainfall > 50) {
+          alerts.push({
+            type: "warning",
+            title: language === "hi" ? "भारी बारिश चेतावनी" : "Heavy Rainfall Warning",
+            message:
+              language === "hi"
+                ? `${data.weather.rainfall}mm बारिश हो रही है। जल निकासी की व्यवस्था करें।`
+                : `${data.weather.rainfall}mm rainfall detected. Prepare drainage systems.`,
+            time: "Now",
+            severity: "high",
+          })
+        }
+
+        if (data.weather.temperature > 20 && data.weather.temperature < 25) {
+          alerts.push({
+            type: "info",
+            title: language === "hi" ? "अनुकूल तापमान" : "Favorable Temperature",
+            message:
+              language === "hi"
+                ? `गेहूं के अंकुरण के लिए आदर्श तापमान (${data.weather.temperature}°C)`
+                : `Ideal temperature for wheat germination (${data.weather.temperature}°C)`,
+            time: "Now",
+            severity: "low",
+          })
+        }
+
+        setWeatherAlerts(
+          alerts.length > 0
+            ? alerts
+            : [
+                {
+                  type: "info",
+                  title: language === "hi" ? "सामान्य मौसम" : "Normal Weather",
+                  message: language === "hi" ? "मौसम स्थिर है" : "Weather conditions are stable",
+                  time: "Now",
+                  severity: "low",
+                },
+              ],
+        )
+      }
+    } catch (error) {
+      console.error("Error fetching weather data:", error)
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchWeatherData()
+  }, [language])
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    await fetchWeatherData()
+  }
 
   const getAlertIcon = (type: string) => {
     switch (type) {
@@ -58,60 +105,72 @@ export default function WeatherAlerts() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar language={language} onLanguageChange={setLanguage} />
+      <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {language === "hi" ? "मौसम अलर्ट और सिंचाई गाइड" : "Weather Alerts & Irrigation Guide"}
-          </h1>
-          <p className="text-gray-600">
-            {language === "hi"
-              ? "मौसम की जानकारी और सिंचाई के सुझाव प्राप्त करें"
-              : "Get weather information and irrigation recommendations"}
-          </p>
+      <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+              {language === "hi" ? "मौसम अलर्ट और सिंचाई गाइड" : "Weather Alerts & Irrigation Guide"}
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600">
+              {language === "hi"
+                ? "मौसम की जानकारी और सिंचाई के सुझाव प्राप्त करें"
+                : "Get weather information and irrigation recommendations"}
+            </p>
+          </div>
+          <Button onClick={handleRefresh} disabled={refreshing} variant="outline" size="sm">
+            {refreshing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            {language === "hi" ? "रिफ्रेश" : "Refresh"}
+          </Button>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Current Weather */}
             <WeatherWidget language={language} />
 
             {/* Weather Alerts */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <Bell className="h-5 w-5 text-red-600" />
                   {language === "hi" ? "मौसम अलर्ट" : "Weather Alerts"}
                   <Badge variant="secondary">{weatherAlerts.length}</Badge>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {weatherAlerts.map((alert, index) => (
-                  <div key={index} className={`p-4 border rounded-lg ${getAlertColor(alert.severity)}`}>
-                    <div className="flex items-start gap-3">
-                      {getAlertIcon(alert.type)}
-                      <div className="flex-1">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-medium">{alert.title}</h3>
-                          <span className="text-xs text-gray-500">{alert.time}</span>
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : (
+                  weatherAlerts.map((alert, index) => (
+                    <div key={index} className={`p-3 sm:p-4 border rounded-lg ${getAlertColor(alert.severity)}`}>
+                      <div className="flex items-start gap-3">
+                        {getAlertIcon(alert.type)}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
+                            <h3 className="font-medium text-sm sm:text-base">{alert.title}</h3>
+                            <span className="text-xs text-gray-500">{alert.time}</span>
+                          </div>
+                          <p className="text-xs sm:text-sm text-gray-700 break-words">{alert.message}</p>
                         </div>
-                        <p className="text-sm text-gray-700">{alert.message}</p>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </CardContent>
             </Card>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Weather Statistics */}
             <Card>
               <CardHeader>
-                <CardTitle>{language === "hi" ? "मौसम आंकड़े" : "Weather Statistics"}</CardTitle>
+                <CardTitle className="text-lg">{language === "hi" ? "मौसम आंकड़े" : "Weather Statistics"}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -134,14 +193,22 @@ export default function WeatherAlerts() {
             {/* Quick Actions */}
             <Card>
               <CardHeader>
-                <CardTitle>{language === "hi" ? "त्वरित कार्य" : "Quick Actions"}</CardTitle>
+                <CardTitle className="text-lg">{language === "hi" ? "त्वरित कार्य" : "Quick Actions"}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start bg-transparent">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start bg-transparent text-sm sm:text-base"
+                  onClick={() => alert(language === "hi" ? "अलर्ट सुविधा जल्द आ रही है" : "Alert feature coming soon")}
+                >
                   <Bell className="h-4 w-4 mr-2" />
                   {language === "hi" ? "अलर्ट सेट करें" : "Set Alerts"}
                 </Button>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start bg-transparent text-sm sm:text-base"
+                  onClick={() => (window.location.href = "/field-management")}
+                >
                   <Droplets className="h-4 w-4 mr-2" />
                   {language === "hi" ? "सिंचाई प्लान करें" : "Plan Irrigation"}
                 </Button>
