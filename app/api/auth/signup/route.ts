@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { createSession } from "@/lib/auth/session"
+import { getCollection, COLLECTIONS } from "@/lib/mongodb/collections"
 import crypto from "crypto"
 
 export async function POST(request: NextRequest) {
@@ -11,12 +11,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
     }
 
-    const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    })
+    const usersCollection = await getCollection(COLLECTIONS.USERS)
 
     // Check if user exists
-    const { data: existing } = await supabase.from("users").select("id").eq("email", email.toLowerCase()).single()
+    const existing = await usersCollection.findOne({ email: email.toLowerCase() })
 
     if (existing) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 })
@@ -26,17 +24,15 @@ export async function POST(request: NextRequest) {
     const userId = crypto.randomUUID()
     const hashedPassword = Buffer.from(password).toString("base64") // Simple hash for demo
 
-    const { error } = await supabase.from("users").insert({
-      id: userId,
+    await usersCollection.insertOne({
+      _id: userId,
       email: email.toLowerCase(),
       password_hash: hashedPassword,
-      created_at: new Date().toISOString(),
+      created_at: new Date(),
+      updated_at: new Date(),
     })
 
-    if (error) {
-      console.error("[v0] Signup error:", error)
-      return NextResponse.json({ error: "Failed to create user" }, { status: 500 })
-    }
+    console.log("[v0] User created successfully:", userId)
 
     // Create session
     await createSession(userId)

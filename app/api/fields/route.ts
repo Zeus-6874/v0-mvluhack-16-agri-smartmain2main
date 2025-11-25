@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { getCurrentUserId } from "@/lib/auth/utils"
+import { getDb } from "@/lib/mongodb/client"
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,29 +9,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const supabase = await createClient()
+    const db = await getDb()
 
-    // Fetch all fields for the authenticated farmer
-    const { data: fields, error } = await supabase
-      .from("fields")
-      .select(`
-        *,
-        crop_cycles (
-          id,
-          crop_name,
-          variety,
-          planting_date,
-          expected_harvest_date,
-          status
-        )
-      `)
-      .eq("farmer_id", userId)
-      .order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching fields:", error)
-      return NextResponse.json({ error: "Failed to fetch fields" }, { status: 500 })
-    }
+    const fields = await db.collection("fields").find({ farmer_id: userId }).sort({ created_at: -1 }).toArray()
 
     return NextResponse.json({
       success: true,
@@ -73,26 +53,20 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
+    const db = await getDb()
 
-    // Create the field
-    const { data: field, error } = await supabase
-      .from("fields")
-      .insert({
-        farmer_id: userId,
-        field_name: field_name.trim(),
-        area_hectares: Number.parseFloat(area_hectares),
-        coordinates: coordinates || null,
-        soil_type: soil_type || null,
-        irrigation_type: irrigation_type || null,
-      })
-      .select()
-      .single()
+    const result = await db.collection("fields").insertOne({
+      farmer_id: userId,
+      field_name: field_name.trim(),
+      area_hectares: Number.parseFloat(area_hectares),
+      coordinates: coordinates || null,
+      soil_type: soil_type || null,
+      irrigation_type: irrigation_type || null,
+      created_at: new Date(),
+      updated_at: new Date(),
+    })
 
-    if (error) {
-      console.error("Error creating field:", error)
-      return NextResponse.json({ error: "Failed to create field" }, { status: 500 })
-    }
+    const field = await db.collection("fields").findOne({ _id: result.insertedId })
 
     return NextResponse.json({
       success: true,

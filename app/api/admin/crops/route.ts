@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { getCurrentUserId } from "@/lib/auth/utils"
+import { getDb } from "@/lib/mongodb/client"
 
 function assertAdmin(userId?: string | null) {
   const adminIds = process.env.ADMIN_USER_IDS?.split(",").map((id) => id.trim()) || []
@@ -14,38 +14,33 @@ export async function POST(request: NextRequest) {
     assertAdmin(userId)
 
     const payload = await request.json()
-    const supabase = await createClient()
+    const db = await getDb()
 
-    const { data, error } = await supabase
-      .from("crops")
-      .insert({
-        common_name: payload.common_name,
-        local_name: payload.local_name,
-        scientific_name: payload.scientific_name,
-        category_id: payload.category_id,
-        climate: payload.climate,
-        soil_type: payload.soil_type,
-        optimal_ph_range: payload.optimal_ph_range,
-        water_requirements: payload.water_requirements,
-        fertilizer_requirements: payload.fertilizer_requirements,
-        planting_season: payload.planting_season,
-        harvest_time: payload.harvest_time,
-        average_yield: payload.average_yield,
-        diseases: payload.diseases,
-        disease_management: payload.disease_management,
-        market_demand: payload.market_demand,
-        image_url: payload.image_url,
-        source: payload.source,
-      })
-      .select()
-      .single()
+    const result = await db.collection("crops").insertOne({
+      common_name: payload.common_name,
+      local_name: payload.local_name,
+      scientific_name: payload.scientific_name,
+      category_id: payload.category_id,
+      climate: payload.climate,
+      soil_type: payload.soil_type,
+      optimal_ph_range: payload.optimal_ph_range,
+      water_requirements: payload.water_requirements,
+      fertilizer_requirements: payload.fertilizer_requirements,
+      planting_season: payload.planting_season,
+      harvest_time: payload.harvest_time,
+      average_yield: payload.average_yield,
+      diseases: payload.diseases,
+      disease_management: payload.disease_management,
+      market_demand: payload.market_demand,
+      image_url: payload.image_url,
+      source: payload.source,
+      created_at: new Date(),
+      updated_at: new Date(),
+    })
 
-    if (error) {
-      console.error("Failed to create crop", error)
-      return NextResponse.json({ error: "Failed to create crop" }, { status: 500 })
-    }
+    const crop = await db.collection("crops").findOne({ _id: result.insertedId })
 
-    return NextResponse.json({ success: true, crop: data })
+    return NextResponse.json({ success: true, crop })
   } catch (error: any) {
     if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })

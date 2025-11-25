@@ -1,6 +1,5 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Suspense } from "react"
 import { I18nProvider } from "@/lib/i18n/context"
@@ -27,10 +26,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Suspense fallback={null}>
           <I18nProvider>
-            <TooltipProvider>
-              {children}
-              <Toaster />
-            </TooltipProvider>
+            <TooltipProvider>{children}</TooltipProvider>
           </I18nProvider>
         </Suspense>
       </body>

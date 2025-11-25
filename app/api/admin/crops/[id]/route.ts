@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
-import { createClient } from "@/lib/supabase/server"
+import { getCurrentUserId } from "@/lib/auth/utils"
+import { getDb } from "@/lib/mongodb/client"
+import { ObjectId } from "mongodb"
 
 function assertAdmin(userId?: string | null) {
   const adminIds = process.env.ADMIN_USER_IDS?.split(",").map((id) => id.trim()) || []
@@ -10,42 +11,43 @@ function assertAdmin(userId?: string | null) {
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     assertAdmin(userId)
     const payload = await request.json()
-    const supabase = await createClient()
+    const db = await getDb()
 
-    const { data, error } = await supabase
-      .from("crops")
-      .update({
-        common_name: payload.common_name,
-        local_name: payload.local_name,
-        scientific_name: payload.scientific_name,
-        category_id: payload.category_id,
-        climate: payload.climate,
-        soil_type: payload.soil_type,
-        optimal_ph_range: payload.optimal_ph_range,
-        water_requirements: payload.water_requirements,
-        fertilizer_requirements: payload.fertilizer_requirements,
-        planting_season: payload.planting_season,
-        harvest_time: payload.harvest_time,
-        average_yield: payload.average_yield,
-        diseases: payload.diseases,
-        disease_management: payload.disease_management,
-        market_demand: payload.market_demand,
-        image_url: payload.image_url,
-        source: payload.source,
-      })
-      .eq("id", params.id)
-      .select()
-      .single()
+    const result = await db.collection("crops").findOneAndUpdate(
+      { _id: new ObjectId(params.id) },
+      {
+        $set: {
+          common_name: payload.common_name,
+          local_name: payload.local_name,
+          scientific_name: payload.scientific_name,
+          category_id: payload.category_id,
+          climate: payload.climate,
+          soil_type: payload.soil_type,
+          optimal_ph_range: payload.optimal_ph_range,
+          water_requirements: payload.water_requirements,
+          fertilizer_requirements: payload.fertilizer_requirements,
+          planting_season: payload.planting_season,
+          harvest_time: payload.harvest_time,
+          average_yield: payload.average_yield,
+          diseases: payload.diseases,
+          disease_management: payload.disease_management,
+          market_demand: payload.market_demand,
+          image_url: payload.image_url,
+          source: payload.source,
+          updated_at: new Date(),
+        },
+      },
+      { returnDocument: "after" },
+    )
 
-    if (error) {
-      console.error("Failed to update crop", error)
-      return NextResponse.json({ error: "Failed to update crop" }, { status: 500 })
+    if (!result) {
+      return NextResponse.json({ error: "Crop not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, crop: data })
+    return NextResponse.json({ success: true, crop: result })
   } catch (error: any) {
     if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
@@ -56,14 +58,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     assertAdmin(userId)
-    const supabase = await createClient()
+    const db = await getDb()
 
-    const { error } = await supabase.from("crops").delete().eq("id", params.id)
-    if (error) {
-      console.error("Failed to delete crop", error)
-      return NextResponse.json({ error: "Failed to delete crop" }, { status: 500 })
+    const result = await db.collection("crops").deleteOne({ _id: new ObjectId(params.id) })
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ error: "Crop not found" }, { status: 404 })
     }
 
     return NextResponse.json({ success: true })

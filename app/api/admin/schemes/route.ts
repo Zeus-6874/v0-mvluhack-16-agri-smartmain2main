@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { auth } from "@clerk/nextjs/server"
-import { createClient } from "@/lib/supabase/server"
+import { getCurrentUserId } from "@/lib/auth/utils"
+import { getDb } from "@/lib/mongodb/client"
 
 function assertAdmin(userId?: string | null) {
   const adminIds = process.env.ADMIN_USER_IDS?.split(",").map((id) => id.trim()) || []
@@ -14,38 +14,33 @@ function assertAdmin(userId?: string | null) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     assertAdmin(userId)
 
     const payload = await request.json()
+    const db = await getDb()
 
-    const supabase = await createClient()
-    const { error, data } = await supabase
-      .from("schemes")
-      .insert({
-        name: payload.name,
-        name_local: payload.name_local,
-        category_id: payload.category_id,
-        state: payload.state,
-        department: payload.department,
-        description: payload.description,
-        eligibility: payload.eligibility,
-        benefits: payload.benefits,
-        subsidy_details: payload.subsidy_details,
-        application_process: payload.application_process,
-        official_url: payload.official_url,
-        contact_info: payload.contact_info,
-        is_active: payload.is_active ?? true,
-      })
-      .select()
-      .single()
+    const result = await db.collection("schemes").insertOne({
+      name: payload.name,
+      name_local: payload.name_local,
+      category_id: payload.category_id,
+      state: payload.state,
+      department: payload.department,
+      description: payload.description,
+      eligibility: payload.eligibility,
+      benefits: payload.benefits,
+      subsidy_details: payload.subsidy_details,
+      application_process: payload.application_process,
+      official_url: payload.official_url,
+      contact_info: payload.contact_info,
+      is_active: payload.is_active ?? true,
+      created_at: new Date(),
+      updated_at: new Date(),
+    })
 
-    if (error) {
-      console.error("Failed to insert scheme", error)
-      return NextResponse.json({ error: "Failed to create scheme" }, { status: 500 })
-    }
+    const scheme = await db.collection("schemes").findOne({ _id: result.insertedId })
 
-    return NextResponse.json({ success: true, scheme: data })
+    return NextResponse.json({ success: true, scheme })
   } catch (error: any) {
     if (error.message === "UNAUTHORIZED") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })

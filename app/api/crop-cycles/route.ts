@@ -1,10 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
-import { auth } from "@clerk/nextjs/server"
+import { getCurrentUserId } from "@/lib/auth/utils"
+import { getDb } from "@/lib/mongodb/client"
+import { ObjectId } from "mongodb"
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -13,46 +14,30 @@ export async function GET(request: NextRequest) {
     const fieldId = searchParams.get("field_id")
     const status = searchParams.get("status")
 
-    const supabase = await createClient()
+    const db = await getDb()
 
-    let query = supabase
-      .from("crop_cycles")
-      .select(`
-        *,
-        fields (
-          id,
-          field_name,
-          area_hectares
-        ),
-        field_activities (
-          id,
-          activity_type,
-          activity_date,
-          materials_used,
-          cost
-        )
-      `)
-      .eq("fields.farmer_id", userId)
+    const filter: any = {}
+
+    // First verify fields belong to user
+    const userFields = await db.collection("fields").find({ farmer_id: userId }).project({ _id: 1 }).toArray()
+
+    const fieldIds = userFields.map((f) => f._id)
+    filter.field_id = { $in: fieldIds.map((id) => id.toString()) }
 
     if (fieldId) {
-      query = query.eq("field_id", fieldId)
+      filter.field_id = fieldId
     }
 
     if (status) {
-      query = query.eq("status", status)
+      filter.status = status
     }
 
-    const { data: cropCycles, error } = await query.order("created_at", { ascending: false })
-
-    if (error) {
-      console.error("Error fetching crop cycles:", error)
-      return NextResponse.json({ error: "Failed to fetch crop cycles" }, { status: 500 })
-    }
+    const cropCycles = await db.collection("crop_cycles").find(filter).sort({ created_at: -1 }).toArray()
 
     return NextResponse.json({
       success: true,
       crop_cycles: cropCycles || [],
-      total: cropCycles?.length || 0
+      total: cropCycles?.length || 0,
     })
   } catch (error) {
     console.error("API Error:", error)
@@ -62,7 +47,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = await auth()
+    const userId = await getCurrentUserId()
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
@@ -72,71 +57,65 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!field_id || !crop_name) {
-      return NextResponse.json({
-        error: "Field ID and crop name are required"
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error: "Field ID and crop name are required",
+        },
+        { status: 400 },
+      )
     }
 
-    const supabase = await createClient()
+    const db = await getDb()
 
-    // Verify field ownership
-    const { data: field } = await supabase
-      .from("fields")
-      .select("id")
-      .eq("id", field_id)
-      .eq("farmer_id", userId)
-      .single()
+    const field = await db.collection("fields").findOne({
+      _id: new ObjectId(field_id),
+      farmer_id: userId,
+    })
 
     if (!field) {
-      return NextResponse.json({
-        error: "Field not found or access denied"
-      }, { status: 404 })
+      return NextResponse.json(
+        {
+          error: "Field not found or access denied",
+        },
+        { status: 404 },
+      )
     }
 
-    // Check for overlapping crop cycles
-    const { data: overlappingCycles } = await supabase
-      .from("crop_cycles")
-      .select("id")
-      .eq("field_id", field_id)
-      .in("status", ["planning", "planted", "growing"])
-      .limit(1)
-
-    if (overlappingCycles && overlappingCycles.length > 0) {
-      return NextResponse.json({
-        error: "Field already has an active crop cycle"
-      }, { status: 400 })
-    }
-
-    // Create the crop cycle
-    const { data: cropCycle, error } = await supabase
-      .from("crop_cycles")
-      .insert({
+    const overlappingCycles = await db
+      .collection("crop_cycles")
+      .find({
         field_id,
-        crop_name: crop_name.trim(),
-        variety: variety?.trim() || null,
-        planting_date: planting_date || null,
-        expected_harvest_date: expected_harvest_date || null,
-        status: "planning",
-        notes: notes?.trim() || null
+        status: { $in: ["planning", "planted", "growing"] },
       })
-      .select(`
-        *,
-        fields (
-          id,
-          field_name,
-          area_hectares
-        )
-      `)
-      .single()
+      .limit(1)
+      .toArray()
 
-    if (error) {
-      console.error("Error creating crop cycle:", error)
-      return NextResponse.json({ error: "Failed to create crop cycle" }, { status: 500 })
+    if (overlappingCycles.length > 0) {
+      return NextResponse.json(
+        {
+          error: "Field already has an active crop cycle",
+        },
+        { status: 400 },
+      )
     }
+
+    const result = await db.collection("crop_cycles").insertOne({
+      field_id,
+      crop_name: crop_name.trim(),
+      variety: variety?.trim() || null,
+      planting_date: planting_date || null,
+      expected_harvest_date: expected_harvest_date || null,
+      status: "planning",
+      notes: notes?.trim() || null,
+      created_at: new Date(),
+      updated_at: new Date(),
+    })
+
+    const cropCycle = await db.collection("crop_cycles").findOne({ _id: result.insertedId })
 
     return NextResponse.json({
       success: true,
-      crop_cycle: cropCycle
+      crop_cycle: cropCycle,
     })
   } catch (error) {
     console.error("API Error:", error)
