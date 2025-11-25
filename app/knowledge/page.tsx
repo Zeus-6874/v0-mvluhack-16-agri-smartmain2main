@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import Navbar from "@/components/Navbar"
 import { BookOpen, Search, Tag, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import { useI18n } from "@/lib/i18n/context"
 
 interface KnowledgeArticle {
   id: string | number
@@ -19,7 +20,7 @@ interface KnowledgeArticle {
 }
 
 export default function KnowledgeBase() {
-  const [language, setLanguage] = useState("en")
+  const { language } = useI18n()
   const [searchTerm, setSearchTerm] = useState("")
   const [articles, setArticles] = useState<KnowledgeArticle[]>([])
   const [loading, setLoading] = useState(true)
@@ -44,7 +45,8 @@ export default function KnowledgeBase() {
           categoryHi: "फसल जानकारी",
           title: crop.common_name || crop.crop_name || "Crop",
           titleHi: crop.local_name,
-          content: crop.description || crop.disease_management || `Information about ${crop.common_name || crop.crop_name}`,
+          content:
+            crop.description || crop.disease_management || `Information about ${crop.common_name || crop.crop_name}`,
           tags: crop.diseases || ["agriculture", "crops"],
         }))
         setArticles(knowledgeArticles)
@@ -73,7 +75,7 @@ export default function KnowledgeBase() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar language={language} onLanguageChange={setLanguage} />
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-8">
@@ -113,7 +115,9 @@ export default function KnowledgeBase() {
                       <Badge variant="secondary">{language === "hi" ? article.categoryHi : article.category}</Badge>
                       <BookOpen className="h-4 w-4 text-gray-400" />
                     </div>
-                    <CardTitle className="text-lg">{language === "hi" ? article.titleHi || article.title : article.title}</CardTitle>
+                    <CardTitle className="text-lg">
+                      {language === "hi" ? article.titleHi || article.title : article.title}
+                    </CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">{article.content}</p>

@@ -10,6 +10,9 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Navbar from "@/components/Navbar"
+import { useToast } from "@/hooks/use-toast"
+import { useI18n } from "@/lib/i18n/context"
+
 import {
   Sprout,
   TrendingUp,
@@ -22,7 +25,6 @@ import {
   AlertTriangle,
   BarChart3,
 } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
 
 interface CropRecommendation {
   name: string
@@ -47,7 +49,7 @@ interface RecommendationResult {
 }
 
 export default function CropRecommendation() {
-  const [language, setLanguage] = useState("en")
+  const { language } = useI18n()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [result, setResult] = useState<RecommendationResult | null>(null)
   const [formData, setFormData] = useState({
@@ -132,7 +134,7 @@ export default function CropRecommendation() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar language={language} onLanguageChange={setLanguage} />
+      <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-8">
