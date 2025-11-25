@@ -38,21 +38,24 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Creating user with ID:", userId)
 
+    const isAdmin = email.toLowerCase() === (process.env.ADMIN_EMAIL || "admin@agrismart.com").toLowerCase()
+
     await usersCollection.insertOne({
       _id: userId,
       email: email.toLowerCase(),
       password_hash: hashedPassword,
+      is_admin: isAdmin,
       created_at: new Date(),
       updated_at: new Date(),
     })
 
-    console.log("[v0] User created successfully:", userId)
+    console.log("[v0] User created successfully:", userId, "Admin:", isAdmin)
 
     console.log("[v0] Creating session...")
     await createSession(userId)
     console.log("[v0] Session created successfully")
 
-    return NextResponse.json({ success: true, userId })
+    return NextResponse.json({ success: true, userId, isAdmin })
   } catch (error) {
     console.error("[v0] Signup error details:", error)
     console.error("[v0] Error stack:", error instanceof Error ? error.stack : "No stack trace")

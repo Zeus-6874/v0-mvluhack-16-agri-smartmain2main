@@ -48,3 +48,9 @@ export async function initializeCollections() {
 
   console.log("MongoDB collections initialized with indexes")
 }
+
+export async function isUserAdmin(userId: string): Promise<boolean> {
+  const usersCollection = await getCollection(COLLECTIONS.USERS)
+  const user = await usersCollection.findOne({ _id: userId })
+  return user?.is_admin === true
+}

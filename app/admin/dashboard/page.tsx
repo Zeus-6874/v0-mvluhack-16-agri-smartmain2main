@@ -1,23 +1,23 @@
-import { auth } from "@clerk/nextjs/server"
 import { redirect } from "next/navigation"
+import { getSession } from "@/lib/auth/session"
+import { isUserAdmin } from "@/lib/mongodb/collections"
 import AdminDashboard from "@/components/admin/AdminDashboard"
 
 export default async function AdminDashboardPage() {
-  const { userId } = await auth()
+  const session = await getSession()
 
-  // Redirect to sign-in if not authenticated
-  if (!userId) {
-    redirect("/sign-in")
+  // Redirect to home if not authenticated
+  if (!session) {
+    redirect("/")
   }
 
-  // Check if user has admin privileges using ADMIN_USER_IDS from env
-  const adminUserIds = process.env.ADMIN_USER_IDS?.split(",").map((id) => id.trim()) || []
+  // Check if user has admin privileges
+  const isAdmin = await isUserAdmin(session.userId)
 
-  if (!adminUserIds.includes(userId)) {
+  if (!isAdmin) {
     redirect("/dashboard")
   }
 
-  // Return a mock user object for compatibility with AdminDashboard component
-  // In production, fetch from Clerk API if needed
-  return <AdminDashboard user={{ userId, email: "admin@agrismart.local" } as any} />
+  // Return admin dashboard with user info
+  return <AdminDashboard user={{ userId: session.userId, email: "admin@agrismart.com" } as any} />
 }
