@@ -15,6 +15,7 @@ const fallbackCrops = [
     fertilizer_needs: "NPK 120:60:40 kg/ha",
     common_diseases: ["Blast", "Brown Spot", "Bacterial Leaf Blight"],
     prevention_tips: ["Use resistant varieties", "Proper water management", "Seed treatment"],
+    image_url: "/rice-crop-field-plant.jpg",
   },
   {
     id: "2",
@@ -29,6 +30,7 @@ const fallbackCrops = [
     fertilizer_needs: "NPK 120:60:40 kg/ha",
     common_diseases: ["Rust", "Powdery Mildew", "Karnal Bunt"],
     prevention_tips: ["Timely sowing", "Use certified seeds", "Crop rotation"],
+    image_url: "/wheat-crop-field-plant.jpg",
   },
   {
     id: "3",
@@ -43,6 +45,7 @@ const fallbackCrops = [
     fertilizer_needs: "NPK 120:60:40 kg/ha",
     common_diseases: ["Maize Stalk Rot", "Leaf Blight", "Downy Mildew"],
     prevention_tips: ["Seed treatment", "Proper spacing", "Balanced fertilization"],
+    image_url: "/maize-crop-field-plant.jpg",
   },
   {
     id: "4",
@@ -57,6 +60,7 @@ const fallbackCrops = [
     fertilizer_needs: "NPK 100:50:50 kg/ha",
     common_diseases: ["Bollworm", "Whitefly", "Root Rot"],
     prevention_tips: ["IPM practices", "Bt cotton varieties", "Proper irrigation"],
+    image_url: "/cotton-crop-field-plant.jpg",
   },
   {
     id: "5",
@@ -71,6 +75,7 @@ const fallbackCrops = [
     fertilizer_needs: "NPK 250:100:100 kg/ha",
     common_diseases: ["Red Rot", "Smut", "Grassy Shoot"],
     prevention_tips: ["Disease-free seed cane", "Proper drainage", "Ratoon management"],
+    image_url: "/sugarcane-crop-field-plant.jpg",
   },
   {
     id: "6",
@@ -85,6 +90,7 @@ const fallbackCrops = [
     fertilizer_needs: "NPK 120:60:60 kg/ha",
     common_diseases: ["Early Blight", "Late Blight", "Leaf Curl"],
     prevention_tips: ["Stake plants", "Mulching", "Resistant varieties"],
+    image_url: "/tomato-crop-field-plant.jpg",
   },
   {
     id: "7",
@@ -99,6 +105,7 @@ const fallbackCrops = [
     fertilizer_needs: "NPK 180:80:100 kg/ha",
     common_diseases: ["Late Blight", "Early Blight", "Black Scurf"],
     prevention_tips: ["Certified seed tubers", "Proper hilling", "Crop rotation"],
+    image_url: "/potato-crop-field-plant.jpg",
   },
   {
     id: "8",
@@ -113,6 +120,7 @@ const fallbackCrops = [
     fertilizer_needs: "NPK 100:50:50 kg/ha",
     common_diseases: ["Purple Blotch", "Downy Mildew", "Thrips"],
     prevention_tips: ["Proper curing", "Storage management", "Fungicide spray"],
+    image_url: "/onion-crop-field-plant.jpg",
   },
 ]
 
@@ -122,51 +130,58 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search")
     const crop = searchParams.get("crop")
 
-    let crops = fallbackCrops
+    const db = await getDb()
+    let query: any = {}
 
-    try {
-      const db = await getDb()
-      let encyclopediaData = await db.collection("crops").find({}).sort({ crop_name: 1 }).toArray()
-
-      if (!encyclopediaData || encyclopediaData.length === 0) {
-        encyclopediaData = await db.collection("encyclopedia").find({}).sort({ crop_name: 1 }).toArray()
-      }
-
-      if (encyclopediaData && encyclopediaData.length > 0) {
-        crops = encyclopediaData.map((c: any, index: number) => ({
-          id: c._id?.toString() || String(index),
-          ...c,
-        }))
-      }
-    } catch (dbError) {
-      console.log("[v0] Database not available, using fallback data")
-    }
-
-    // Apply filters
-    let filteredCrops = crops
     if (search) {
-      filteredCrops = filteredCrops.filter(
-        (c: any) =>
-          c.crop_name?.toLowerCase().includes(search.toLowerCase()) ||
-          c.description?.toLowerCase().includes(search.toLowerCase()),
-      )
+      query = {
+        $or: [
+          { crop_name: { $regex: search, $options: "i" } },
+          { description: { $regex: search, $options: "i" } },
+          { scientific_name: { $regex: search, $options: "i" } },
+        ],
+      }
     }
+
     if (crop) {
-      filteredCrops = filteredCrops.filter((c: any) => c.crop_name === crop)
+      query.crop_name = crop
     }
+
+    let crops = await db.collection("encyclopedia").find(query).sort({ crop_name: 1 }).toArray()
+
+    if (!crops || crops.length === 0) {
+      crops = await db.collection("crops").find(query).sort({ crop_name: 1 }).toArray()
+    }
+
+    const formattedCrops = crops.map((c: any) => ({
+      id: c._id?.toString(),
+      crop_name: c.crop_name,
+      scientific_name: c.scientific_name,
+      description: c.description,
+      planting_season: c.planting_season,
+      harvest_time: c.harvest_time,
+      water_requirements: c.water_requirements,
+      soil_type: c.soil_type,
+      fertilizer_needs: c.fertilizer_needs,
+      common_diseases: c.common_diseases,
+      prevention_tips: c.prevention_tips,
+      image_url: `/placeholder.svg?height=200&width=200&query=${encodeURIComponent(c.crop_name + " crop field plant")}`,
+    }))
 
     return NextResponse.json({
       success: true,
-      crops: filteredCrops,
-      total: filteredCrops.length,
-      filters: { search, crop },
+      crops: formattedCrops,
+      total: formattedCrops.length,
     })
   } catch (error) {
     console.error("[v0] Encyclopedia API Error:", error)
-    return NextResponse.json({
-      success: true,
-      crops: fallbackCrops,
-      total: fallbackCrops.length,
-    })
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to fetch encyclopedia data",
+        crops: [],
+      },
+      { status: 500 },
+    )
   }
 }

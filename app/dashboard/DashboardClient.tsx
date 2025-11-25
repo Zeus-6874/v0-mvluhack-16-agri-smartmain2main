@@ -19,7 +19,9 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
-import CropCard from "@/components/CropCard" // Assuming CropCard component exists
+import { useToast } from "@/hooks/use-toast"
+import CropCard from "@/components/CropCard"
+import AddCropModal from "@/components/AddCropModal"
 
 interface Profile {
   full_name: string
@@ -53,11 +55,13 @@ const cropIcons: Record<string, string> = {
 export default function DashboardClient({ profile }: DashboardClientProps) {
   const router = useRouter()
   const { language, t } = useI18n()
+  const { toast } = useToast()
   const [weather, setWeather] = useState<any>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
   const [activeCrops, setActiveCrops] = useState<any[]>([])
   const [upcomingTasks, setUpcomingTasks] = useState<any[]>([])
+  const [fields, setFields] = useState<any[]>([])
+  const [showAddCropModal, setShowAddCropModal] = useState(false)
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -79,27 +83,64 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   }, [profile])
 
   useEffect(() => {
-    async function fetchUserData() {
-      try {
-        // Fetch real crop cycles from database
-        const cropsRes = await fetch("/api/crop-cycles")
-        const cropsData = await cropsRes.json()
-        if (cropsData.success && cropsData.cropCycles) {
-          setActiveCrops(cropsData.cropCycles.filter((c: any) => c.status === "growing" || c.status === "planted"))
-        }
-
-        // Fetch real field activities/tasks
-        const tasksRes = await fetch("/api/field-activities")
-        const tasksData = await tasksRes.json()
-        if (tasksData.success && tasksData.activities) {
-          setUpcomingTasks(tasksData.activities.slice(0, 3))
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-      }
-    }
     fetchUserData()
   }, [])
+
+  const fetchUserData = async () => {
+    try {
+      const cropsRes = await fetch("/api/crop-cycles")
+      const cropsData = await cropsRes.json()
+      if (cropsData.success && cropsData.crop_cycles) {
+        setActiveCrops(cropsData.crop_cycles.filter((c: any) => c.status === "growing" || c.status === "planted"))
+      }
+
+      const tasksRes = await fetch("/api/field-activities")
+      const tasksData = await tasksRes.json()
+      if (tasksData.success && tasksData.activities) {
+        setUpcomingTasks(tasksData.activities.slice(0, 3))
+      }
+
+      const fieldsRes = await fetch("/api/fields")
+      const fieldsData = await fieldsRes.json()
+      if (fieldsData.success && fieldsData.fields) {
+        setFields(fieldsData.fields)
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error)
+    }
+  }
+
+  const handleDeleteCrop = async (cropId: number) => {
+    try {
+      const response = await fetch(`/api/crop-cycles/${cropId}`, {
+        method: "DELETE",
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        toast({
+          title: language === "hi" ? "फसल हटाई गई" : language === "mr" ? "पीक हटवले" : "Crop Deleted",
+          description:
+            language === "hi"
+              ? "फसल सफलतापूर्वक हटाई गई"
+              : language === "mr"
+                ? "पीक यशस्वीरित्या हटवले"
+                : "Crop deleted successfully",
+        })
+        fetchUserData()
+      } else {
+        throw new Error(data.error)
+      }
+    } catch (error) {
+      toast({
+        title: language === "hi" ? "त्रुटि" : language === "mr" ? "त्रुटी" : "Error",
+        description:
+          language === "hi" ? "फसल हटाने में विफल" : language === "mr" ? "पीक हटवण्यात अयशस्वी" : "Failed to delete crop",
+        variant: "destructive",
+      })
+    }
+  }
 
   const stats = [
     {
@@ -147,7 +188,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
 
     if (!temp || !humidity) return []
 
-    // Heavy rainfall alert
     if (rainfall > 50) {
       alerts.push({
         type: "warning",
@@ -164,7 +204,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
       })
     }
 
-    // Extreme temperature alert
     if (temp < 10) {
       alerts.push({
         type: "warning",
@@ -180,7 +219,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
       })
     }
 
-    // High humidity alert
     if (humidity > 80) {
       alerts.push({
         type: "caution",
@@ -196,7 +234,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
       })
     }
 
-    // Favorable conditions
     if (temp >= 20 && temp <= 30 && humidity >= 40 && humidity <= 70) {
       alerts.push({
         type: "info",
@@ -254,7 +291,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           <Button
             size="sm"
             className="bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => router.push("/field-management")}
+            onClick={() => setShowAddCropModal(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
             {language === "hi" ? "फसल जोड़ें" : language === "mr" ? "पीक जोडा" : "Add Crop"}
@@ -296,7 +333,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                   {language === "hi" ? "सक्रिय फसलें" : language === "mr" ? "सक्रिय पिके" : "Active Crops"}
                 </div>
                 <Button
-                  onClick={() => router.push("/field-management")}
+                  onClick={() => setShowAddCropModal(true)}
                   size="sm"
                   className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
                 >
@@ -316,7 +353,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                         ? "कोणतेही सक्रिय पीक नाही"
                         : "No active crops"}
                   </p>
-                  <Button onClick={() => router.push("/field-management")} className="bg-green-600 hover:bg-green-700">
+                  <Button onClick={() => setShowAddCropModal(true)} className="bg-green-600 hover:bg-green-700">
                     <Plus className="h-4 w-4 mr-2" />
                     {language === "hi" ? "पहली फसल जोड़ें" : language === "mr" ? "पहिले पीक जोडा" : "Add First Crop"}
                   </Button>
@@ -324,7 +361,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {activeCrops.map((crop) => (
-                    <CropCard key={crop.id} crop={crop} language={language} />
+                    <CropCard key={crop.id} crop={crop} language={language} onDelete={handleDeleteCrop} />
                   ))}
                 </div>
               )}
@@ -473,6 +510,17 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           </Card>
         </div>
       </div>
+
+      <AddCropModal
+        open={showAddCropModal}
+        onOpenChange={(open) => {
+          setShowAddCropModal(open)
+          if (!open) {
+            fetchUserData()
+          }
+        }}
+        fields={fields}
+      />
     </div>
   )
 }

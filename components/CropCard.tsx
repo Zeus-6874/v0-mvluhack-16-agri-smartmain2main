@@ -1,6 +1,11 @@
+"use client"
+
+import type React from "react"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, TrendingUp, MapPin } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Calendar, TrendingUp, MapPin, Trash2 } from "lucide-react"
 
 interface Crop {
   id: number
@@ -15,6 +20,7 @@ interface Crop {
 interface CropCardProps {
   crop: Crop
   language: string
+  onDelete?: (cropId: number) => void
 }
 
 const cropEmojis: Record<string, string> = {
@@ -36,7 +42,7 @@ const cropEmojis: Record<string, string> = {
   गन्ना: "🎋",
 }
 
-export default function CropCard({ crop, language }: CropCardProps) {
+export default function CropCard({ crop, language, onDelete }: CropCardProps) {
   const getHealthColor = (health: number) => {
     if (health >= 90) return "bg-green-500"
     if (health >= 75) return "bg-yellow-500"
@@ -55,14 +61,28 @@ export default function CropCard({ crop, language }: CropCardProps) {
     return "bg-red-100 text-red-800"
   }
 
-  // Get emoji for crop or default
   const cropEmoji = cropEmojis[crop.name] || "🌱"
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onDelete) {
+      const confirmMessage =
+        language === "hi"
+          ? `क्या आप "${crop.name}" फसल को हटाना चाहते हैं?`
+          : language === "mr"
+            ? `तुम्हाला "${crop.name}" पीक हटवायचे आहे का?`
+            : `Are you sure you want to delete "${crop.name}"?`
+
+      if (confirm(confirmMessage)) {
+        onDelete(crop.id)
+      }
+    }
+  }
 
   return (
     <Card className="hover:shadow-md transition-shadow cursor-pointer">
       <CardContent className="p-4">
         <div className="flex items-start space-x-4">
-          {/* Crop Emoji Icon */}
           <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-green-100 to-emerald-100 flex items-center justify-center text-3xl">
             {cropEmoji}
           </div>
@@ -70,7 +90,14 @@ export default function CropCard({ crop, language }: CropCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-semibold text-gray-900 truncate">{crop.name}</h3>
-              <Badge className={getHealthBadgeColor(crop.health)}>{getHealthStatus(crop.health)}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge className={getHealthBadgeColor(crop.health)}>{getHealthStatus(crop.health)}</Badge>
+                {onDelete && (
+                  <Button variant="ghost" size="sm" onClick={handleDelete} className="h-6 w-6 p-0 hover:bg-red-50">
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                )}
+              </div>
             </div>
 
             <div className="space-y-1.5">
