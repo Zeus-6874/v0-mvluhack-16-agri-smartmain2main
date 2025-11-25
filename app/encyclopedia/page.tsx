@@ -87,28 +87,28 @@ export default function Encyclopedia() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("encyclopedia.title")}</h1>
-          <p className="text-gray-600">{t("encyclopedia.description")}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{t("encyclopedia.title")}</h1>
+          <p className="text-sm sm:text-base text-gray-600">{t("encyclopedia.subtitle")}</p>
         </div>
 
         {/* Search Bar */}
         <Card className="mb-6">
           <CardContent className="pt-6">
-            <form onSubmit={handleSearch} className="flex gap-4">
+            <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder={t("encyclopedia.searchPlaceholder")}
+                  placeholder={t("encyclopedia.searchCrops")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
                 />
               </div>
-              <Button type="submit">
+              <Button type="submit" className="w-full sm:w-auto">
                 <Search className="h-4 w-4 mr-2" />
-                {t("encyclopedia.searchButton")}
+                {t("common.search")}
               </Button>
             </form>
           </CardContent>
@@ -119,9 +119,9 @@ export default function Encyclopedia() {
           <div className="lg:col-span-1">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <BookOpen className="h-5 w-5 text-green-600" />
-                  {t("encyclopedia.crops")}
+                  {t("encyclopedia.allCrops")}
                   <Badge variant="secondary">{filteredCrops.length}</Badge>
                 </CardTitle>
               </CardHeader>
@@ -129,6 +129,10 @@ export default function Encyclopedia() {
                 {isLoading ? (
                   <div className="flex items-center justify-center p-8">
                     <Loader2 className="h-6 w-6 animate-spin" />
+                  </div>
+                ) : filteredCrops.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500">
+                    <p>{t("encyclopedia.noCropsFound")}</p>
                   </div>
                 ) : (
                   <div className="max-h-96 overflow-y-auto">
@@ -145,7 +149,7 @@ export default function Encyclopedia() {
                               <img
                                 src={
                                   crop.image_url ||
-                                  `/placeholder.svg?height=40&width=40&query=${encodeURIComponent(crop.crop_name + " crop plant")}`
+                                  `/placeholder.svg?height=40&width=40&query=${encodeURIComponent(crop.crop_name + " crop plant") || "/placeholder.svg"}`
                                 }
                                 alt={crop.crop_name}
                                 className="w-full h-full object-cover"
@@ -179,73 +183,69 @@ export default function Encyclopedia() {
                 {/* Header */}
                 <Card>
                   <CardHeader>
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                       <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-lg overflow-hidden bg-green-100 flex-shrink-0">
+                        <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-green-100 flex-shrink-0">
                           <img
                             src={
                               selectedCrop.image_url ||
-                              `/placeholder.svg?height=64&width=64&query=${encodeURIComponent(selectedCrop.crop_name + " crop plant field")}`
+                              `/placeholder.svg?height=64&width=64&query=${encodeURIComponent(selectedCrop.crop_name + " crop plant field") || "/placeholder.svg"}`
                             }
                             alt={selectedCrop.crop_name}
                             className="w-full h-full object-cover"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = `/placeholder.svg?height=64&width=64&query=${encodeURIComponent(selectedCrop.crop_name + " crop plant field")}`
-                            }}
                           />
                         </div>
                         <div>
-                          <CardTitle className="text-2xl text-green-800">{selectedCrop.crop_name}</CardTitle>
+                          <CardTitle className="text-xl sm:text-2xl text-green-800">{selectedCrop.crop_name}</CardTitle>
                           {selectedCrop.scientific_name && (
-                            <p className="text-gray-600 italic mt-1">{selectedCrop.scientific_name}</p>
+                            <p className="text-sm text-gray-600 italic mt-1">{selectedCrop.scientific_name}</p>
                           )}
                         </div>
                       </div>
-                      <Sprout className="h-8 w-8 text-green-600" />
+                      <Sprout className="h-6 w-6 sm:h-8 sm:w-8 text-green-600" />
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700 leading-relaxed">{selectedCrop.description}</p>
+                    <p className="text-sm sm:text-base text-gray-700 leading-relaxed">{selectedCrop.description}</p>
                   </CardContent>
                 </Card>
 
                 {/* Growing Information */}
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                         <Calendar className="h-5 w-5 text-blue-600" />
-                        {t("encyclopedia.plantingHarvest")}
+                        {t("encyclopedia.growingSeason")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <Label className="font-medium text-gray-700">{t("encyclopedia.plantingSeason")}</Label>
-                        <p className="text-gray-600 mt-1">{selectedCrop.planting_season}</p>
+                        <Label className="font-medium text-gray-700 text-sm">{t("encyclopedia.plantingSeason")}</Label>
+                        <p className="text-gray-600 mt-1 text-sm">{selectedCrop.planting_season}</p>
                       </div>
                       <div>
-                        <Label className="font-medium text-gray-700">{t("encyclopedia.harvestTime")}</Label>
-                        <p className="text-gray-600 mt-1">{selectedCrop.harvest_time}</p>
+                        <Label className="font-medium text-gray-700 text-sm">{t("encyclopedia.harvestTime")}</Label>
+                        <p className="text-gray-600 mt-1 text-sm">{selectedCrop.harvest_time}</p>
                       </div>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
+                      <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                         <Droplets className="h-5 w-5 text-blue-600" />
-                        {t("encyclopedia.soilWater")}
+                        {t("encyclopedia.soilRequirements")}
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <Label className="font-medium text-gray-700">{t("encyclopedia.soilType")}</Label>
-                        <p className="text-gray-600 mt-1">{selectedCrop.soil_type}</p>
+                        <Label className="font-medium text-gray-700 text-sm">{t("encyclopedia.soilType")}</Label>
+                        <p className="text-gray-600 mt-1 text-sm">{selectedCrop.soil_type}</p>
                       </div>
                       <div>
-                        <Label className="font-medium text-gray-700">{t("encyclopedia.waterRequirements")}</Label>
-                        <p className="text-gray-600 mt-1">{selectedCrop.water_requirements}</p>
+                        <Label className="font-medium text-gray-700 text-sm">{t("encyclopedia.waterNeeds")}</Label>
+                        <p className="text-gray-600 mt-1 text-sm">{selectedCrop.water_requirements}</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -254,42 +254,54 @@ export default function Encyclopedia() {
                 {/* Fertilizer Needs */}
                 <Card>
                   <CardHeader>
-                    <CardTitle>{t("encyclopedia.fertilizerRequirements")}</CardTitle>
+                    <CardTitle className="text-base sm:text-lg">{t("encyclopedia.fertilizerRequirements")}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-700">{selectedCrop.fertilizer_needs}</p>
+                    <p className="text-sm sm:text-base text-gray-700">{selectedCrop.fertilizer_needs}</p>
                   </CardContent>
                 </Card>
 
                 {/* Diseases and Prevention */}
-                <div className="grid md:grid-cols-2 gap-6">
+                <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-red-700">{t("encyclopedia.commonDiseases")}</CardTitle>
+                      <CardTitle className="text-red-700 text-base sm:text-lg">
+                        {t("encyclopedia.commonDiseases")}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-2">
-                        {selectedCrop.common_diseases?.map((disease, index) => (
-                          <Badge key={index} variant="destructive" className="mr-2 mb-2">
-                            {disease}
-                          </Badge>
-                        ))}
+                      <div className="flex flex-wrap gap-2">
+                        {selectedCrop.common_diseases?.length > 0 ? (
+                          selectedCrop.common_diseases.map((disease, index) => (
+                            <Badge key={index} variant="destructive" className="text-xs">
+                              {disease}
+                            </Badge>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">{t("encyclopedia.noDiseases")}</p>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-green-700">{t("encyclopedia.preventionTips")}</CardTitle>
+                      <CardTitle className="text-green-700 text-base sm:text-lg">
+                        {t("encyclopedia.preventionTips")}
+                      </CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ul className="space-y-2">
-                        {selectedCrop.prevention_tips?.map((tip, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
-                            <span className="text-gray-700 text-sm">{tip}</span>
-                          </li>
-                        ))}
+                        {selectedCrop.prevention_tips?.length > 0 ? (
+                          selectedCrop.prevention_tips.map((tip, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0" />
+                              <span className="text-gray-700 text-xs sm:text-sm">{tip}</span>
+                            </li>
+                          ))
+                        ) : (
+                          <p className="text-sm text-gray-500">{t("encyclopedia.noTips")}</p>
+                        )}
                       </ul>
                     </CardContent>
                   </Card>
@@ -297,11 +309,13 @@ export default function Encyclopedia() {
               </div>
             ) : (
               <Card>
-                <CardContent className="flex items-center justify-center h-96">
-                  <div className="text-center">
-                    <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">{t("encyclopedia.selectCrop")}</h3>
-                    <p className="text-gray-600">{t("encyclopedia.chooseCrop")}</p>
+                <CardContent className="flex items-center justify-center h-64 sm:h-96">
+                  <div className="text-center px-4">
+                    <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">
+                      {t("encyclopedia.selectCrop")}
+                    </h3>
+                    <p className="text-sm text-gray-600">{t("encyclopedia.chooseCrop")}</p>
                   </div>
                 </CardContent>
               </Card>

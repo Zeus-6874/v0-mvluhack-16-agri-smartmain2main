@@ -19,6 +19,9 @@ import {
   Sun,
   Wind,
   Loader2,
+  AlertTriangle,
+  Info,
+  X,
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 
@@ -56,6 +59,9 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   const { language, t } = useI18n()
   const [weather, setWeather] = useState<any>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
+  const [alerts, setAlerts] = useState<any[]>([])
+  const [alertsLoading, setAlertsLoading] = useState(true)
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -75,7 +81,30 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     fetchWeather()
   }, [profile])
 
-  // Sample data for active crops with proper translations
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const location = profile?.district || profile?.state || "Delhi"
+        const response = await fetch(`/api/weather/alerts?location=${encodeURIComponent(location)}`)
+        const data = await response.json()
+        if (data.success && data.alerts) {
+          setAlerts(data.alerts)
+        }
+      } catch (error) {
+        console.error("Alerts fetch error:", error)
+      } finally {
+        setAlertsLoading(false)
+      }
+    }
+    fetchAlerts()
+  }, [profile])
+
+  const dismissAlert = (alertId: string) => {
+    setDismissedAlerts((prev) => new Set(prev).add(alertId))
+  }
+
+  const visibleAlerts = alerts.filter((alert) => !dismissedAlerts.has(alert.id))
+
   const activeCrops = [
     {
       id: 1,
@@ -115,7 +144,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     },
   ]
 
-  // Quick actions configuration
   const quickActions = [
     {
       icon: Droplets,
@@ -143,7 +171,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     },
   ]
 
-  // Upcoming tasks
   const upcomingTasks = [
     {
       id: 1,
@@ -166,7 +193,6 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     },
   ]
 
-  // Stats data
   const stats = [
     {
       label: language === "hi" ? "कुल क्षेत्र" : language === "mr" ? "एकूण क्षेत्र" : "Total Area",
@@ -246,6 +272,62 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           </Button>
         </div>
       </div>
+
+      {visibleAlerts.length > 0 && (
+        <div className="space-y-2">
+          {visibleAlerts.slice(0, 3).map((alert) => (
+            <Card
+              key={alert.id}
+              className={`border-l-4 ${
+                alert.type === "danger"
+                  ? "border-l-red-500 bg-red-50"
+                  : alert.type === "warning"
+                    ? "border-l-yellow-500 bg-yellow-50"
+                    : "border-l-blue-500 bg-blue-50"
+              }`}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div
+                      className={`p-2 rounded-lg ${
+                        alert.type === "danger"
+                          ? "bg-red-100"
+                          : alert.type === "warning"
+                            ? "bg-yellow-100"
+                            : "bg-blue-100"
+                      }`}
+                    >
+                      {alert.type === "danger" || alert.type === "warning" ? (
+                        <AlertTriangle
+                          className={`h-5 w-5 ${alert.type === "danger" ? "text-red-600" : "text-yellow-600"}`}
+                        />
+                      ) : (
+                        <Info className="h-5 w-5 text-blue-600" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-sm text-gray-900">{alert.title[language] || alert.title.en}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{alert.message[language] || alert.message.en}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {language === "hi" ? "अभी" : language === "mr" ? "आत्ता" : "Now"}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 hover:bg-gray-100"
+                    onClick={() => dismissAlert(alert.id)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">

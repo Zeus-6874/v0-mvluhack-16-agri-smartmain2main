@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -136,27 +135,15 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   }, [])
 
   const fetchDashboardStats = async () => {
-    const supabase = createClient()
     setIsLoading(true)
 
     try {
-      const [farmers, encyclopedia, diseaseReports, soilAnalyses, marketPrices, schemes] = await Promise.all([
-        supabase.from("farmers").select("*", { count: "exact", head: true }),
-        supabase.from("encyclopedia").select("*", { count: "exact", head: true }),
-        supabase.from("disease_reports").select("*", { count: "exact", head: true }),
-        supabase.from("soil_analysis").select("*", { count: "exact", head: true }),
-        supabase.from("market_prices").select("*", { count: "exact", head: true }),
-        supabase.from("schemes").select("*", { count: "exact", head: true }),
-      ])
+      const response = await fetch("/api/admin/stats")
+      const data = await response.json()
 
-      setStats({
-        totalFarmers: farmers.count || 0,
-        totalCrops: encyclopedia.count || 0,
-        diseaseReports: diseaseReports.count || 0,
-        soilAnalyses: soilAnalyses.count || 0,
-        marketPrices: marketPrices.count || 0,
-        schemes: schemes.count || 0,
-      })
+      if (data.success) {
+        setStats(data.stats)
+      }
     } catch (error) {
       console.error("Error fetching dashboard stats:", error)
     } finally {
@@ -165,20 +152,25 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   }
 
   const fetchAllData = async () => {
-    const supabase = createClient()
-
     try {
-      const [farmersData, cropsData, reportsData, pricesData] = await Promise.all([
-        supabase.from("farmers").select("*").order("created_at", { ascending: false }).limit(50),
-        supabase.from("encyclopedia").select("*").order("created_at", { ascending: false }).limit(50),
-        supabase.from("disease_reports").select("*").order("reported_date", { ascending: false }).limit(50),
-        supabase.from("market_prices").select("*").order("arrival_date", { ascending: false }).limit(50),
+      const [farmersRes, cropsRes, reportsRes, pricesRes] = await Promise.all([
+        fetch("/api/admin/farmers"),
+        fetch("/api/admin/encyclopedia"),
+        fetch("/api/admin/disease-reports"),
+        fetch("/api/admin/market-prices"),
       ])
 
-      if (farmersData.data) setFarmers(farmersData.data)
-      if (cropsData.data) setCrops(cropsData.data)
-      if (reportsData.data) setDiseaseReports(reportsData.data)
-      if (pricesData.data) setMarketPrices(pricesData.data)
+      const [farmersData, cropsData, reportsData, pricesData] = await Promise.all([
+        farmersRes.json(),
+        cropsRes.json(),
+        reportsRes.json(),
+        pricesRes.json(),
+      ])
+
+      if (farmersData.success) setFarmers(farmersData.farmers)
+      if (cropsData.success) setCrops(cropsData.crops)
+      if (reportsData.success) setDiseaseReports(reportsData.reports)
+      if (pricesData.success) setMarketPrices(pricesData.prices)
     } catch (error) {
       console.error("Error fetching data:", error)
     }
@@ -194,17 +186,15 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       return
     }
 
-    const supabase = createClient()
-    const { error } = await supabase.from("farmers").insert([
-      {
-        name: newFarmer.name,
-        phone: newFarmer.phone || null,
-        location: newFarmer.location || null,
-        farm_size: newFarmer.farm_size ? Number.parseFloat(newFarmer.farm_size) : null,
-      },
-    ])
+    const response = await fetch("/api/admin/farmers", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newFarmer),
+    })
 
-    if (error) {
+    const data = await response.json()
+
+    if (!response.ok) {
       toast({
         title: "Error",
         description: "Failed to add farmer",
@@ -231,10 +221,13 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       return
     }
 
-    const supabase = createClient()
-    const { error } = await supabase.from("encyclopedia").insert([newCrop])
+    const response = await fetch("/api/admin/encyclopedia", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newCrop),
+    })
 
-    if (error) {
+    if (!response.ok) {
       toast({
         title: "Error",
         description: "Failed to add crop",
@@ -261,41 +254,47 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       return
     }
 
-    const supabase = createClient()
-    const { error } = await supabase.from("market_prices").insert([
-      {
-        commodity: newMarketPrice.commodity,
-        market_name: newMarketPrice.market_name,
-        state: newMarketPrice.state || "Unknown",
-        district: newMarketPrice.district || null,
+    const response = await fetch("/api/admin/market-prices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...newMarketPrice,
         modal_price: Number.parseFloat(newMarketPrice.modal_price),
         min_price: newMarketPrice.min_price ? Number.parseFloat(newMarketPrice.min_price) : null,
         max_price: newMarketPrice.max_price ? Number.parseFloat(newMarketPrice.max_price) : null,
-        arrival_date: new Date().toISOString().split("T")[0],
-      },
-    ])
+      }),
+    })
 
-    if (error) {
+    const data = await response.json()
+
+    if (!response.ok) {
       toast({
         title: "Error",
         description: "Failed to add market price",
         variant: "destructive",
       })
-      console.error("Market price insert error:", error)
+      console.error("Market price insert error:", data.error) // Declare error variable
     } else {
       toast({
         title: "Success",
         description: "Market price added successfully",
       })
-      setNewMarketPrice({ commodity: "", market_name: "", modal_price: "", min_price: "", max_price: "", state: "", district: "" })
+      setNewMarketPrice({
+        commodity: "",
+        market_name: "",
+        modal_price: "",
+        min_price: "",
+        max_price: "",
+        state: "",
+        district: "",
+      })
       fetchAllData()
       fetchDashboardStats()
     }
   }
 
   const handleSignOut = async () => {
-    const supabase = createClient()
-    await supabase.auth.signOut()
+    await fetch("/api/auth/logout", { method: "POST" })
     router.push("/admin/login")
   }
 
@@ -304,10 +303,9 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   }
 
   const exportData = async (tableName: string) => {
-    const supabase = createClient()
-    const { data, error } = await supabase.from(tableName).select("*")
-
-    if (error) {
+    // Supabase export logic is no longer relevant, assume API route for export
+    const response = await fetch(`/api/admin/export/${tableName}`)
+    if (!response.ok) {
       toast({
         title: "Error",
         description: "Failed to export data",
@@ -316,31 +314,16 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       return
     }
 
-    const csv = convertToCSV(data)
-    downloadCSV(csv, `${tableName}_export.csv`)
-  }
-
-  const convertToCSV = (data: any[]) => {
-    if (!data.length) return ""
-
-    const headers = Object.keys(data[0])
-    const csvContent = [
-      headers.join(","),
-      ...data.map((row) => headers.map((header) => `"${row[header] || ""}"`).join(",")),
-    ].join("\n")
-
-    return csvContent
-  }
-
-  const downloadCSV = (csv: string, filename: string) => {
-    const blob = new Blob([csv], { type: "text/csv" })
+    const blob = await response.blob()
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement("a")
     a.href = url
-    a.download = filename
+    a.download = `${tableName}_export.csv`
     a.click()
     window.URL.revokeObjectURL(url)
   }
+
+  // convertToCSV and downloadCSV are no longer needed as exportData handles file download
 
   const statCards = [
     {
@@ -571,7 +554,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                               id="location"
                               value={newFarmer.location}
                               onChange={(e) => setNewFarmer({ ...newFarmer, location: e.target.value })}
-                              placeholder={language === "hi" ? "गांव, जिला" : "Village, District"}
+                              placeholder={language === "hi" ? " गांव, जिला" : "Village, District"}
                             />
                           </div>
                           <div>
@@ -907,9 +890,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                           </div>
                           <div className="grid grid-cols-3 gap-4">
                             <div>
-                              <Label htmlFor="min_price">
-                                {language === "hi" ? "न्यूनतम मूल्य (₹)" : "Min Price (₹)"}
-                              </Label>
+                              <Label htmlFor="min_price">{language === "hi" ? "न्यूनतम मूल्य (₹)" : "Min Price (₹)"}</Label>
                               <Input
                                 id="min_price"
                                 type="number"
@@ -1000,15 +981,12 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                           <TableCell className="font-medium">{price.commodity}</TableCell>
                           <TableCell>{price.market_name}</TableCell>
                           <TableCell className="font-semibold text-green-600">
-                            {price.min_price && price.max_price ?
-                              `₹${price.min_price.toFixed(0)}-${price.max_price.toFixed(0)}` :
-                              `₹${price.modal_price.toFixed(0)}`
-                            }
+                            {price.min_price && price.max_price
+                              ? `₹${price.min_price.toFixed(0)}-${price.max_price.toFixed(0)}`
+                              : `₹${price.modal_price.toFixed(0)}`}
                           </TableCell>
                           <TableCell>
-                            {price.district && price.state
-                              ? `${price.district}, ${price.state}`
-                              : price.state || "-"}
+                            {price.district && price.state ? `${price.district}, ${price.state}` : price.state || "-"}
                           </TableCell>
                           <TableCell>{new Date(price.arrival_date).toLocaleDateString()}</TableCell>
                           <TableCell>
