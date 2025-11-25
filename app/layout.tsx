@@ -3,14 +3,13 @@ import type { Metadata } from "next"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Suspense } from "react"
 import { I18nProvider } from "@/lib/i18n/context"
-import LanguageSelector from "@/components/LanguageSelector"
 import "./globals.css"
 
 export const metadata: Metadata = {
   title: "AgriSmart - Comprehensive Crop & Soil Management System",
   description:
-    "AI-powered agricultural platform for smart crop selection, soil health management, disease detection, weather intelligence, and market connections. Empowering farmers with data-driven decisions.",
-  generator: "v0.app",
+    "AI-powered agricultural platform for smart crop selection, soil health management, disease detection, weather intelligence, and market connections.",
+    generator: 'v0.app'
 }
 
 export default function RootLayout({
@@ -27,10 +26,7 @@ export default function RootLayout({
       <body className="antialiased">
         <Suspense fallback={null}>
           <I18nProvider>
-            <TooltipProvider>
-              {children}
-              <LanguageSelector />
-            </TooltipProvider>
+            <TooltipProvider>{children}</TooltipProvider>
           </I18nProvider>
         </Suspense>
       </body>
