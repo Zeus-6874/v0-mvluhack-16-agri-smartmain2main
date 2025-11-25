@@ -64,6 +64,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
         const location = profile?.district || profile?.state || "Delhi"
         const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`)
         const data = await response.json()
+        console.log("[v0] Weather data received:", data)
         if (data.success) {
           setWeather(data.weather)
         }
@@ -191,7 +192,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     },
     {
       label: language === "hi" ? "वर्षा" : language === "mr" ? "पाऊस" : "Rainfall",
-      value: weather?.rainfall || "85",
+      value: weather?.rainfall || weather?.main?.humidity || "85",
       unit: "mm",
       icon: CloudRain,
       color: "text-cyan-600",
@@ -397,18 +398,24 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <div className="text-4xl font-bold">{Math.round(weather.main.temp)}°C</div>
-                      <p className="text-sm text-muted-foreground mt-1 capitalize">{weather.weather[0].description}</p>
-                      <p className="text-xs text-muted-foreground mt-1">{weather.name}</p>
+                      <div className="text-4xl font-bold">
+                        {weather.main ? Math.round(weather.main.temp) : weather.temperature || 25}°C
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1 capitalize">
+                        {weather.weather?.[0]?.description || weather.condition || t("weather.clear")}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {weather.name || weather.location || profile?.district || "Location"}
+                      </p>
                     </div>
                     <div className="text-6xl">
-                      {weather.weather[0].main === "Clear"
+                      {weather.weather?.[0]?.main === "Clear" || weather.condition === "clear"
                         ? "☀️"
-                        : weather.weather[0].main === "Clouds"
+                        : weather.weather?.[0]?.main === "Clouds" || weather.condition === "clouds"
                           ? "☁️"
-                          : weather.weather[0].main === "Rain"
+                          : weather.weather?.[0]?.main === "Rain" || weather.condition === "rain"
                             ? "🌧️"
-                            : weather.weather[0].main === "Snow"
+                            : weather.weather?.[0]?.main === "Snow"
                               ? "❄️"
                               : "🌤️"}
                     </div>
@@ -419,22 +426,23 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                       <Droplets className="w-4 h-4 text-blue-500" />
                       <div>
                         <p className="text-xs text-muted-foreground">{t("weather.humidity")}</p>
-                        <p className="text-sm font-semibold">{weather.main.humidity}%</p>
+                        <p className="text-sm font-semibold">{weather.main?.humidity || weather.humidity || 65}%</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Wind className="w-4 h-4 text-gray-500" />
                       <div>
                         <p className="text-xs text-muted-foreground">{t("weather.wind")}</p>
-                        <p className="text-sm font-semibold">{weather.wind.speed} m/s</p>
+                        <p className="text-sm font-semibold">{weather.wind?.speed || weather.windSpeed || 5} m/s</p>
                       </div>
                     </div>
                   </div>
 
-                  {(weather.main.temp > 35 ||
-                    weather.main.temp < 10 ||
-                    weather.main.humidity > 80 ||
-                    weather.weather[0].main === "Rain") && (
+                  {((weather.main?.temp || weather.temperature || 25) > 35 ||
+                    (weather.main?.temp || weather.temperature || 25) < 10 ||
+                    (weather.main?.humidity || weather.humidity || 50) > 80 ||
+                    weather.weather?.[0]?.main === "Rain" ||
+                    weather.condition === "rain") && (
                     <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
                       <div className="flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -443,11 +451,11 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                             {t("dashboard.weatherAlert")}
                           </p>
                           <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                            {weather.main.temp > 35
+                            {(weather.main?.temp || weather.temperature || 25) > 35
                               ? t("weather.alerts.highTemp")
-                              : weather.main.temp < 10
+                              : (weather.main?.temp || weather.temperature || 25) < 10
                                 ? t("weather.alerts.lowTemp")
-                                : weather.main.humidity > 80
+                                : (weather.main?.humidity || weather.humidity || 50) > 80
                                   ? t("weather.alerts.highHumidity")
                                   : t("weather.alerts.rain")}
                           </p>
