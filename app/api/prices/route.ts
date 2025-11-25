@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getDb } from "@/lib/mongodb/client"
 
 export async function GET(request: NextRequest) {
   try {
@@ -7,24 +7,21 @@ export async function GET(request: NextRequest) {
     const crop = searchParams.get("crop")
     const state = searchParams.get("state")
 
-    const supabase = await createClient()
+    const db = await getDb()
+    const marketPricesCollection = db.collection("market_prices")
 
-    let query = supabase.from("market_prices").select("*").order("date", { ascending: false })
+    // Build MongoDB query
+    const query: any = {}
 
     if (crop) {
-      query = query.ilike("crop_name", `%${crop}%`)
+      query.crop_name = { $regex: crop, $options: "i" }
     }
 
     if (state) {
-      query = query.ilike("state", `%${state}%`)
+      query.state = { $regex: state, $options: "i" }
     }
 
-    const { data: pricesData, error } = await query.limit(50)
-
-    if (error) {
-      console.error("Database error:", error)
-      return NextResponse.json({ error: "Failed to fetch market prices" }, { status: 500 })
-    }
+    const pricesData = await marketPricesCollection.find(query).sort({ date: -1 }).limit(50).toArray()
 
     // Group prices by crop for better organization
     const groupedPrices = pricesData?.reduce((acc: any, price: any) => {

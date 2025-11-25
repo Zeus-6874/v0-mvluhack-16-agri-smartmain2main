@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Suspense } from "react"
 import { I18nProvider } from "@/lib/i18n/context"
+import LanguageSelector from "@/components/LanguageSelector"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -26,7 +27,10 @@ export default function RootLayout({
       <body className="antialiased">
         <Suspense fallback={null}>
           <I18nProvider>
-            <TooltipProvider>{children}</TooltipProvider>
+            <TooltipProvider>
+              {children}
+              <LanguageSelector />
+            </TooltipProvider>
           </I18nProvider>
         </Suspense>
       </body>
