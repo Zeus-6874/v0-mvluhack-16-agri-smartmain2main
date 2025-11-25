@@ -3,10 +3,10 @@
 import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import styled from "styled-components"
 import { Button } from "@/components/ui/button"
-import { Globe, LogOut } from "lucide-react"
+import { Globe, LogOut, Menu, X } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
+import styled from "styled-components"
 
 const StyledWrapper = styled.div`
   .nav-container {
@@ -199,6 +199,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const { language, setLanguage, t } = useI18n()
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navItems = [
     { href: "/dashboard", label: t("nav.dashboard") },
@@ -211,9 +212,6 @@ export default function Navbar() {
     { href: "/schemes", label: t("nav.schemes") },
     { href: "/knowledge", label: t("nav.knowledge") },
   ]
-
-  const activeIndex = navItems.findIndex((item) => pathname === item.href)
-  const sliderPosition = hoveredIndex !== null ? hoveredIndex : activeIndex !== -1 ? activeIndex : 0
 
   const languages = [
     { code: "en", name: "EN" },
@@ -234,63 +232,139 @@ export default function Navbar() {
   }
 
   return (
-    <StyledWrapper>
-      <nav className="nav-container">
-        <div className="nav-content">
-          <Link href="/dashboard" className="logo">
-            <div className="logo-icon">AS</div>
-            <span className="logo-text">AgriSmart</span>
-          </Link>
+    <>
+      <nav className="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo */}
+            <Link href="/dashboard" className="flex items-center gap-2 flex-shrink-0">
+              <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">
+                AS
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent hidden sm:block">
+                AgriSmart
+              </span>
+            </Link>
 
-          <div className="nav-links">
-            {navItems.map((item, index) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`nav-link ${pathname === item.href ? "active" : ""}`}
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
+            {/* Desktop Navigation */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                    pathname === item.href
+                      ? "bg-green-600 text-white shadow-sm"
+                      : "text-gray-700 hover:bg-green-50 hover:text-green-600"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleLanguage}
+                className="hidden sm:flex items-center gap-2 bg-transparent"
               >
-                <span>{item.label}</span>
-              </Link>
-            ))}
-            <div
-              className="slider"
-              style={{
-                transform: `translateX(${sliderPosition * 100}%)`,
-              }}
-            />
-            <div
-              className="bar"
-              style={{
-                transform: `translateX(${sliderPosition * 100}%)`,
-              }}
-            />
-          </div>
+                <Globe className="h-4 w-4" />
+                <span>{languages[currentLangIndex].name}</span>
+              </Button>
 
-          <div className="actions">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleLanguage}
-              className="flex items-center gap-1 h-9 bg-transparent"
-            >
-              <Globe className="h-4 w-4" />
-              <span className="text-sm">{languages[currentLangIndex].name}</span>
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleLogout}
+                className="hidden sm:flex text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                {t("nav.logout")}
+              </Button>
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-9"
-            >
-              <LogOut className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline text-sm">Logout</span>
-            </Button>
+              {/* Mobile menu button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden"
+              >
+                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
+            </div>
           </div>
         </div>
       </nav>
-    </StyledWrapper>
+
+      <div
+        className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ${
+          isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        }`}
+      >
+        {/* Overlay */}
+        <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setIsMobileMenuOpen(false)} />
+
+        {/* Slide-out menu */}
+        <div
+          className={`fixed top-0 right-0 bottom-0 w-80 max-w-full bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
+            isMobileMenuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="flex flex-col h-full">
+            {/* Menu Header */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">
+                  AS
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
+                  AgriSmart
+                </span>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => setIsMobileMenuOpen(false)}>
+                <X className="h-6 w-6" />
+              </Button>
+            </div>
+
+            {/* Menu Items */}
+            <div className="flex-1 overflow-y-auto py-4">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className={`block px-6 py-3 text-base font-medium transition-colors ${
+                    pathname === item.href
+                      ? "bg-green-50 text-green-600 border-l-4 border-green-600"
+                      : "text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+
+            {/* Menu Footer */}
+            <div className="border-t border-gray-200 p-4 space-y-2">
+              <Button variant="outline" className="w-full justify-start bg-transparent" onClick={toggleLanguage}>
+                <Globe className="h-4 w-4 mr-2" />
+                {t("common.language")}: {languages[currentLangIndex].name}
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                onClick={handleLogout}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                {t("nav.logout")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
   )
 }
