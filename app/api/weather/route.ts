@@ -1,107 +1,28 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
 
-const defaultCoordinates = {
-  delhi: { lat: 28.6139, lon: 77.209 },
-  mumbai: { lat: 19.076, lon: 72.8777 },
-  pune: { lat: 18.5204, lon: 73.8567 },
-  nagpur: { lat: 21.1458, lon: 79.0882 },
-  kolkata: { lat: 22.5726, lon: 88.3639 },
-  chennai: { lat: 13.0827, lon: 80.2707 },
-}
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const lat = searchParams.get("lat")
     const lon = searchParams.get("lon")
-    const location = searchParams.get("location") || ""
 
-    console.log("[v0] Weather request - lat:", lat, "lon:", lon, "location:", location)
-
-    if (lat && lon) {
-      console.log("[v0] Using coordinates for weather lookup")
-      const weatherData = await fetchOpenWeatherMap(lat, lon, await getDb())
-      if (weatherData) {
-        return NextResponse.json({
-          success: true,
-          weather: weatherData,
-          current: weatherData,
-          main: {
-            temp: weatherData.temperature,
-            humidity: weatherData.humidity,
-            pressure: weatherData.pressure,
-          },
-          wind: {
-            speed: weatherData.windSpeed / 3.6, // Convert km/h to m/s
-          },
-          weather: [
-            {
-              main: weatherData.condition.charAt(0).toUpperCase() + weatherData.condition.slice(1),
-              description: weatherData.condition,
-            },
-          ],
-          name: weatherData.location,
-        })
-      }
+    if (!lat || !lon) {
+      return NextResponse.json(
+        { error: "Location coordinates are required. Please enable location access." },
+        { status: 400 },
+      )
     }
 
-    const db = await getDb()
-
-    let weatherData = null
-
-    if (!weatherData) {
-      const dbWeatherData = await db
-        .collection("weather_data")
-        .find({ location: capitalizeLocation(location) })
-        .sort({ date: -1 })
-        .limit(7)
-        .toArray()
-
-      if (dbWeatherData && dbWeatherData.length > 0) {
-        const current = dbWeatherData[0]
-        weatherData = {
-          temperature: current.temperature,
-          condition: current.weather_condition,
-          humidity: current.humidity,
-          windSpeed: current.wind_speed,
-          rainfall: current.rainfall,
-          visibility: 8,
-          pressure: 1013,
-          uvIndex: 5,
-          location: current.location,
-          forecast: dbWeatherData.slice(0, 5).map((item: any, index: number) => ({
-            day:
-              index === 0
-                ? "Today"
-                : index === 1
-                  ? "Tomorrow"
-                  : new Date(item.date).toLocaleDateString("en", { weekday: "short" }),
-            temp: item.temperature,
-            condition: item.weather_condition,
-            rain: Math.round(Math.random() * 100),
-          })),
-        }
-      }
+    const weatherData = await fetchOpenWeatherMap(lat, lon, await getDb())
+    if (weatherData) {
+      return NextResponse.json({
+        success: true,
+        weather: weatherData,
+      })
     }
 
-    if (!weatherData) {
-      const coords =
-        lat && lon
-          ? { lat: Number(lat), lon: Number(lon) }
-          : defaultCoordinates[location as keyof typeof defaultCoordinates] || defaultCoordinates.delhi
-      weatherData = await fetchOpenMeteo(coords.lat, coords.lon, capitalizeLocation(location), db)
-    }
-
-    if (!weatherData) {
-      return NextResponse.json({ error: "Unable to fetch weather data" }, { status: 502 })
-    }
-
-    return NextResponse.json({
-      success: true,
-      weather: weatherData,
-      current: weatherData,
-    })
+    return NextResponse.json({ error: "Unable to fetch weather data" }, { status: 502 })
   } catch (error) {
     console.error("Weather API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
@@ -282,8 +203,4 @@ function mapWeatherCodeToCondition(code: number) {
     99: "thunderstorm",
   }
   return weatherMap[code] || "partly-cloudy"
-}
-
-function capitalizeLocation(location: string) {
-  return location.charAt(0).toUpperCase() + location.slice(1)
 }

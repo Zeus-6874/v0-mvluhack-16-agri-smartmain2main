@@ -13,14 +13,16 @@ interface KnowledgeArticle {
   id: string | number
   category: string
   categoryHi?: string
+  categoryMr?: string
   title: string
   titleHi?: string
+  titleMr?: string
   content: string
   tags: string[]
 }
 
 export default function KnowledgeBase() {
-  const { language } = useI18n()
+  const { language, t } = useI18n()
   const [searchTerm, setSearchTerm] = useState("")
   const [articles, setArticles] = useState<KnowledgeArticle[]>([])
   const [loading, setLoading] = useState(true)
@@ -33,21 +35,20 @@ export default function KnowledgeBase() {
   const fetchKnowledge = async () => {
     setLoading(true)
     try {
-      // Fetch from encyclopedia API which has crop knowledge
       const response = await fetch("/api/encyclopedia")
       const data = await response.json()
 
-      if (data.success && data.crops && data.crops.length > 0) {
-        // Convert crop data to knowledge articles
+      if (data.success && data.crops) {
         const knowledgeArticles: KnowledgeArticle[] = data.crops.map((crop: any, index: number) => ({
-          id: crop.id || index,
+          id: crop.id ?? index,
           category: "Crop Information",
           categoryHi: "फसल जानकारी",
-          title: crop.common_name || crop.crop_name || "Crop",
+          categoryMr: "पीक माहिती",
+          title: crop.common_name ?? crop.crop_name,
           titleHi: crop.local_name,
-          content:
-            crop.description || crop.disease_management || `Information about ${crop.common_name || crop.crop_name}`,
-          tags: crop.diseases || ["agriculture", "crops"],
+          titleMr: crop.local_name_mr,
+          content: crop.description ?? crop.disease_management,
+          tags: crop.diseases ?? ["agriculture"],
         }))
         setArticles(knowledgeArticles)
       } else {
@@ -56,8 +57,8 @@ export default function KnowledgeBase() {
     } catch (error) {
       console.error("Failed to fetch knowledge:", error)
       toast({
-        title: "Error",
-        description: "Failed to load knowledge base",
+        title: t("common.error"),
+        description: t("common.loadFailed"),
         variant: "destructive",
       })
       setArticles([])
@@ -70,6 +71,7 @@ export default function KnowledgeBase() {
     (article) =>
       article.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (article.titleHi && article.titleHi.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (article.titleMr && article.titleMr.toLowerCase().includes(searchTerm.toLowerCase())) ||
       article.category.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
@@ -79,20 +81,23 @@ export default function KnowledgeBase() {
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{language === "hi" ? "ज्ञान केंद्र" : "Knowledge Base"}</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            {language === "hi" ? "ज्ञान केंद्र" : language === "mr" ? "ज्ञान केंद्र" : "Knowledge Base"}
+          </h1>
           <p className="text-gray-600">
             {language === "hi"
               ? "कृषि संबंधी जानकारी और सुझाव प्राप्त करें"
-              : "Get agricultural information and recommendations"}
+              : language === "mr"
+                ? "कृषी संबंधित माहिती आणि सल्ला मिळवा"
+                : "Get agricultural information and recommendations"}
           </p>
         </div>
 
-        {/* Search */}
         <div className="mb-6">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder={language === "hi" ? "खोजें..." : "Search..."}
+              placeholder={language === "hi" ? "खोजें..." : language === "mr" ? "शोधा..." : "Search..."}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -100,7 +105,6 @@ export default function KnowledgeBase() {
           </div>
         </div>
 
-        {/* Articles */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-green-600" />
@@ -112,11 +116,21 @@ export default function KnowledgeBase() {
                 <Card key={article.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex items-start justify-between">
-                      <Badge variant="secondary">{language === "hi" ? article.categoryHi : article.category}</Badge>
+                      <Badge variant="secondary">
+                        {language === "hi"
+                          ? article.categoryHi
+                          : language === "mr"
+                            ? article.categoryMr
+                            : article.category}
+                      </Badge>
                       <BookOpen className="h-4 w-4 text-gray-400" />
                     </div>
                     <CardTitle className="text-lg">
-                      {language === "hi" ? article.titleHi || article.title : article.title}
+                      {language === "hi"
+                        ? article.titleHi || article.title
+                        : language === "mr"
+                          ? article.titleMr || article.titleHi || article.title
+                          : article.title}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -143,7 +157,13 @@ export default function KnowledgeBase() {
 
             {filteredArticles.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-gray-500">{language === "hi" ? "कोई लेख नहीं मिला" : "No articles found"}</p>
+                <p className="text-gray-500">
+                  {language === "hi"
+                    ? "कोई लेख नहीं मिला"
+                    : language === "mr"
+                      ? "कोणतेही लेख सापडले नाहीत"
+                      : "No articles found"}
+                </p>
               </div>
             )}
           </>

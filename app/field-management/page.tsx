@@ -22,7 +22,7 @@ export default async function FieldManagementPage() {
   // Fetch field statistics
   const fields = await db.collection("fields").find({ farmer_id: userId }).toArray()
 
-  const totalArea = fields?.reduce((sum: any, field: any) => sum + (field.area_hectares || 0), 0) || 0
+  const totalArea = fields.reduce((sum: any, field: any) => sum + field.area_hectares, 0)
 
   // Fetch active crop cycles
   const activeCrops = await db
@@ -51,7 +51,7 @@ export default async function FieldManagementPage() {
               <MapPin className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{fields?.length || 0}</div>
+              <div className="text-2xl font-bold">{fields.length}</div>
               <p className="text-xs text-muted-foreground">Registered fields</p>
             </CardContent>
           </Card>
@@ -73,7 +73,7 @@ export default async function FieldManagementPage() {
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{activeCrops?.length || 0}</div>
+              <div className="text-2xl font-bold">{activeCrops.length}</div>
               <p className="text-xs text-muted-foreground">Currently growing</p>
             </CardContent>
           </Card>

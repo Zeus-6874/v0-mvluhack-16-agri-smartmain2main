@@ -33,32 +33,22 @@ export default function WeatherWidget({ language }: WeatherWidgetProps) {
   const [error, setError] = useState<string | null>(null)
   const [isUsingCurrentLocation, setIsUsingCurrentLocation] = useState(false)
 
-  const fetchWeatherData = async (lat?: number, lon?: number) => {
-    console.log("[v0] Fetching weather for coordinates:", { lat, lon })
+  const fetchWeatherData = async (lat: number, lon: number) => {
     setLoading(true)
     setError(null)
 
     try {
-      const latitude = lat || 28.6139
-      const longitude = lon || 77.209
-
-      if (lat && lon) {
-        setIsUsingCurrentLocation(true)
-      }
-
-      const response = await fetch(`/api/weather?lat=${latitude}&lon=${longitude}`)
+      const response = await fetch(`/api/weather?lat=${lat}&lon=${lon}`)
       const data = await response.json()
-
-      console.log("[v0] Weather API response:", data)
 
       if (data.success) {
         setWeatherData(data.weather)
       } else {
-        throw new Error(data.error || "Failed to fetch weather data")
+        throw new Error(data.error)
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("[v0] Weather fetch error:", err)
-      setError(language === "hi" ? "मौसम डेटा लोड नहीं हो सका" : "Failed to load weather data")
+      setError(err.message ?? (language === "hi" ? "मौसम डेटा लोड नहीं हो सका" : "Failed to load weather data"))
       setWeatherData(null)
     } finally {
       setLoading(false)
@@ -67,54 +57,39 @@ export default function WeatherWidget({ language }: WeatherWidgetProps) {
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      console.warn("[v0] Geolocation not supported by browser")
-      fetchWeatherData() // Fallback to default location
+      setError(language === "hi" ? "आपका ब्राउज़र लोकेशन सपोर्ट नहीं करता" : "Geolocation not supported")
+      setLoading(false)
       return
     }
 
     setLoading(true)
-    console.log("[v0] Requesting user location...")
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        console.log("[v0] Location obtained:", {
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-          accuracy: position.coords.accuracy,
-        })
         fetchWeatherData(position.coords.latitude, position.coords.longitude)
+        setIsUsingCurrentLocation(true)
       },
       (error) => {
         const errorMessages: Record<number, string> = {
-          1:
-            language === "hi"
-              ? "स्थान पहुंच अस्वीकृत। कृपया ब्राउज़र सेटिंग्स की जांच करें।"
-              : "Location access denied. Please check browser settings.",
-          2: language === "hi" ? "स्थान उपलब्ध नहीं है" : "Location unavailable",
-          3: language === "hi" ? "स्थान अनुरोध समय समाप्त" : "Location request timeout",
+          1: language === "hi" ? "स्थान पहुंच अस्वीकृत" : "Location access denied",
+          2: language === "hi" ? "स्थान उपलब्ध नहीं" : "Location unavailable",
+          3: language === "hi" ? "अनुरोध समय समाप्त" : "Request timeout",
         }
-
-        const errorMessage =
-          errorMessages[error.code] || (language === "hi" ? "स्थान प्राप्त करने में त्रुटि" : "Error getting location")
-
-        console.warn("[v0] Geolocation error:", errorMessage, error.code)
-        setError(errorMessage)
+        setError(errorMessages[error.code] ?? (language === "hi" ? "स्थान त्रुटि" : "Location error"))
+        setLoading(false)
         setIsUsingCurrentLocation(false)
-
-        fetchWeatherData()
       },
       {
-        timeout: 15000, // 15 second timeout
-        enableHighAccuracy: true, // Request high accuracy
-        maximumAge: 300000, // Accept cached location up to 5 minutes old
+        timeout: 15000,
+        enableHighAccuracy: true,
+        maximumAge: 300000,
       },
     )
   }
 
   useEffect(() => {
     getCurrentLocation()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Only run once on mount
+  }, [])
 
   const getWeatherIcon = (condition: string) => {
     switch (condition) {

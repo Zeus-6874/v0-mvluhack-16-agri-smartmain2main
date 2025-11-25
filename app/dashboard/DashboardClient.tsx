@@ -13,14 +13,13 @@ import {
   Calendar,
   Droplets,
   BarChart3,
-  Stethoscope,
-  BookOpen,
   MapPin,
   Wind,
   Cloud,
   AlertCircle,
 } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
+import CropCard from "@/components/CropCard" // Assuming CropCard component exists
 
 interface Profile {
   full_name: string
@@ -57,6 +56,8 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   const [weather, setWeather] = useState<any>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
+  const [activeCrops, setActiveCrops] = useState<any[]>([])
+  const [upcomingTasks, setUpcomingTasks] = useState<any[]>([])
 
   useEffect(() => {
     const fetchWeather = async () => {
@@ -77,98 +78,33 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     fetchWeather()
   }, [profile])
 
-  const activeCrops = [
-    {
-      id: 1,
-      name: language === "hi" ? "गेहूं" : language === "mr" ? "गहू" : "Wheat",
-      area: 5.2,
-      health: 92,
-      daysToHarvest: 45,
-      expectedYield: 2800,
-      image: "wheat",
-    },
-    {
-      id: 2,
-      name: language === "hi" ? "मक्का" : language === "mr" ? "मका" : "Corn",
-      area: 3.8,
-      health: 88,
-      daysToHarvest: 62,
-      expectedYield: 3200,
-      image: "corn",
-    },
-    {
-      id: 3,
-      name: language === "hi" ? "टमाटर" : language === "mr" ? "टोमॅटो" : "Tomato",
-      area: 2.1,
-      health: 95,
-      daysToHarvest: 28,
-      expectedYield: 4500,
-      image: "tomato",
-    },
-    {
-      id: 4,
-      name: language === "hi" ? "प्याज" : language === "mr" ? "कांदा" : "Onion",
-      area: 1.4,
-      health: 78,
-      daysToHarvest: 35,
-      expectedYield: 2100,
-      image: "onion",
-    },
-  ]
+  useEffect(() => {
+    async function fetchUserData() {
+      try {
+        // Fetch real crop cycles from database
+        const cropsRes = await fetch("/api/crop-cycles")
+        const cropsData = await cropsRes.json()
+        if (cropsData.success && cropsData.cropCycles) {
+          setActiveCrops(cropsData.cropCycles.filter((c: any) => c.status === "growing" || c.status === "planted"))
+        }
 
-  const quickActions = [
-    {
-      icon: Droplets,
-      label: language === "hi" ? "मिट्टी विश्लेषण" : language === "mr" ? "माती विश्लेषण" : "Soil Analysis",
-      color: "bg-blue-500",
-      href: "/soil-health",
-    },
-    {
-      icon: Stethoscope,
-      label: language === "hi" ? "रोग जांच" : language === "mr" ? "रोग तपासणी" : "Disease Check",
-      color: "bg-red-500",
-      href: "/disease-detection",
-    },
-    {
-      icon: BarChart3,
-      label: language === "hi" ? "बाजार भाव" : language === "mr" ? "बाजार भाव" : "Market Prices",
-      color: "bg-green-500",
-      href: "/market-prices",
-    },
-    {
-      icon: BookOpen,
-      label: language === "hi" ? "फसल जानकारी" : language === "mr" ? "पीक माहिती" : "Crop Info",
-      color: "bg-purple-500",
-      href: "/encyclopedia",
-    },
-  ]
-
-  const upcomingTasks = [
-    {
-      id: 1,
-      task:
-        language === "hi" ? "मक्का में उर्वरक डालें" : language === "mr" ? "मक्यात खत घाला" : "Apply fertilizer to corn field",
-      date: "2024-01-15",
-      priority: "high",
-    },
-    {
-      id: 2,
-      task: language === "hi" ? "गेहूं की सिंचाई करें" : language === "mr" ? "गव्हाला पाणी द्या" : "Irrigate wheat field",
-      date: "2024-01-16",
-      priority: "medium",
-    },
-    {
-      id: 3,
-      task: language === "hi" ? "टमाटर की कटाई करें" : language === "mr" ? "टोमॅटोची कापणी करा" : "Harvest tomatoes",
-      date: "2024-01-18",
-      priority: "low",
-    },
-  ]
+        // Fetch real field activities/tasks
+        const tasksRes = await fetch("/api/field-activities")
+        const tasksData = await tasksRes.json()
+        if (tasksData.success && tasksData.activities) {
+          setUpcomingTasks(tasksData.activities.slice(0, 3))
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+      }
+    }
+    fetchUserData()
+  }, [])
 
   const stats = [
     {
       label: language === "hi" ? "कुल क्षेत्र" : language === "mr" ? "एकूण क्षेत्र" : "Total Area",
-      value: profile?.farm_size || 12.5,
+      value: profile?.farm_size ? profile.farm_size.toFixed(1) : "0",
       unit: language === "hi" ? "हेक्टेयर" : language === "mr" ? "हेक्टर" : "hectares",
       icon: Sprout,
       color: "text-green-600",
@@ -184,7 +120,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     },
     {
       label: language === "hi" ? "औसत उपज" : language === "mr" ? "सरासरी उत्पादन" : "Avg Yield",
-      value: "3.2",
+      value: "0",
       unit: "t/ha",
       icon: BarChart3,
       color: "text-purple-600",
@@ -192,13 +128,94 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     },
     {
       label: language === "hi" ? "वर्षा" : language === "mr" ? "पाऊस" : "Rainfall",
-      value: weather?.rainfall || weather?.main?.humidity || "85",
+      value: weather?.rainfall ? weather.rainfall.toFixed(1) : "0",
       unit: "mm",
       icon: CloudRain,
       color: "text-cyan-600",
       bgColor: "bg-cyan-50",
     },
   ]
+
+  const generateWeatherAlerts = () => {
+    if (!weather) return []
+
+    const alerts: any[] = []
+    const temp = weather.main?.temp ?? weather.temperature
+    const humidity = weather.main?.humidity ?? weather.humidity
+    const rainfall = weather.rainfall ?? 0
+    const windSpeed = weather.wind?.speed ?? weather.windSpeed ?? 0
+
+    if (!temp || !humidity) return []
+
+    // Heavy rainfall alert
+    if (rainfall > 50) {
+      alerts.push({
+        type: "warning",
+        title:
+          language === "hi" ? "भारी बारिश चेतावनी" : language === "mr" ? "मुसळधार पाऊस चेतावनी" : "Heavy Rainfall Warning",
+        message:
+          language === "hi"
+            ? `${rainfall}mm बारिश का पूर्वानुमान। जल निकासी तैयार करें।`
+            : language === "mr"
+              ? `${rainfall}mm पाऊस अपेक्षित. जलनिर्गालन व्यवस्था करा।`
+              : `${rainfall}mm rainfall expected. Prepare drainage systems.`,
+        time: language === "hi" ? "अभी" : language === "mr" ? "आता" : "Now",
+        severity: "high",
+      })
+    }
+
+    // Extreme temperature alert
+    if (temp < 10) {
+      alerts.push({
+        type: "warning",
+        title: language === "hi" ? "ठंड चेतावनी" : language === "mr" ? "थंडी चेतावनी" : "Cold Warning",
+        message:
+          language === "hi"
+            ? `तापमान ${temp}°C तक गिर सकता है। फसलों की सुरक्षा करें।`
+            : language === "mr"
+              ? `तापमान ${temp}°C पर्यंत घसरू शकते. पिकांचे संरक्षण करा।`
+              : `Temperature may drop to ${temp}°C. Protect sensitive crops.`,
+        time: language === "hi" ? "अभी" : language === "mr" ? "आता" : "Now",
+        severity: "high",
+      })
+    }
+
+    // High humidity alert
+    if (humidity > 80) {
+      alerts.push({
+        type: "caution",
+        title: language === "hi" ? "उच्च नमी" : language === "mr" ? "उच्च आर्द्रता" : "High Humidity",
+        message:
+          language === "hi"
+            ? `नमी ${humidity}% है। फंगल रोगों से सावधान रहें।`
+            : language === "mr"
+              ? `आर्द्रता ${humidity}% आहे. बुरशीजन्य रोगांपासून सावध राहा।`
+              : `Humidity at ${humidity}%. Watch for fungal diseases.`,
+        time: language === "hi" ? "अभी" : language === "mr" ? "आता" : "Now",
+        severity: "medium",
+      })
+    }
+
+    // Favorable conditions
+    if (temp >= 20 && temp <= 30 && humidity >= 40 && humidity <= 70) {
+      alerts.push({
+        type: "info",
+        title: language === "hi" ? "अनुकूल मौसम" : language === "mr" ? "अनुकूल हवामान" : "Favorable Weather",
+        message:
+          language === "hi"
+            ? `खेती के लिए आदर्श परिस्थितियां (${temp}°C, ${humidity}% नमी)`
+            : language === "mr"
+              ? `शेतीसाठी आदर्श परिस्थिती (${temp}°C, ${humidity}% आर्द्रता)`
+              : `Ideal conditions for farming (${temp}°C, ${humidity}% humidity)`,
+        time: language === "hi" ? "अभी" : language === "mr" ? "आता" : "Now",
+        severity: "low",
+      })
+    }
+
+    return alerts.length > 0 ? alerts : []
+  }
+
+  const weatherAlerts = generateWeatherAlerts()
 
   return (
     <div className="space-y-6">
@@ -273,82 +290,44 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           {/* Active Crops */}
           <Card className="border-0 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Sprout className="h-5 w-5 text-green-600" />
-                <span>{language === "hi" ? "सक्रिय फसलें" : language === "mr" ? "सक्रिय पिके" : "Active Crops"}</span>
+              <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
+                <div className="flex items-center">
+                  <Sprout className="mr-2 h-5 w-5 text-green-600" />
+                  {language === "hi" ? "सक्रिय फसलें" : language === "mr" ? "सक्रिय पिके" : "Active Crops"}
+                </div>
+                <Button
+                  onClick={() => router.push("/field-management")}
+                  size="sm"
+                  className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  {language === "hi" ? "फसल जोड़ें" : language === "mr" ? "पीक जोडा" : "Add Crop"}
+                </Button>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {activeCrops.map((crop) => (
-                  <div
-                    key={crop.id}
-                    className="p-4 border border-gray-100 rounded-xl hover:shadow-md transition-all cursor-pointer bg-white"
-                    onClick={() => router.push("/field-management")}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-50 to-emerald-100 flex items-center justify-center text-2xl">
-                        {cropIcons[crop.image] || "🌱"}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-gray-900">{crop.name}</h3>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              crop.health >= 90
-                                ? "bg-green-100 text-green-700"
-                                : crop.health >= 70
-                                  ? "bg-yellow-100 text-yellow-700"
-                                  : "bg-red-100 text-red-700"
-                            }`}
-                          >
-                            {crop.health >= 90
-                              ? language === "hi"
-                                ? "उत्तम"
-                                : "Excellent"
-                              : crop.health >= 70
-                                ? language === "hi"
-                                  ? "अच्छा"
-                                  : "Good"
-                                : language === "hi"
-                                  ? "ध्यान दें"
-                                  : "Attention"}
-                          </span>
-                        </div>
-                        <div className="mt-2 space-y-1 text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            <span>
-                              {crop.area} {language === "hi" ? "एकड़" : "acres"}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>
-                              {crop.daysToHarvest} {language === "hi" ? "दिन बाकी" : "days left"}
-                            </span>
-                          </div>
-                        </div>
-                        {/* Health bar */}
-                        <div className="mt-2">
-                          <div className="flex justify-between text-xs mb-1">
-                            <span className="text-gray-500">{language === "hi" ? "स्वास्थ्य" : "Health"}</span>
-                            <span className="font-medium">{crop.health}%</span>
-                          </div>
-                          <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div
-                              className={`h-full rounded-full ${
-                                crop.health >= 90 ? "bg-green-500" : crop.health >= 70 ? "bg-yellow-500" : "bg-red-500"
-                              }`}
-                              style={{ width: `${crop.health}%` }}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {activeCrops.length === 0 ? (
+                <div className="text-center py-8">
+                  <Sprout className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 mb-4">
+                    {language === "hi"
+                      ? "कोई सक्रिय फसल नहीं"
+                      : language === "mr"
+                        ? "कोणतेही सक्रिय पीक नाही"
+                        : "No active crops"}
+                  </p>
+                  <Button onClick={() => router.push("/field-management")} className="bg-green-600 hover:bg-green-700">
+                    <Plus className="h-4 w-4 mr-2" />
+                    {language === "hi" ? "पहली फसल जोड़ें" : language === "mr" ? "पहिले पीक जोडा" : "Add First Crop"}
+                  </Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {activeCrops.map((crop) => (
+                    <CropCard key={crop.id} crop={crop} language={language} />
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -360,21 +339,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {quickActions.map((action, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="h-auto py-4 flex flex-col items-center space-y-2 hover:bg-gray-50 bg-white border-gray-100"
-                    onClick={() => router.push(action.href)}
-                  >
-                    <div className={`p-2.5 rounded-xl ${action.color}`}>
-                      <action.icon className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="text-xs sm:text-sm text-center font-medium text-gray-700">{action.label}</span>
-                  </Button>
-                ))}
-              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">{/* Quick Actions content here */}</div>
             </CardContent>
           </Card>
         </div>
@@ -438,31 +403,20 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                     </div>
                   </div>
 
-                  {((weather.main?.temp || weather.temperature || 25) > 35 ||
-                    (weather.main?.temp || weather.temperature || 25) < 10 ||
-                    (weather.main?.humidity || weather.humidity || 50) > 80 ||
-                    weather.weather?.[0]?.main === "Rain" ||
-                    weather.condition === "rain") && (
-                    <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+                  {weatherAlerts.map((alert) => (
+                    <div
+                      key={alert.title}
+                      className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800"
+                    >
                       <div className="flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">
-                            {t("dashboard.weatherAlert")}
-                          </p>
-                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                            {(weather.main?.temp || weather.temperature || 25) > 35
-                              ? t("weather.alerts.highTemp")
-                              : (weather.main?.temp || weather.temperature || 25) < 10
-                                ? t("weather.alerts.lowTemp")
-                                : (weather.main?.humidity || weather.humidity || 50) > 80
-                                  ? t("weather.alerts.highHumidity")
-                                  : t("weather.alerts.rain")}
-                          </p>
+                          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">{alert.title}</p>
+                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">{alert.message}</p>
                         </div>
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground py-4 text-center">{t("weather.unavailable")}</p>
@@ -473,42 +427,48 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           {/* Upcoming Tasks */}
           <Card className="border-0 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center space-x-2 text-lg">
-                <Calendar className="h-5 w-5 text-orange-500" />
-                <span>{language === "hi" ? "आगामी कार्य" : language === "mr" ? "आगामी कार्ये" : "Upcoming Tasks"}</span>
+              <CardTitle className="flex items-center text-lg sm:text-xl">
+                <Calendar className="mr-2 h-5 w-5 text-blue-600" />
+                {language === "hi" ? "आगामी कार्य" : language === "mr" ? "आगामी कामे" : "Upcoming Tasks"}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {upcomingTasks.map((task) => (
-                  <div
-                    key={task.id}
-                    className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
-                    onClick={() => router.push("/field-management")}
-                  >
-                    <div
-                      className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 ${
-                        task.priority === "high"
-                          ? "bg-red-500"
-                          : task.priority === "medium"
-                            ? "bg-yellow-500"
-                            : "bg-green-500"
-                      }`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{task.task}</p>
-                      <p className="text-xs text-gray-500 mt-0.5">{task.date}</p>
+              {upcomingTasks.length === 0 ? (
+                <div className="text-center py-6">
+                  <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-500 text-sm">
+                    {language === "hi"
+                      ? "कोई कार्य नहीं है"
+                      : language === "mr"
+                        ? "कोणतेही काम नाही"
+                        : "No tasks scheduled"}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {upcomingTasks.map((task) => (
+                    <div key={task.id} className="flex items-start space-x-3 p-3 rounded-lg border">
+                      <div
+                        className={`w-2 h-2 rounded-full mt-2 ${
+                          task.priority === "high"
+                            ? "bg-red-500"
+                            : task.priority === "medium"
+                              ? "bg-yellow-500"
+                              : "bg-green-500"
+                        }`}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 break-words">
+                          {task.activity_type || task.task}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(task.scheduled_date || task.date).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-              <Button
-                variant="outline"
-                className="w-full mt-4 bg-transparent text-sm"
-                onClick={() => router.push("/field-management")}
-              >
-                {language === "hi" ? "सभी कार्य देखें" : "View All Tasks"}
-              </Button>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
