@@ -62,7 +62,7 @@ const StyledWrapper = styled.div`
     --round: 10px;
     --p-x: 8px;
     --p-y: 4px;
-    --w-label: 90px;
+    --w-label: 140px;
     display: flex;
     align-items: center;
     padding: var(--p-y) var(--p-x);
@@ -171,15 +171,21 @@ const StyledWrapper = styled.div`
     flex-shrink: 0;
   }
 
+  @media (max-width: 1280px) {
+    .nav-links {
+      --w-label: 120px;
+    }
+  }
+
   @media (max-width: 1024px) {
     .nav-links {
-      --w-label: 80px;
+      --w-label: 100px;
     }
   }
 
   @media (max-width: 768px) {
     .nav-links {
-      --w-label: 70px;
+      --w-label: 90px;
       font-size: 0.75rem;
     }
     
@@ -196,12 +202,12 @@ export default function Navbar() {
 
   const navItems = [
     { href: "/dashboard", label: t("nav.dashboard") },
-    { href: "/field-management", label: t("nav.fields") },
-    { href: "/soil-health", label: t("nav.soil") },
-    { href: "/disease-detection", label: t("nav.disease") },
-    { href: "/encyclopedia", label: t("nav.crops") },
+    { href: "/field-management", label: t("nav.fieldManagement") },
+    { href: "/soil-health", label: t("nav.soilHealth") },
+    { href: "/disease-detection", label: t("nav.diseaseDetection") },
+    { href: "/encyclopedia", label: t("nav.encyclopedia") },
     { href: "/weather", label: t("nav.weather") },
-    { href: "/market-prices", label: t("nav.market") },
+    { href: "/market-prices", label: t("nav.marketPrices") },
     { href: "/schemes", label: t("nav.schemes") },
     { href: "/knowledge", label: t("nav.knowledge") },
   ]

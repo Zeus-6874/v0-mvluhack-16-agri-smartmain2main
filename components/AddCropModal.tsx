@@ -52,6 +52,8 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
     setLoading(true)
 
     try {
+      console.log("[v0] Submitting crop data:", formData)
+
       const response = await fetch("/api/crop-cycles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,18 +65,28 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
       })
 
       const data = await response.json()
+      console.log("[v0] Crop creation response:", data)
 
       if (data.success) {
         toast({
           title: t("common.success"),
           description: t("dashboard.cropAdded"),
         })
+        setFormData({
+          field_id: "",
+          crop_name: "",
+          variety: "",
+          planting_date: "",
+          expected_harvest: "",
+          area: "",
+        })
         onOpenChange(false)
-        router.refresh()
+        window.location.reload()
       } else {
         throw new Error(data.error)
       }
     } catch (error) {
+      console.error("[v0] Crop creation error:", error)
       toast({
         title: t("common.error"),
         description: t("common.errorOccurred"),

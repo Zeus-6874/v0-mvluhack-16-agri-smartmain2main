@@ -66,20 +66,26 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   useEffect(() => {
     const fetchWeather = async () => {
       try {
+        console.log("[v0] Fetching weather for profile:", profile)
         const location = profile?.district || profile?.state || "Delhi"
         const response = await fetch(`/api/weather?location=${encodeURIComponent(location)}`)
         const data = await response.json()
         console.log("[v0] Weather data received:", data)
-        if (data.success) {
+        if (data.success && data.weather) {
           setWeather(data.weather)
+        } else {
+          console.error("[v0] Weather fetch failed:", data)
         }
       } catch (error) {
-        console.error("Weather fetch error:", error)
+        console.error("[v0] Weather fetch error:", error)
       } finally {
         setWeatherLoading(false)
       }
     }
-    fetchWeather()
+
+    if (profile) {
+      fetchWeather()
+    }
   }, [profile])
 
   useEffect(() => {
@@ -112,31 +118,30 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
 
   const handleDeleteCrop = async (cropId: number) => {
     try {
+      console.log("[v0] Deleting crop:", cropId)
+
       const response = await fetch(`/api/crop-cycles/${cropId}`, {
         method: "DELETE",
       })
 
       const data = await response.json()
+      console.log("[v0] Delete response:", data)
 
       if (data.success) {
         toast({
-          title: language === "hi" ? "फसल हटाई गई" : language === "mr" ? "पीक हटवले" : "Crop Deleted",
-          description:
-            language === "hi"
-              ? "फसल सफलतापूर्वक हटाई गई"
-              : language === "mr"
-                ? "पीक यशस्वीरित्या हटवले"
-                : "Crop deleted successfully",
+          title: t("common.success"),
+          description: t("dashboard.cropDeleted"),
         })
-        fetchUserData()
+        // Refresh the page to show updated data
+        window.location.reload()
       } else {
         throw new Error(data.error)
       }
     } catch (error) {
+      console.error("[v0] Delete error:", error)
       toast({
-        title: language === "hi" ? "त्रुटि" : language === "mr" ? "त्रुटी" : "Error",
-        description:
-          language === "hi" ? "फसल हटाने में विफल" : language === "mr" ? "पीक हटवण्यात अयशस्वी" : "Failed to delete crop",
+        title: t("common.error"),
+        description: t("common.errorOccurred"),
         variant: "destructive",
       })
     }
@@ -144,23 +149,23 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
 
   const stats = [
     {
-      label: language === "hi" ? "कुल क्षेत्र" : language === "mr" ? "एकूण क्षेत्र" : "Total Area",
+      label: t("dashboard.totalArea"),
       value: profile?.farm_size ? profile.farm_size.toFixed(1) : "0",
-      unit: language === "hi" ? "हेक्टेयर" : language === "mr" ? "हेक्टर" : "hectares",
+      unit: t("dashboard.hectares"),
       icon: Sprout,
       color: "text-green-600",
       bgColor: "bg-green-50",
     },
     {
-      label: language === "hi" ? "सक्रिय फसलें" : language === "mr" ? "सक्रिय पिके" : "Active Crops",
+      label: t("dashboard.activeCrops"),
       value: activeCrops.length,
-      unit: language === "hi" ? "फसलें" : language === "mr" ? "पिके" : "crops",
+      unit: t("dashboard.crops"),
       icon: TrendingUp,
       color: "text-blue-600",
       bgColor: "bg-blue-50",
     },
     {
-      label: language === "hi" ? "औसत उपज" : language === "mr" ? "सरासरी उत्पादन" : "Avg Yield",
+      label: t("dashboard.avgYield"),
       value: "0",
       unit: "t/ha",
       icon: BarChart3,
@@ -168,7 +173,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
       bgColor: "bg-purple-50",
     },
     {
-      label: language === "hi" ? "वर्षा" : language === "mr" ? "पाऊस" : "Rainfall",
+      label: t("dashboard.rainfall"),
       value: weather?.rainfall ? weather.rainfall.toFixed(1) : "0",
       unit: "mm",
       icon: CloudRain,
@@ -191,15 +196,9 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     if (rainfall > 50) {
       alerts.push({
         type: "warning",
-        title:
-          language === "hi" ? "भारी बारिश चेतावनी" : language === "mr" ? "मुसळधार पाऊस चेतावनी" : "Heavy Rainfall Warning",
-        message:
-          language === "hi"
-            ? `${rainfall}mm बारिश का पूर्वानुमान। जल निकासी तैयार करें।`
-            : language === "mr"
-              ? `${rainfall}mm पाऊस अपेक्षित. जलनिर्गालन व्यवस्था करा।`
-              : `${rainfall}mm rainfall expected. Prepare drainage systems.`,
-        time: language === "hi" ? "अभी" : language === "mr" ? "आता" : "Now",
+        title: t("dashboard.heavyRainfallWarning"),
+        message: t("dashboard.heavyRainfallMessage", { rainfall }),
+        time: t("common.now"),
         severity: "high",
       })
     }
@@ -207,14 +206,9 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     if (temp < 10) {
       alerts.push({
         type: "warning",
-        title: language === "hi" ? "ठंड चेतावनी" : language === "mr" ? "थंडी चेतावनी" : "Cold Warning",
-        message:
-          language === "hi"
-            ? `तापमान ${temp}°C तक गिर सकता है। फसलों की सुरक्षा करें।`
-            : language === "mr"
-              ? `तापमान ${temp}°C पर्यंत घसरू शकते. पिकांचे संरक्षण करा।`
-              : `Temperature may drop to ${temp}°C. Protect sensitive crops.`,
-        time: language === "hi" ? "अभी" : language === "mr" ? "आता" : "Now",
+        title: t("dashboard.coldWarning"),
+        message: t("dashboard.coldMessage", { temp }),
+        time: t("common.now"),
         severity: "high",
       })
     }
@@ -222,14 +216,9 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     if (humidity > 80) {
       alerts.push({
         type: "caution",
-        title: language === "hi" ? "उच्च नमी" : language === "mr" ? "उच्च आर्द्रता" : "High Humidity",
-        message:
-          language === "hi"
-            ? `नमी ${humidity}% है। फंगल रोगों से सावधान रहें।`
-            : language === "mr"
-              ? `आर्द्रता ${humidity}% आहे. बुरशीजन्य रोगांपासून सावध राहा।`
-              : `Humidity at ${humidity}%. Watch for fungal diseases.`,
-        time: language === "hi" ? "अभी" : language === "mr" ? "आता" : "Now",
+        title: t("dashboard.highHumidity"),
+        message: t("dashboard.highHumidityMessage", { humidity }),
+        time: t("common.now"),
         severity: "medium",
       })
     }
@@ -237,14 +226,9 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     if (temp >= 20 && temp <= 30 && humidity >= 40 && humidity <= 70) {
       alerts.push({
         type: "info",
-        title: language === "hi" ? "अनुकूल मौसम" : language === "mr" ? "अनुकूल हवामान" : "Favorable Weather",
-        message:
-          language === "hi"
-            ? `खेती के लिए आदर्श परिस्थितियां (${temp}°C, ${humidity}% नमी)`
-            : language === "mr"
-              ? `शेतीसाठी आदर्श परिस्थिती (${temp}°C, ${humidity}% आर्द्रता)`
-              : `Ideal conditions for farming (${temp}°C, ${humidity}% humidity)`,
-        time: language === "hi" ? "अभी" : language === "mr" ? "आता" : "Now",
+        title: t("dashboard.favorableWeather"),
+        message: t("dashboard.favorableWeatherMessage", { temp, humidity }),
+        time: t("common.now"),
         severity: "low",
       })
     }
@@ -259,14 +243,12 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            {language === "hi" ? "डैशबोर्ड" : language === "mr" ? "डॅशबोर्ड" : "Dashboard"}
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("dashboard.dashboard")}</h1>
           <p className="text-gray-600 mt-1 flex items-center gap-2">
             {profile?.full_name && (
               <>
                 <span>
-                  {language === "hi" ? "नमस्ते" : language === "mr" ? "नमस्कार" : "Welcome"}, {profile.full_name}
+                  {t("common.welcome")}, {profile.full_name}
                 </span>
                 {profile?.village && (
                   <span className="flex items-center text-sm">
@@ -286,7 +268,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
             onClick={() => router.push("/settings")}
           >
             <Settings className="mr-2 h-4 w-4" />
-            {language === "hi" ? "सेटिंग्स" : language === "mr" ? "सेटिंग्ज" : "Settings"}
+            {t("common.settings")}
           </Button>
           <Button
             size="sm"
@@ -294,7 +276,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
             onClick={() => setShowAddCropModal(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            {language === "hi" ? "फसल जोड़ें" : language === "mr" ? "पीक जोडा" : "Add Crop"}
+            {t("dashboard.addCrop")}
           </Button>
         </div>
       </div>
@@ -330,7 +312,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
                 <div className="flex items-center">
                   <Sprout className="mr-2 h-5 w-5 text-green-600" />
-                  {language === "hi" ? "सक्रिय फसलें" : language === "mr" ? "सक्रिय पिके" : "Active Crops"}
+                  {t("dashboard.activeCrops")}
                 </div>
                 <Button
                   onClick={() => setShowAddCropModal(true)}
@@ -338,7 +320,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                   className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
                 >
                   <Plus className="h-4 w-4 mr-1" />
-                  {language === "hi" ? "फसल जोड़ें" : language === "mr" ? "पीक जोडा" : "Add Crop"}
+                  {t("dashboard.addCrop")}
                 </Button>
               </CardTitle>
             </CardHeader>
@@ -346,16 +328,10 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               {activeCrops.length === 0 ? (
                 <div className="text-center py-8">
                   <Sprout className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">
-                    {language === "hi"
-                      ? "कोई सक्रिय फसल नहीं"
-                      : language === "mr"
-                        ? "कोणतेही सक्रिय पीक नाही"
-                        : "No active crops"}
-                  </p>
+                  <p className="text-gray-500 mb-4">{t("dashboard.noActiveCrops")}</p>
                   <Button onClick={() => setShowAddCropModal(true)} className="bg-green-600 hover:bg-green-700">
                     <Plus className="h-4 w-4 mr-2" />
-                    {language === "hi" ? "पहली फसल जोड़ें" : language === "mr" ? "पहिले पीक जोडा" : "Add First Crop"}
+                    {t("dashboard.addFirstCrop")}
                   </Button>
                 </div>
               ) : (
@@ -371,9 +347,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           {/* Quick Actions */}
           <Card className="border-0 shadow-sm">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg">
-                {language === "hi" ? "त्वरित कार्य" : language === "mr" ? "जलद क्रिया" : "Quick Actions"}
-              </CardTitle>
+              <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">{/* Quick Actions content here */}</div>
@@ -401,7 +375,12 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                   <div className="flex items-start justify-between">
                     <div>
                       <div className="text-4xl font-bold">
-                        {weather.main ? Math.round(weather.main.temp) : weather.temperature || 25}°C
+                        {weather.main
+                          ? Math.round(weather.main.temp)
+                          : weather.temperature
+                            ? Math.round(weather.temperature)
+                            : "N/A"}
+                        °C
                       </div>
                       <p className="text-sm text-muted-foreground mt-1 capitalize">
                         {weather.weather?.[0]?.description || weather.condition || t("weather.clear")}
@@ -428,35 +407,39 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                       <Droplets className="w-4 h-4 text-blue-500" />
                       <div>
                         <p className="text-xs text-muted-foreground">{t("weather.humidity")}</p>
-                        <p className="text-sm font-semibold">{weather.main?.humidity || weather.humidity || 65}%</p>
+                        <p className="text-sm font-semibold">{weather.main?.humidity || weather.humidity || "N/A"}%</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Wind className="w-4 h-4 text-gray-500" />
                       <div>
                         <p className="text-xs text-muted-foreground">{t("weather.wind")}</p>
-                        <p className="text-sm font-semibold">{weather.wind?.speed || weather.windSpeed || 5} m/s</p>
+                        <p className="text-sm font-semibold">{weather.wind?.speed || weather.windSpeed || "N/A"} m/s</p>
                       </div>
                     </div>
                   </div>
 
-                  {weatherAlerts.map((alert) => (
-                    <div
-                      key={alert.title}
-                      className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800"
-                    >
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-amber-900 dark:text-amber-200">{alert.title}</p>
-                          <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">{alert.message}</p>
+                  {weatherAlerts.length > 0 &&
+                    weatherAlerts.map((alert) => (
+                      <div
+                        key={alert.title}
+                        className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800"
+                      >
+                        <div className="flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">{alert.title}</p>
+                            <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">{alert.message}</p>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground py-4 text-center">{t("weather.unavailable")}</p>
+                <div className="text-center py-8">
+                  <Cloud className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-sm text-muted-foreground">{t("weather.unavailable")}</p>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -466,20 +449,14 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center text-lg sm:text-xl">
                 <Calendar className="mr-2 h-5 w-5 text-blue-600" />
-                {language === "hi" ? "आगामी कार्य" : language === "mr" ? "आगामी कामे" : "Upcoming Tasks"}
+                {t("dashboard.upcomingTasks")}
               </CardTitle>
             </CardHeader>
             <CardContent>
               {upcomingTasks.length === 0 ? (
                 <div className="text-center py-6">
                   <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">
-                    {language === "hi"
-                      ? "कोई कार्य नहीं है"
-                      : language === "mr"
-                        ? "कोणतेही काम नाही"
-                        : "No tasks scheduled"}
-                  </p>
+                  <p className="text-gray-500 text-sm">{t("dashboard.noTasksScheduled")}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
