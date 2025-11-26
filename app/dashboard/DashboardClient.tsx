@@ -244,7 +244,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("dashboard.dashboard")}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("dashboard.title")}</h1>
             <p className="text-gray-600 mt-1 flex items-center gap-2 flex-wrap">
               {profile?.full_name && (
                 <>

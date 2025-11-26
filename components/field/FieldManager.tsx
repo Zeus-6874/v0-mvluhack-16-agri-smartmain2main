@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -8,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { MapPin, Plus, Edit, Trash2, Calendar, Sprout } from "lucide-react"
+import { MapPin, Plus, Edit, Trash2, Sprout } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useI18n } from "@/lib/i18n/context"
 
@@ -53,22 +55,18 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
     field_name: "",
     area_hectares: "",
     soil_type: "",
-    irrigation_type: ""
+    irrigation_type: "",
   })
 
-  const soilTypes = [
-    "Clay", "Sandy", "Loamy", "Silt", "Peaty", "Chalky", "Black", "Red", "Alluvial"
-  ]
+  const soilTypes = ["Clay", "Sandy", "Loamy", "Silt", "Peaty", "Chalky", "Black", "Red", "Alluvial"]
 
-  const irrigationTypes = [
-    "Drip", "Sprinkler", "Flood", "Center Pivot", "Manual", "Rain-fed"
-  ]
+  const irrigationTypes = ["Drip", "Sprinkler", "Flood", "Center Pivot", "Manual", "Rain-fed"]
 
   const cropStatusColors = {
     planning: "bg-yellow-100 text-yellow-800",
     planted: "bg-green-100 text-green-800",
     growing: "bg-blue-100 text-blue-800",
-    harvested: "bg-gray-100 text-gray-800"
+    harvested: "bg-gray-100 text-gray-800",
   }
 
   useEffect(() => {
@@ -86,7 +84,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
         toast({
           title: language === "hi" ? "त्रुटि" : "Error",
           description: data.error || "Failed to fetch fields",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     } catch (error) {
@@ -94,7 +92,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       toast({
         title: language === "hi" ? "त्रुटि" : "Error",
         description: language === "hi" ? "फ़ील्ड लोड करने में त्रुटि" : "Failed to load fields",
-        variant: "destructive"
+        variant: "destructive",
       })
     } finally {
       setIsLoading(false)
@@ -108,7 +106,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       toast({
         title: language === "hi" ? "वैलिडेशन त्रुटि" : "Validation Error",
         description: language === "hi" ? "फ़ील्ड का नाम और क्षेत्रफल आवश्यक है" : "Field name and area are required",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -120,9 +118,9 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       const response = await fetch(url, {
         method,
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       })
 
       const data = await response.json()
@@ -130,11 +128,19 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       if (data.success) {
         toast({
           title: editingField
-            ? (language === "hi" ? "फ़ील्ड अपडेट किया गया" : "Field updated")
-            : (language === "hi" ? "फ़ील्ड बनाया गया" : "Field created"),
+            ? language === "hi"
+              ? "फ़ील्ड अपडेट किया गया"
+              : "Field updated"
+            : language === "hi"
+              ? "फ़ील्ड बनाया गया"
+              : "Field created",
           description: editingField
-            ? (language === "hi" ? "फ़ील्ड सफलतापूर्वक अपडेट किया गया" : "Field updated successfully")
-            : (language === "hi" ? "फ़ील्ड सफलतापूर्वक बनाया गया" : "Field created successfully")
+            ? language === "hi"
+              ? "फ़ील्ड सफलतापूर्वक अपडेट किया गया"
+              : "Field updated successfully"
+            : language === "hi"
+              ? "फ़ील्ड सफलतापूर्वक बनाया गया"
+              : "Field created successfully",
         })
 
         setIsCreateDialogOpen(false)
@@ -145,7 +151,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
         toast({
           title: language === "hi" ? "त्रुटि" : "Error",
           description: data.error || "Failed to save field",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     } catch (error) {
@@ -153,7 +159,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       toast({
         title: language === "hi" ? "त्रुटि" : "Error",
         description: language === "hi" ? "फ़ील्ड सहेजने में त्रुटि" : "Failed to save field",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   }
@@ -164,21 +170,25 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       field_name: field.field_name,
       area_hectares: field.area_hectares.toString(),
       soil_type: field.soil_type || "",
-      irrigation_type: field.irrigation_type || ""
+      irrigation_type: field.irrigation_type || "",
     })
     setIsCreateDialogOpen(true)
   }
 
   const handleDelete = async (field: Field) => {
-    if (!confirm(language === "hi"
-      ? `क्या आप "${field.field_name}" फ़ील्ड को हटाना चाहते हैं?`
-      : `Are you sure you want to delete "${field.field_name}"?`)) {
+    if (
+      !confirm(
+        language === "hi"
+          ? `क्या आप "${field.field_name}" फ़ील्ड को हटाना चाहते हैं?`
+          : `Are you sure you want to delete "${field.field_name}"?`,
+      )
+    ) {
       return
     }
 
     try {
       const response = await fetch(`/api/fields/${field.id}`, {
-        method: "DELETE"
+        method: "DELETE",
       })
 
       const data = await response.json()
@@ -186,14 +196,14 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       if (data.success) {
         toast({
           title: language === "hi" ? "फ़ील्ड हटाया गया" : "Field deleted",
-          description: language === "hi" ? "फ़ील्ड सफलतापूर्वक हटाया गया" : "Field deleted successfully"
+          description: language === "hi" ? "फ़ील्ड सफलतापूर्वक हटाया गया" : "Field deleted successfully",
         })
         fetchFields()
       } else {
         toast({
           title: language === "hi" ? "त्रुटि" : "Error",
           description: data.error || "Failed to delete field",
-          variant: "destructive"
+          variant: "destructive",
         })
       }
     } catch (error) {
@@ -201,7 +211,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       toast({
         title: language === "hi" ? "त्रुटि" : "Error",
         description: language === "hi" ? "फ़ील्ड हटाने में त्रुटि" : "Failed to delete field",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   }
@@ -211,7 +221,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       field_name: "",
       area_hectares: "",
       soil_type: "",
-      irrigation_type: ""
+      irrigation_type: "",
     })
     setEditingField(null)
   }
@@ -237,9 +247,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {language === "hi" ? "फ़ील्ड प्रबंधन" : "Field Management"}
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900">{language === "hi" ? "फ़ील्ड प्रबंधन" : "Field Management"}</h2>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
@@ -251,16 +259,17 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
             <DialogHeader>
               <DialogTitle>
                 {editingField
-                  ? (language === "hi" ? "फ़ील्ड संपादित करें" : "Edit Field")
-                  : (language === "hi" ? "नया फ़ील्ड बनाएं" : "Create New Field")
-                }
+                  ? language === "hi"
+                    ? "फ़ील्ड संपादित करें"
+                    : "Edit Field"
+                  : language === "hi"
+                    ? "नया फ़ील्ड बनाएं"
+                    : "Create New Field"}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="field_name">
-                  {language === "hi" ? "फ़ील्ड का नाम" : "Field Name"}
-                </Label>
+                <Label htmlFor="field_name">{language === "hi" ? "फ़ील्ड का नाम" : "Field Name"}</Label>
                 <Input
                   id="field_name"
                   value={formData.field_name}
@@ -271,9 +280,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
               </div>
 
               <div>
-                <Label htmlFor="area_hectares">
-                  {language === "hi" ? "क्षेत्रफल (हेक्टेयर)" : "Area (hectares)"}
-                </Label>
+                <Label htmlFor="area_hectares">{language === "hi" ? "क्षेत्रफल (हेक्टेयर)" : "Area (hectares)"}</Label>
                 <Input
                   id="area_hectares"
                   type="number"
@@ -286,9 +293,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
               </div>
 
               <div>
-                <Label htmlFor="soil_type">
-                  {language === "hi" ? "मिट्टी का प्रकार" : "Soil Type"}
-                </Label>
+                <Label htmlFor="soil_type">{language === "hi" ? "मिट्टी का प्रकार" : "Soil Type"}</Label>
                 <Select
                   value={formData.soil_type}
                   onValueChange={(value) => setFormData({ ...formData, soil_type: value })}
@@ -307,9 +312,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
               </div>
 
               <div>
-                <Label htmlFor="irrigation_type">
-                  {language === "hi" ? "सिंचाई का प्रकार" : "Irrigation Type"}
-                </Label>
+                <Label htmlFor="irrigation_type">{language === "hi" ? "सिंचाई का प्रकार" : "Irrigation Type"}</Label>
                 <Select
                   value={formData.irrigation_type}
                   onValueChange={(value) => setFormData({ ...formData, irrigation_type: value })}
@@ -332,10 +335,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
                   {language === "hi" ? "रद्द करें" : "Cancel"}
                 </Button>
                 <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                  {editingField
-                    ? (language === "hi" ? "अपडेट करें" : "Update")
-                    : (language === "hi" ? "बनाएं" : "Create")
-                  }
+                  {editingField ? (language === "hi" ? "अपडेट करें" : "Update") : language === "hi" ? "बनाएं" : "Create"}
                 </Button>
               </div>
             </form>
@@ -351,10 +351,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
               {language === "hi" ? "कोई फ़ील्ड नहीं मिला" : "No fields found"}
             </h3>
             <p className="text-gray-600 text-center mb-4">
-              {language === "hi"
-                ? "अपना पहला फ़ील्ड जोड़कर शुरू करें"
-                : "Get started by adding your first field"
-              }
+              {language === "hi" ? "अपना पहला फ़ील्ड जोड़कर शुरू करें" : "Get started by adding your first field"}
             </p>
             <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
               <Plus className="mr-2 h-4 w-4" />
@@ -364,9 +361,9 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {fields.map((field) => (
+          {fields.map((field, index) => (
             <Card
-              key={field.id}
+              key={index}
               className="hover:shadow-md transition-shadow cursor-pointer"
               onClick={() => onFieldSelect?.(field)}
             >
@@ -374,18 +371,10 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-lg">{field.field_name}</CardTitle>
                   <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(field)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(field)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDelete(field)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(field)}>
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

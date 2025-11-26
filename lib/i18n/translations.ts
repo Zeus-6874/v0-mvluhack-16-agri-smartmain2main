@@ -75,6 +75,7 @@ export const translations = {
 
     // Dashboard
     dashboard: {
+      dashboard: "Dashboard",
       title: "Dashboard",
       subtitle: "Overview of your farming activities",
       settings: "Settings",
@@ -474,6 +475,7 @@ export const translations = {
 
     // Dashboard
     dashboard: {
+      dashboard: "डैशबोर्ड",
       title: "डैशबोर्ड",
       subtitle: "आपकी खेती गतिविधियों का अवलोकन",
       settings: "सेटिंग्स",
@@ -852,6 +854,7 @@ export const translations = {
 
     // Dashboard
     dashboard: {
+      dashboard: "डॅशबोर्ड",
       title: "डॅशबोर्ड",
       subtitle: "तुमच्या शेती क्रियाकलापांचे विहंगावलोकन",
       settings: "सेटिंग्ज",
