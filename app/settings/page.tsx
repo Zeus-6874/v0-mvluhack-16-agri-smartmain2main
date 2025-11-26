@@ -11,61 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 import { useI18n } from "@/lib/i18n/context"
 import { User, Bell, Globe, Save, Loader2, Check } from "lucide-react"
-
-const indianStates = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-]
-
-const districtsByState: Record<string, string[]> = {
-  Maharashtra: [
-    "Pune",
-    "Mumbai",
-    "Nagpur",
-    "Nashik",
-    "Aurangabad",
-    "Solapur",
-    "Kolhapur",
-    "Satara",
-    "Sangli",
-    "Ahmednagar",
-  ],
-  Gujarat: ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", "Gandhinagar"],
-  Punjab: ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur"],
-  Default: ["Select State First"],
-}
-
-const villagesByDistrict: Record<string, string[]> = {
-  Pune: ["Khed", "Maval", "Mulshi", "Bhor", "Baramati", "Indapur", "Daund", "Purandar"],
-  Mumbai: ["Andheri", "Borivali", "Bandra", "Kurla", "Malad", "Goregaon", "Vikhroli"],
-  Default: ["Select District First"],
-}
+import { maharashtraData, indianStates } from "@/lib/location-data"
 
 interface Profile {
   full_name: string
@@ -145,12 +91,11 @@ export default function SettingsPage() {
     setProfile((prev) => (prev ? { ...prev, [field]: value } : null))
   }
 
-  const districts = profile?.state
-    ? districtsByState[profile.state] || districtsByState["Default"]
-    : districtsByState["Default"]
+  const districts = profile?.state === "Maharashtra" ? maharashtraData.districts.map((d) => d.name) : indianStates
+
   const villages = profile?.district
-    ? villagesByDistrict[profile.district] || villagesByDistrict["Default"]
-    : villagesByDistrict["Default"]
+    ? maharashtraData.districts.find((d) => d.name === profile.district)?.villages || []
+    : []
 
   if (loading) {
     return (

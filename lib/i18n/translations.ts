@@ -65,6 +65,11 @@ export const translations = {
       resourceDeletedSuccess: "Resource deleted successfully",
       operationSuccess: "Operation completed successfully",
       operationFailed: "Operation failed",
+      saved: "Saved!",
+      saving: "Saving...",
+      confirm: "Confirm",
+      yes: "Yes",
+      no: "No",
     },
 
     // Dashboard
@@ -113,6 +118,12 @@ export const translations = {
       daysLeft: "days left",
       expectedYield: "expected",
       health: "Health",
+      welcome: "Welcome back",
+      overview: "Overview",
+      totalFields: "Total Fields",
+      weatherAlerts: "Weather Alerts",
+      deleteConfirm: "Are you sure you want to delete this crop?",
+      deleteFailed: "Failed to delete crop",
     },
 
     // Weather
@@ -155,21 +166,21 @@ export const translations = {
     // Profile
     profile: {
       title: "Complete Your Profile",
-      subtitle: "Help us personalize your experience",
+      subtitle: "Help us understand your farming needs better",
       fullName: "Full Name",
       phone: "Phone Number",
       state: "State",
       district: "District",
       village: "Village",
-      farmSize: "Farm Size (in acres)",
-      mainCrops: "Main Crops",
-      soilType: "Soil Type",
-      irrigationType: "Irrigation Type",
+      farmSize: "Farm Size (Acres)",
+      enterFarmSize: "Enter farm size in acres",
+      selectState: "Select State",
+      selectDistrict: "Select District",
+      selectVillage: "Select Village/Taluka",
       submit: "Complete Setup",
       saving: "Saving...",
-      personalInfo: "Personal Information",
-      farmDetails: "Farm Details",
-      preferences: "Preferences",
+      saved: "Profile Saved!",
+      error: "Failed to save profile",
     },
 
     // Field Management
@@ -479,6 +490,11 @@ export const translations = {
       resourceDeletedSuccess: "संसाधन सफलतापूर्वक हटा दिया गया",
       operationSuccess: "ऑपरेशन सफलतापूर्वक पूर्ण हुआ",
       operationFailed: "ऑपरेशन विफल रहा",
+      saved: "सहेजा गया!",
+      saving: "सहेजा जा रहा है...",
+      confirm: "पुष्टि करें",
+      yes: "हाँ",
+      no: "नहीं",
     },
 
     // Dashboard
@@ -527,6 +543,12 @@ export const translations = {
       daysLeft: "दिन शेष",
       expectedYield: "अपेक्षित",
       health: "स्वास्थ्य",
+      welcome: "वापसी पर स्वागत है",
+      overview: "अवलोकन",
+      totalFields: "कुल खेत",
+      weatherAlerts: "मौसम चेतावनियां",
+      deleteConfirm: "क्या आप वाकई इस फसल को हटाना चाहते हैं?",
+      deleteFailed: "फसल हटाने में विफल",
     },
 
     // Weather
@@ -569,21 +591,21 @@ export const translations = {
     // Profile
     profile: {
       title: "अपनी प्रोफ़ाइल पूरी करें",
-      subtitle: "हमें आपके अनुभव को वैयक्तिकृत करने में मदद करें",
+      subtitle: "हमें अपनी खेती की जरूरतों को बेहतर ढंग से समझने में मदद करें",
       fullName: "पूरा नाम",
       phone: "फ़ोन नंबर",
       state: "राज्य",
       district: "जिला",
       village: "गांव",
-      farmSize: "खेत का आकार (एकड़ में)",
-      mainCrops: "मुख्य फसलें",
-      soilType: "मिट्टी का प्रकार",
-      irrigationType: "सिंचाई का प्रकार",
+      farmSize: "खेत का आकार (एकड़)",
+      enterFarmSize: "एकड़ में खेत का आकार दर्ज करें",
+      selectState: "राज्य चुनें",
+      selectDistrict: "जिला चुनें",
+      selectVillage: "गांव/तालुका चुनें",
       submit: "सेटअप पूरा करें",
       saving: "सहेजा जा रहा है...",
-      personalInfo: "व्यक्तिगत जानकारी",
-      farmDetails: "खेत विवरण",
-      preferences: "प्राथमिकताएं",
+      saved: "प्रोफ़ाइल सहेजी गई!",
+      error: "प्रोफ़ाइल सहेजने में विफल",
     },
 
     // Field Management
@@ -872,6 +894,11 @@ export const translations = {
       resourceDeletedSuccess: "संसाधन यशस्वीरित्या हटविले",
       operationSuccess: "ऑपरेशन यशस्वीरित्या पूर्ण झाले",
       operationFailed: "ऑपरेशन अयशस्वी",
+      saved: "जतन केले!",
+      saving: "जतन करत आहे...",
+      confirm: "पुष्टी करा",
+      yes: "होय",
+      no: "नाही",
     },
 
     // Dashboard
@@ -920,6 +947,12 @@ export const translations = {
       daysLeft: "दिवस शिल्लक",
       expectedYield: "अपेक्षित",
       health: "आरोग्य",
+      welcome: "परत स्वागत आहे",
+      overview: "विहंगावलोकन",
+      totalFields: "एकूण शेत",
+      weatherAlerts: "हवामान इशारे",
+      deleteConfirm: "तुम्हाला खात्री आहे की तुम्ही हे पीक हटवू इच्छिता?",
+      deleteFailed: "पीक हटवण्यात अयशस्वी",
     },
 
     // Weather
@@ -969,14 +1002,14 @@ export const translations = {
       district: "जिल्हा",
       village: "गाव",
       farmSize: "शेताचा आकार (एकरमध्ये)",
-      mainCrops: "मुख्य पिके",
-      soilType: "मातीचा प्रकार",
-      irrigationType: "सिंचन प्रकार",
+      enterFarmSize: "एकरमध्ये शेताचा आकार प्रविष्ट करा",
+      selectState: "राज्य निवडा",
+      selectDistrict: "जिल्हा निवडा",
+      selectVillage: "गाव/तालुका निवडा",
       submit: "सेटअप पूर्ण करा",
-      saving: "जतन होत आहे...",
-      personalInfo: "वैयक्तिक माहिती",
-      farmDetails: "शेत तपशील",
-      preferences: "प्राधान्ये",
+      saving: "जतन करत आहे...",
+      saved: "प्रोफाइल जतन केले!",
+      error: "प्रोफाइल जतन करण्यात अयशस्वी",
     },
 
     // Field Management

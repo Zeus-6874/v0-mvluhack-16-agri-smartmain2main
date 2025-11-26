@@ -4,66 +4,9 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
+import { maharashtraData, indianStates } from "@/lib/location-data"
 
-const indianStates = [
-  "Andhra Pradesh",
-  "Arunachal Pradesh",
-  "Assam",
-  "Bihar",
-  "Chhattisgarh",
-  "Goa",
-  "Gujarat",
-  "Haryana",
-  "Himachal Pradesh",
-  "Jharkhand",
-  "Karnataka",
-  "Kerala",
-  "Madhya Pradesh",
-  "Maharashtra",
-  "Manipur",
-  "Meghalaya",
-  "Mizoram",
-  "Nagaland",
-  "Odisha",
-  "Punjab",
-  "Rajasthan",
-  "Sikkim",
-  "Tamil Nadu",
-  "Telangana",
-  "Tripura",
-  "Uttar Pradesh",
-  "Uttarakhand",
-  "West Bengal",
-]
-
-const districtsByState: Record<string, string[]> = {
-  Maharashtra: [
-    "Pune",
-    "Mumbai",
-    "Nagpur",
-    "Nashik",
-    "Aurangabad",
-    "Solapur",
-    "Kolhapur",
-    "Satara",
-    "Sangli",
-    "Ahmednagar",
-  ],
-  Gujarat: ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar", "Junagadh", "Gandhinagar"],
-  Punjab: ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Bathinda", "Mohali", "Hoshiarpur"],
-  Haryana: ["Gurgaon", "Faridabad", "Panipat", "Ambala", "Yamunanagar", "Rohtak", "Hisar"],
-  "Uttar Pradesh": ["Lucknow", "Kanpur", "Ghaziabad", "Agra", "Varanasi", "Meerut", "Allahabad", "Bareilly"],
-  Default: ["Select State First"],
-}
-
-const villagesByDistrict: Record<string, string[]> = {
-  Pune: ["Khed", "Maval", "Mulshi", "Bhor", "Baramati", "Indapur", "Daund", "Purandar"],
-  Mumbai: ["Andheri", "Borivali", "Bandra", "Kurla", "Malad", "Goregaon", "Vikhroli"],
-  Nagpur: ["Kamptee", "Ramtek", "Saoner", "Katol", "Narkhed", "Hingna", "Parseoni"],
-  Default: ["Select District First"],
-}
-
-export default function ProfileSetupPage() {
+const ProfileSetupPage = () => {
   const router = useRouter()
   const { language, t } = useI18n()
   const [loading, setLoading] = useState(false)
@@ -76,6 +19,12 @@ export default function ProfileSetupPage() {
     village: "",
     land_area: "",
   })
+
+  const districts = formData.state === "Maharashtra" ? maharashtraData.districts.map((d) => d.name) : []
+
+  const villages = formData.district
+    ? maharashtraData.districts.find((d) => d.name === formData.district)?.villages || []
+    : []
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -109,91 +58,30 @@ export default function ProfileSetupPage() {
         return
       }
 
-      console.log("[v0] Profile created successfully:", data)
       window.location.href = "/dashboard"
     } catch (err) {
-      console.error("[v0] Profile setup error:", err)
+      console.error("Profile setup error:", err)
       setError("An error occurred. Please try again.")
       setLoading(false)
     }
   }
 
-  const districts = formData.state
-    ? districtsByState[formData.state] || districtsByState["Default"]
-    : districtsByState["Default"]
-  const villages = formData.district
-    ? villagesByDistrict[formData.district] || villagesByDistrict["Default"]
-    : villagesByDistrict["Default"]
-
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(to bottom right, rgb(240, 253, 244), rgb(240, 249, 255))",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1rem",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "42rem",
-          padding: "2rem",
-          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
-          borderRadius: "0.5rem",
-          backgroundColor: "white",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginBottom: "2rem",
-          }}
-        >
-          <div
-            style={{
-              width: "3rem",
-              height: "3rem",
-              background: "linear-gradient(to right, rgb(22, 163, 74), rgb(37, 99, 235))",
-              borderRadius: "0.5rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <span style={{ color: "white", fontWeight: "bold", fontSize: "0.875rem" }}>AS</span>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-3xl bg-white rounded-xl shadow-2xl p-8">
+        <div className="flex justify-center mb-6">
+          <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">AS</span>
           </div>
         </div>
 
-        <h1
-          style={{
-            fontSize: "1.875rem",
-            fontWeight: "bold",
-            textAlign: "center",
-            marginBottom: "0.5rem",
-          }}
-        >
-          {t("profile.title")}
-        </h1>
-        <p
-          style={{
-            textAlign: "center",
-            color: "rgb(75, 85, 99)",
-            marginBottom: "2rem",
-          }}
-        >
-          {t("profile.subtitle")}
-        </p>
+        <h1 className="text-3xl font-bold text-center mb-2">{t("profile.title")}</h1>
+        <p className="text-center text-gray-600 mb-8">{t("profile.subtitle")}</p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "1rem" }}>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                {t("profile.fullName")}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t("profile.fullName")}</label>
               <input
                 type="text"
                 name="full_name"
@@ -201,22 +89,12 @@ export default function ProfileSetupPage() {
                 value={formData.full_name}
                 onChange={handleChange}
                 required
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid rgb(203, 213, 225)",
-                  borderRadius: "0.375rem",
-                  fontFamily: "inherit",
-                  fontSize: "1rem",
-                  boxSizing: "border-box",
-                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
               />
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                {t("profile.phone")}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t("profile.phone")}</label>
               <input
                 type="tel"
                 name="phone"
@@ -224,41 +102,22 @@ export default function ProfileSetupPage() {
                 value={formData.phone}
                 onChange={handleChange}
                 required
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid rgb(203, 213, 225)",
-                  borderRadius: "0.375rem",
-                  fontFamily: "inherit",
-                  fontSize: "1rem",
-                  boxSizing: "border-box",
-                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
               />
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+          <div className="grid md:grid-cols-3 gap-6">
             <div>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                {t("profile.state")}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t("profile.state")}</label>
               <select
                 name="state"
                 value={formData.state}
                 onChange={handleChange}
                 required
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid rgb(203, 213, 225)",
-                  borderRadius: "0.375rem",
-                  fontFamily: "inherit",
-                  fontSize: "1rem",
-                  boxSizing: "border-box",
-                  backgroundColor: "white",
-                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white"
               >
-                <option value="">Select State</option>
+                <option value="">{t("profile.selectState")}</option>
                 {indianStates.map((state) => (
                   <option key={state} value={state}>
                     {state}
@@ -268,28 +127,16 @@ export default function ProfileSetupPage() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                {t("profile.district")}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t("profile.district")}</label>
               <select
                 name="district"
                 value={formData.district}
                 onChange={handleChange}
                 required
-                disabled={!formData.state}
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid rgb(203, 213, 225)",
-                  borderRadius: "0.375rem",
-                  fontFamily: "inherit",
-                  fontSize: "1rem",
-                  boxSizing: "border-box",
-                  backgroundColor: "white",
-                  opacity: !formData.state ? 0.5 : 1,
-                }}
+                disabled={!formData.state || formData.state !== "Maharashtra"}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="">Select District</option>
+                <option value="">{t("profile.selectDistrict")}</option>
                 {districts.map((district) => (
                   <option key={district} value={district}>
                     {district}
@@ -299,28 +146,16 @@ export default function ProfileSetupPage() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                {t("profile.village")}
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">{t("profile.village")}</label>
               <select
                 name="village"
                 value={formData.village}
                 onChange={handleChange}
                 required
                 disabled={!formData.district}
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid rgb(203, 213, 225)",
-                  borderRadius: "0.375rem",
-                  fontFamily: "inherit",
-                  fontSize: "1rem",
-                  boxSizing: "border-box",
-                  backgroundColor: "white",
-                  opacity: !formData.district ? 0.5 : 1,
-                }}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition bg-white disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
-                <option value="">Select Village</option>
+                <option value="">{t("profile.selectVillage")}</option>
                 {villages.map((village) => (
                   <option key={village} value={village}>
                     {village}
@@ -331,59 +166,26 @@ export default function ProfileSetupPage() {
           </div>
 
           <div>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-              {t("profile.farmSize")}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">{t("profile.farmSize")}</label>
             <input
               type="number"
               name="land_area"
-              placeholder="Enter farm size"
+              placeholder={t("profile.enterFarmSize")}
               value={formData.land_area}
               onChange={handleChange}
               required
               step="0.01"
               min="0"
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                border: "1px solid rgb(203, 213, 225)",
-                borderRadius: "0.375rem",
-                fontFamily: "inherit",
-                fontSize: "1rem",
-                boxSizing: "border-box",
-              }}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition"
             />
           </div>
 
-          {error && (
-            <div
-              style={{
-                padding: "0.75rem",
-                backgroundColor: "rgb(254, 242, 242)",
-                color: "rgb(185, 28, 28)",
-                borderRadius: "0.375rem",
-                fontSize: "0.875rem",
-              }}
-            >
-              {error}
-            </div>
-          )}
+          {error && <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">{error}</div>}
 
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "0.75rem",
-              backgroundColor: loading ? "rgb(134, 239, 172)" : "rgb(22, 163, 74)",
-              color: "white",
-              borderRadius: "0.375rem",
-              border: "none",
-              fontWeight: "500",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.7 : 1,
-              fontFamily: "inherit",
-            }}
+            className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
           >
             {loading ? t("profile.saving") : t("profile.submit")}
           </button>
@@ -392,3 +194,5 @@ export default function ProfileSetupPage() {
     </div>
   )
 }
+
+export default ProfileSetupPage
