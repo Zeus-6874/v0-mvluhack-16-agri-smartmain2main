@@ -239,265 +239,262 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   const weatherAlerts = generateWeatherAlerts()
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("dashboard.dashboard")}</h1>
-          <p className="text-gray-600 mt-1 flex items-center gap-2">
-            {profile?.full_name && (
-              <>
-                <span>
-                  {t("common.welcome")}, {profile.full_name}
-                </span>
-                {profile?.village && (
-                  <span className="flex items-center text-sm">
-                    <MapPin className="h-3 w-3 mr-1" />
-                    {profile.village}, {profile.district}
+    <div className="min-h-screen">
+      <div className="space-y-6 p-4 sm:p-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("dashboard.dashboard")}</h1>
+            <p className="text-gray-600 mt-1 flex items-center gap-2 flex-wrap">
+              {profile?.full_name && (
+                <>
+                  <span>
+                    {t("common.welcome")}, {profile.full_name}
                   </span>
-                )}
-              </>
-            )}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2 sm:gap-3">
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-white text-gray-700 hover:bg-gray-50 border-gray-200"
-            onClick={() => router.push("/settings")}
-          >
-            <Settings className="mr-2 h-4 w-4" />
-            {t("common.settings")}
-          </Button>
-          <Button
-            size="sm"
-            className="bg-green-600 hover:bg-green-700 text-white"
-            onClick={() => setShowAddCropModal(true)}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {t("dashboard.addCrop")}
-          </Button>
-        </div>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {stats.map((stat, index) => (
-          <Card key={index} className="border-0 shadow-sm">
-            <CardContent className="p-4 sm:p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs sm:text-sm text-gray-500 font-medium">{stat.label}</p>
-                  <p className="text-xl sm:text-2xl font-bold mt-1 text-gray-900">
-                    {stat.value} <span className="text-xs sm:text-sm font-normal text-gray-400">{stat.unit}</span>
-                  </p>
-                </div>
-                <div className={`p-2 sm:p-3 rounded-xl ${stat.bgColor}`}>
-                  <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Left Column - Crops */}
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          {/* Active Crops */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
-                <div className="flex items-center">
-                  <Sprout className="mr-2 h-5 w-5 text-green-600" />
-                  {t("dashboard.activeCrops")}
-                </div>
-                <Button
-                  onClick={() => setShowAddCropModal(true)}
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  {t("dashboard.addCrop")}
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {activeCrops.length === 0 ? (
-                <div className="text-center py-8">
-                  <Sprout className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">{t("dashboard.noActiveCrops")}</p>
-                  <Button onClick={() => setShowAddCropModal(true)} className="bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    {t("dashboard.addFirstCrop")}
-                  </Button>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {activeCrops.map((crop) => (
-                    <CropCard key={crop.id} crop={crop} language={language} onDelete={handleDeleteCrop} />
-                  ))}
-                </div>
+                  {profile?.village && (
+                    <span className="flex items-center text-sm">
+                      <MapPin className="h-3 w-3 mr-1" />
+                      {profile.village}, {profile.district}
+                    </span>
+                  )}
+                </>
               )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">{t("dashboard.quickActions")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">{/* Quick Actions content here */}</div>
-            </CardContent>
-          </Card>
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white text-gray-700 hover:bg-gray-50 border-gray-200"
+              onClick={() => router.push("/settings")}
+            >
+              <Settings className="mr-2 h-4 w-4" />
+              {t("common.settings")}
+            </Button>
+            <Button
+              size="sm"
+              className="bg-green-600 hover:bg-green-700 text-white"
+              onClick={() => setShowAddCropModal(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {t("dashboard.addCrop")}
+            </Button>
+          </div>
         </div>
 
-        {/* Right Column - Weather & Tasks */}
-        <div className="space-y-4 sm:space-y-6">
-          {/* Weather Widget */}
-          <Card className="lg:col-span-1">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Cloud className="w-5 h-5" />
-                {t("dashboard.weather")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {weatherLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          {stats.map((stat, index) => (
+            <Card key={index} className="border shadow-sm hover:shadow-md transition-shadow">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500 font-medium truncate">{stat.label}</p>
+                    <p className="text-xl sm:text-2xl font-bold mt-1 text-gray-900">
+                      {stat.value} <span className="text-xs sm:text-sm font-normal text-gray-400">{stat.unit}</span>
+                    </p>
+                  </div>
+                  <div className={`p-2 sm:p-3 rounded-xl ${stat.bgColor} flex-shrink-0`}>
+                    <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
+                  </div>
                 </div>
-              ) : weather ? (
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="text-4xl font-bold">
-                        {weather.main
-                          ? Math.round(weather.main.temp)
-                          : weather.temperature
-                            ? Math.round(weather.temperature)
-                            : "N/A"}
-                        °C
-                      </div>
-                      <p className="text-sm text-muted-foreground mt-1 capitalize">
-                        {weather.weather?.[0]?.description || weather.condition || t("weather.clear")}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {weather.name || weather.location || profile?.district || "Location"}
-                      </p>
-                    </div>
-                    <div className="text-6xl">
-                      {weather.weather?.[0]?.main === "Clear" || weather.condition === "clear"
-                        ? "☀️"
-                        : weather.weather?.[0]?.main === "Clouds" || weather.condition === "clouds"
-                          ? "☁️"
-                          : weather.weather?.[0]?.main === "Rain" || weather.condition === "rain"
-                            ? "🌧️"
-                            : weather.weather?.[0]?.main === "Snow"
-                              ? "❄️"
-                              : "🌤️"}
-                    </div>
-                  </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-                  <div className="grid grid-cols-2 gap-4 pt-4 border-t">
-                    <div className="flex items-center gap-2">
-                      <Droplets className="w-4 h-4 text-blue-500" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t("weather.humidity")}</p>
-                        <p className="text-sm font-semibold">{weather.main?.humidity || weather.humidity || "N/A"}%</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Wind className="w-4 h-4 text-gray-500" />
-                      <div>
-                        <p className="text-xs text-muted-foreground">{t("weather.wind")}</p>
-                        <p className="text-sm font-semibold">{weather.wind?.speed || weather.windSpeed || "N/A"} m/s</p>
-                      </div>
-                    </div>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+          {/* Left Column - Crops */}
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+            {/* Active Crops */}
+            <Card className="border shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
+                  <div className="flex items-center">
+                    <Sprout className="mr-2 h-5 w-5 text-green-600" />
+                    {t("dashboard.activeCrops")}
                   </div>
+                  <Button
+                    onClick={() => setShowAddCropModal(true)}
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    {t("dashboard.addCrop")}
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {activeCrops.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 mb-4 text-sm sm:text-base">{t("dashboard.noActiveCrops")}</p>
+                    <Button onClick={() => setShowAddCropModal(true)} className="bg-green-600 hover:bg-green-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("dashboard.addFirstCrop")}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {activeCrops.map((crop) => (
+                      <CropCard key={crop.id} crop={crop} language={language} onDelete={handleDeleteCrop} />
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
 
-                  {weatherAlerts.length > 0 &&
-                    weatherAlerts.map((alert) => (
-                      <div
-                        key={alert.title}
-                        className="mt-4 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800"
-                      >
-                        <div className="flex items-start gap-2">
-                          <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-amber-900 dark:text-amber-200">{alert.title}</p>
-                            <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">{alert.message}</p>
+          {/* Right Column - Weather & Tasks */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Weather Widget */}
+            <Card className="border shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Cloud className="w-5 h-5" />
+                  {t("dashboard.weather")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {weatherLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-green-600"></div>
+                  </div>
+                ) : weather ? (
+                  <div className="space-y-4">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-4xl sm:text-5xl font-bold">
+                          {weather.main
+                            ? Math.round(weather.main.temp)
+                            : weather.temperature
+                              ? Math.round(weather.temperature)
+                              : "N/A"}
+                          °C
+                        </div>
+                        <p className="text-sm text-gray-600 mt-2 capitalize">
+                          {weather.weather?.[0]?.description || weather.condition || t("weather.clear")}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {weather.name || weather.location || profile?.district || "Location"}
+                        </p>
+                      </div>
+                      <div className="text-5xl sm:text-6xl">
+                        {weather.weather?.[0]?.main === "Clear" || weather.condition === "clear"
+                          ? "☀️"
+                          : weather.weather?.[0]?.main === "Clouds" || weather.condition === "clouds"
+                            ? "☁️"
+                            : weather.weather?.[0]?.main === "Rain" || weather.condition === "rain"
+                              ? "🌧️"
+                              : weather.weather?.[0]?.main === "Snow"
+                                ? "❄️"
+                                : "🌤️"}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+                      <div className="flex items-center gap-2">
+                        <Droplets className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-gray-500">{t("weather.humidity")}</p>
+                          <p className="text-sm font-semibold truncate">
+                            {weather.main?.humidity || weather.humidity || "N/A"}%
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Wind className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-xs text-gray-500">{t("weather.wind")}</p>
+                          <p className="text-sm font-semibold truncate">
+                            {weather.wind?.speed || weather.windSpeed || "N/A"} m/s
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {weatherAlerts.length > 0 &&
+                      weatherAlerts.map((alert, idx) => (
+                        <div key={idx} className="mt-4 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                          <div className="flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-amber-900">{alert.title}</p>
+                              <p className="text-xs text-amber-700 mt-1">{alert.message}</p>
+                            </div>
                           </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <Cloud className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                    <p className="text-sm text-gray-500">{t("weather.unavailable")}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Upcoming Tasks */}
+            <Card className="border shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center text-lg sm:text-xl">
+                  <Calendar className="mr-2 h-5 w-5 text-blue-600" />
+                  {t("dashboard.upcomingTasks")}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {upcomingTasks.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 text-sm">{t("dashboard.noTasksScheduled")}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {upcomingTasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="flex items-start space-x-3 p-3 rounded-lg border hover:border-green-300 transition-colors"
+                      >
+                        <div
+                          className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+                            task.priority === "high"
+                              ? "bg-red-500"
+                              : task.priority === "medium"
+                                ? "bg-yellow-500"
+                                : "bg-green-500"
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 break-words">
+                            {task.activity_type || task.task}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {new Date(task.scheduled_date || task.date).toLocaleDateString()}
+                          </p>
                         </div>
                       </div>
                     ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Cloud className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                  <p className="text-sm text-muted-foreground">{t("weather.unavailable")}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Upcoming Tasks */}
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center text-lg sm:text-xl">
-                <Calendar className="mr-2 h-5 w-5 text-blue-600" />
-                {t("dashboard.upcomingTasks")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {upcomingTasks.length === 0 ? (
-                <div className="text-center py-6">
-                  <Calendar className="h-10 w-10 text-gray-300 mx-auto mb-2" />
-                  <p className="text-gray-500 text-sm">{t("dashboard.noTasksScheduled")}</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {upcomingTasks.map((task) => (
-                    <div key={task.id} className="flex items-start space-x-3 p-3 rounded-lg border">
-                      <div
-                        className={`w-2 h-2 rounded-full mt-2 ${
-                          task.priority === "high"
-                            ? "bg-red-500"
-                            : task.priority === "medium"
-                              ? "bg-yellow-500"
-                              : "bg-green-500"
-                        }`}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 break-words">
-                          {task.activity_type || task.task}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(task.scheduled_date || task.date).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
 
-      <AddCropModal
-        open={showAddCropModal}
-        onOpenChange={(open) => {
-          setShowAddCropModal(open)
-          if (!open) {
-            fetchUserData()
-          }
-        }}
-        fields={fields}
-      />
+        <AddCropModal
+          open={showAddCropModal}
+          onOpenChange={(open) => {
+            setShowAddCropModal(open)
+            if (!open) {
+              fetchUserData()
+            }
+          }}
+          fields={fields}
+        />
+      </div>
     </div>
   )
 }

@@ -4,7 +4,8 @@ import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Globe, LogOut, Menu, X } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { LogOut, Menu, X } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 import styled from "styled-components"
 
@@ -198,7 +199,6 @@ const StyledWrapper = styled.div`
 export default function Navbar() {
   const pathname = usePathname()
   const { language, setLanguage, t } = useI18n()
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navItems = [
@@ -213,19 +213,6 @@ export default function Navbar() {
     { href: "/knowledge", label: t("nav.knowledge") },
   ]
 
-  const languages = [
-    { code: "en", name: "EN" },
-    { code: "hi", name: "हिं" },
-    { code: "mr", name: "मर" },
-  ]
-
-  const currentLangIndex = languages.findIndex((l) => l.code === language)
-
-  const toggleLanguage = () => {
-    const nextIndex = (currentLangIndex + 1) % languages.length
-    setLanguage(languages[nextIndex].code as "en" | "hi" | "mr")
-  }
-
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })
     window.location.href = "/"
@@ -237,43 +224,42 @@ export default function Navbar() {
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link href="/dashboard" className="flex items-center gap-2 flex-shrink-0">
+            <Link href="/dashboard" className="flex items-center gap-3 flex-shrink-0">
               <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">
                 AS
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent hidden sm:block">
-                AgriSmart
-              </span>
+              <span className="text-xl font-bold text-gray-900 hidden sm:block">AgriSmart</span>
             </Link>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center space-x-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                    pathname === item.href
-                      ? "bg-green-600 text-white shadow-sm"
-                      : "text-gray-700 hover:bg-green-50 hover:text-green-600"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              ))}
+            <div className="hidden md:flex items-center flex-1 mx-6 overflow-x-auto scrollbar-hide">
+              <div className="flex items-center space-x-1 min-w-max">
+                {navItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                      pathname === item.href
+                        ? "bg-green-600 text-white shadow-sm"
+                        : "text-gray-700 hover:bg-green-50 hover:text-green-600"
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleLanguage}
-                className="hidden sm:flex items-center gap-2 bg-transparent"
-              >
-                <Globe className="h-4 w-4" />
-                <span>{languages[currentLangIndex].name}</span>
-              </Button>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <Select value={language} onValueChange={(val) => setLanguage(val as "en" | "hi" | "mr")}>
+                <SelectTrigger className="w-[100px] h-9 bg-white border-gray-300 hidden sm:flex">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="en">English</SelectItem>
+                  <SelectItem value="hi">हिंदी</SelectItem>
+                  <SelectItem value="mr">मराठी</SelectItem>
+                </SelectContent>
+              </Select>
 
               <Button
                 variant="ghost"
@@ -290,7 +276,7 @@ export default function Navbar() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden"
+                className="md:hidden"
               >
                 {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
               </Button>
@@ -300,7 +286,7 @@ export default function Navbar() {
       </nav>
 
       <div
-        className={`fixed inset-0 z-40 lg:hidden transition-opacity duration-300 ${
+        className={`fixed inset-0 z-40 md:hidden transition-opacity duration-300 ${
           isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
         }`}
       >
@@ -320,9 +306,7 @@ export default function Navbar() {
                 <div className="w-10 h-10 bg-gradient-to-br from-green-600 to-green-700 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-md">
                   AS
                 </div>
-                <span className="text-xl font-bold bg-gradient-to-r from-green-600 to-green-700 bg-clip-text text-transparent">
-                  AgriSmart
-                </span>
+                <span className="text-xl font-bold text-gray-900">AgriSmart</span>
               </div>
               <Button variant="ghost" size="sm" onClick={() => setIsMobileMenuOpen(false)}>
                 <X className="h-6 w-6" />
@@ -348,11 +332,20 @@ export default function Navbar() {
             </div>
 
             {/* Menu Footer */}
-            <div className="border-t border-gray-200 p-4 space-y-2">
-              <Button variant="outline" className="w-full justify-start bg-transparent" onClick={toggleLanguage}>
-                <Globe className="h-4 w-4 mr-2" />
-                {t("common.language")}: {languages[currentLangIndex].name}
-              </Button>
+            <div className="border-t border-gray-200 p-4 space-y-3">
+              <div className="px-2">
+                <label className="text-sm font-medium text-gray-700 mb-2 block">{t("common.language")}</label>
+                <Select value={language} onValueChange={(val) => setLanguage(val as "en" | "hi" | "mr")}>
+                  <SelectTrigger className="w-full bg-white border-gray-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">English</SelectItem>
+                    <SelectItem value="hi">हिंदी</SelectItem>
+                    <SelectItem value="mr">मराठी</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 variant="ghost"
                 className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
@@ -365,6 +358,16 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </>
   )
 }
