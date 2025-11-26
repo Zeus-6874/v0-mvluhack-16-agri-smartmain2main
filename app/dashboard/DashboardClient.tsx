@@ -276,7 +276,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               onClick={() => router.push("/settings")}
             >
               <Settings className="mr-2 h-4 w-4" />
-              {t("common.settings")}
+              {t("settings")}
             </Button>
             <Button
               size="sm"
@@ -284,7 +284,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               onClick={() => setShowAddCropModal(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
-              {t("dashboard.addCrop")}
+              {t("addCrop")}
             </Button>
           </div>
         </div>
