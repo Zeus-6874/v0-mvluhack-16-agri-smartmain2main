@@ -2,11 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Navbar from "@/components/Navbar"
 import WeatherWidget from "@/components/WeatherWidget"
-import { Droplets, AlertTriangle, Info, Bell, Thermometer, Loader2, RefreshCw } from "lucide-react"
+import { Droplets, AlertTriangle, Info, Bell, Loader2, RefreshCw } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 
 export default function WeatherAlerts() {
@@ -137,69 +136,10 @@ export default function WeatherAlerts() {
                 <WeatherWidget language={language} />
               </CardContent>
             </Card>
-
-            {/* Weather Alerts - Enhanced cards */}
-            <Card className="border-2 border-gray-200 shadow-md bg-white">
-              <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 border-b-2">
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                  <Bell className="h-5 w-5 text-red-600" />
-                  {language === "hi" ? "मौसम अलर्ट" : "Weather Alerts"}
-                  <Badge variant="secondary">{weatherAlerts.length}</Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {loading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin" />
-                  </div>
-                ) : (
-                  /* Using index for keys instead of IDs */
-                  weatherAlerts.map((alert, index) => (
-                    <div
-                      key={`alert-${index}`}
-                      className={`p-3 sm:p-4 border-2 rounded-lg ${getAlertColor(alert.severity)} shadow-sm hover:shadow-md transition-all`}
-                    >
-                      <div className="flex items-start gap-3">
-                        {getAlertIcon(alert.type)}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-1">
-                            <h3 className="font-medium text-sm sm:text-base">{alert.title}</h3>
-                            <span className="text-xs text-gray-500">{alert.time}</span>
-                          </div>
-                          <p className="text-xs sm:text-sm text-gray-700 break-words">{alert.message}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </CardContent>
-            </Card>
           </div>
 
           {/* Sidebar - Enhanced cards */}
           <div className="space-y-4 sm:space-y-6">
-            <Card className="border-2 border-gray-200 shadow-md bg-white sticky top-6">
-              <CardHeader>
-                <CardTitle className="text-lg">{language === "hi" ? "मौसम आंकड़े" : "Weather Statistics"}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Thermometer className="h-4 w-4 text-red-500" />
-                    <span className="text-sm">{language === "hi" ? "औसत तापमान" : "Avg Temperature"}</span>
-                  </div>
-                  <span className="font-bold">26°C</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Droplets className="h-4 w-4 text-blue-500" />
-                    <span className="text-sm">{language === "hi" ? "कुल बारिश" : "Total Rainfall"}</span>
-                  </div>
-                  <span className="font-bold">85mm</span>
-                </div>
-              </CardContent>
-            </Card>
-
             <Card className="border-2 border-green-200 shadow-md bg-white">
               <CardHeader>
                 <CardTitle className="text-lg">{language === "hi" ? "त्वरित कार्य" : "Quick Actions"}</CardTitle>

@@ -1,12 +1,14 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useI18n } from "@/lib/i18n/context"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function HomePage() {
   const router = useRouter()
+  const { language, setLanguage, t } = useI18n()
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -23,7 +25,7 @@ export default function HomePage() {
 
     try {
       if (!isLogin && formData.password !== formData.confirmPassword) {
-        setError("Passwords do not match")
+        setError(t("auth.passwordMismatch"))
         setLoading(false)
         return
       }
@@ -41,13 +43,12 @@ export default function HomePage() {
       const data = await response.json()
 
       if (!response.ok) {
-        setError(data.error || "Something went wrong")
+        setError(data.error || t("auth.error"))
         setLoading(false)
         return
       }
 
       if (isLogin) {
-        // Check if user has profile
         const profileResponse = await fetch("/api/profile")
         const profileData = await profileResponse.json()
 
@@ -57,11 +58,10 @@ export default function HomePage() {
           router.push("/profile-setup")
         }
       } else {
-        // After signup, always go to profile setup
         router.push("/profile-setup")
       }
     } catch (err) {
-      setError("An error occurred. Please try again.")
+      setError(t("auth.error"))
       setLoading(false)
     }
   }
@@ -74,96 +74,46 @@ export default function HomePage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "linear-gradient(to bottom right, rgb(240, 253, 244), rgb(240, 249, 255))",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "1rem",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: "28rem",
-          padding: "2rem",
-          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
-          borderRadius: "0.5rem",
-          backgroundColor: "white",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            marginBottom: "2rem",
-          }}
-        >
-          <div
-            style={{
-              width: "3rem",
-              height: "3rem",
-              background: "linear-gradient(to right, rgb(22, 163, 74), rgb(37, 99, 235))",
-              borderRadius: "0.5rem",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <span style={{ color: "white", fontWeight: "bold", fontSize: "0.875rem" }}>AS</span>
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-xl">
+        <div className="flex justify-end mb-4">
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="hi">हिंदी</SelectItem>
+              <SelectItem value="mr">मराठी</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex justify-center mb-8">
+          <div className="w-12 h-12 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">AS</span>
           </div>
         </div>
 
-        <h1
-          style={{
-            fontSize: "1.875rem",
-            fontWeight: "bold",
-            textAlign: "center",
-            marginBottom: "0.5rem",
-          }}
-        >
-          AgriSmart
-        </h1>
-        <p
-          style={{
-            textAlign: "center",
-            color: "rgb(75, 85, 99)",
-            marginBottom: "2rem",
-          }}
-        >
-          Empower Your Farming with AI
-        </p>
+        <h1 className="text-3xl font-bold text-center mb-2">{t("auth.title")}</h1>
+        <p className="text-center text-gray-600 mb-8">{t("auth.subtitle")}</p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-              Email
-            </label>
+            <label className="block text-sm font-medium mb-2">{t("auth.email")}</label>
             <input
               type="email"
               name="email"
-              placeholder="your@email.com"
+              placeholder={t("auth.emailPlaceholder")}
               value={formData.email}
               onChange={handleChange}
               required
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                border: "1px solid rgb(203, 213, 225)",
-                borderRadius: "0.375rem",
-                fontFamily: "inherit",
-                fontSize: "1rem",
-                boxSizing: "border-box",
-              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 
           <div>
-            <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-              Password
-            </label>
+            <label className="block text-sm font-medium mb-2">{t("auth.password")}</label>
             <input
               type="password"
               name="password"
@@ -171,23 +121,13 @@ export default function HomePage() {
               value={formData.password}
               onChange={handleChange}
               required
-              style={{
-                width: "100%",
-                padding: "0.75rem",
-                border: "1px solid rgb(203, 213, 225)",
-                borderRadius: "0.375rem",
-                fontFamily: "inherit",
-                fontSize: "1rem",
-                boxSizing: "border-box",
-              }}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 
           {!isLogin && (
             <div>
-              <label style={{ display: "block", fontSize: "0.875rem", fontWeight: "500", marginBottom: "0.5rem" }}>
-                Confirm Password
-              </label>
+              <label className="block text-sm font-medium mb-2">{t("auth.confirmPassword")}</label>
               <input
                 type="password"
                 name="confirmPassword"
@@ -195,56 +135,25 @@ export default function HomePage() {
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 required
-                style={{
-                  width: "100%",
-                  padding: "0.75rem",
-                  border: "1px solid rgb(203, 213, 225)",
-                  borderRadius: "0.375rem",
-                  fontFamily: "inherit",
-                  fontSize: "1rem",
-                  boxSizing: "border-box",
-                }}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           )}
 
-          {error && (
-            <div
-              style={{
-                padding: "0.75rem",
-                backgroundColor: "rgb(254, 242, 242)",
-                color: "rgb(185, 28, 28)",
-                borderRadius: "0.375rem",
-                fontSize: "0.875rem",
-              }}
-            >
-              {error}
-            </div>
-          )}
+          {error && <div className="p-3 bg-red-50 text-red-700 rounded-md text-sm">{error}</div>}
 
           <button
             type="submit"
             disabled={loading}
-            style={{
-              width: "100%",
-              padding: "0.75rem",
-              backgroundColor: loading ? "rgb(134, 239, 172)" : "rgb(22, 163, 74)",
-              color: "white",
-              borderRadius: "0.375rem",
-              border: "none",
-              fontWeight: "500",
-              cursor: loading ? "not-allowed" : "pointer",
-              opacity: loading ? 0.7 : 1,
-              fontFamily: "inherit",
-            }}
+            className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-md font-medium disabled:opacity-70 disabled:cursor-not-allowed transition-colors"
           >
-            {loading ? "Loading..." : isLogin ? "Sign In" : "Sign Up"}
+            {loading ? t("common.loading") : isLogin ? t("auth.signIn") : t("auth.signUp")}
           </button>
         </form>
 
-        <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
-          <p style={{ fontSize: "0.875rem", color: "rgb(75, 85, 99)" }}>
-            {isLogin ? "Don't have an account?" : "Already have an account?"}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-gray-600">
+            {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}
             <button
               type="button"
               onClick={() => {
@@ -252,18 +161,9 @@ export default function HomePage() {
                 setError("")
                 setFormData({ email: "", password: "", confirmPassword: "" })
               }}
-              style={{
-                marginLeft: "0.25rem",
-                color: "rgb(22, 163, 74)",
-                fontWeight: "500",
-                textDecoration: "underline",
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
+              className="ml-1 text-green-600 font-medium underline hover:text-green-700"
             >
-              {isLogin ? "Sign Up" : "Sign In"}
+              {isLogin ? t("auth.signUp") : t("auth.signIn")}
             </button>
           </p>
         </div>

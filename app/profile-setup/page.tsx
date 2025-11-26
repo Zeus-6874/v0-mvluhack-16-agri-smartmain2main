@@ -5,10 +5,11 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useI18n } from "@/lib/i18n/context"
 import { maharashtraData, indianStates } from "@/lib/location-data"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const ProfileSetupPage = () => {
   const router = useRouter()
-  const { language, t } = useI18n()
+  const { language, setLanguage, t } = useI18n()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
@@ -69,6 +70,19 @@ const ProfileSetupPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-3xl bg-white rounded-xl shadow-2xl p-8">
+        <div className="flex justify-end mb-4">
+          <Select value={language} onValueChange={setLanguage}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="en">English</SelectItem>
+              <SelectItem value="hi">हिंदी</SelectItem>
+              <SelectItem value="mr">मराठी</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex justify-center mb-6">
           <div className="w-8 h-8 bg-gradient-to-r from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">AS</span>

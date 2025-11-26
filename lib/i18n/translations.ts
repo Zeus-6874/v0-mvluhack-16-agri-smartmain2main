@@ -464,6 +464,22 @@ export const translations = {
       unauthorized: "Unauthorized",
       sessionExpired: "Session expired",
     },
+
+    // Auth
+    auth: {
+      title: "AgriSmart",
+      subtitle: "Empower Your Farming with AI",
+      email: "Email",
+      emailPlaceholder: "your@email.com",
+      password: "Password",
+      confirmPassword: "Confirm Password",
+      signIn: "Sign In",
+      signUp: "Sign Up",
+      noAccount: "Don't have an account?",
+      hasAccount: "Already have an account?",
+      passwordMismatch: "Passwords do not match",
+      error: "An error occurred. Please try again.",
+    },
   },
 
   hi: {
@@ -911,6 +927,22 @@ export const translations = {
       subsidy: "सब्सिडी",
       loan: "ऋण",
     },
+
+    // Auth
+    auth: {
+      title: "एग्रीस्मार्ट",
+      subtitle: "AI के साथ अपनी खेती को सशक्त बनाएं",
+      email: "ईमेल",
+      emailPlaceholder: "your@email.com",
+      password: "पासवर्ड",
+      confirmPassword: "पासवर्ड की पुष्टि करें",
+      signIn: "साइन इन करें",
+      signUp: "साइन अप करें",
+      noAccount: "खाता नहीं है?",
+      hasAccount: "पहले से खाता है?",
+      passwordMismatch: "पासवर्ड मेल नहीं खाते",
+      error: "एक त्रुटि हुई। कृपया पुनः प्रयास करें।",
+    },
   },
 
   mr: {
@@ -1357,6 +1389,22 @@ export const translations = {
       state: "राज्य सरकार",
       subsidy: "अनुदान",
       loan: "कर्ज",
+    },
+
+    // Auth
+    auth: {
+      title: "एग्रीस्मार्ट",
+      subtitle: "AI सह आपली शेती सशक्त करा",
+      email: "ईमेल",
+      emailPlaceholder: "your@email.com",
+      password: "पासवर्ड",
+      confirmPassword: "पासवर्ड पुष्टी करा",
+      signIn: "साइन इन करा",
+      signUp: "साइन अप करा",
+      noAccount: "खाते नाही?",
+      hasAccount: "आधीच खाते आहे?",
+      passwordMismatch: "पासवर्ड जुळत नाहीत",
+      error: "एक त्रुटी उद्भवली. कृपया पुन्हा प्रयत्न करा.",
     },
   },
 } as const

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -10,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useI18n } from "@/lib/i18n/context"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter } from "next/navigation"
 
 interface AddCropModalProps {
   open: boolean
@@ -19,17 +17,17 @@ interface AddCropModalProps {
 }
 
 export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCropModalProps) {
-  const { language, t } = useI18n()
+  const { t } = useI18n()
   const { toast } = useToast()
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     field_id: "",
     crop_name: "",
     variety: "",
     planting_date: "",
-    expected_harvest: "",
+    expected_harvest_date: "",
     area: "",
+    notes: "",
   })
 
   const cropOptions = [
@@ -58,9 +56,12 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...formData,
-          area: Number.parseFloat(formData.area),
-          status: "planted",
+          field_id: formData.field_id,
+          crop_name: formData.crop_name,
+          variety: formData.variety || null,
+          planting_date: formData.planting_date || null,
+          expected_harvest_date: formData.expected_harvest_date || null,
+          notes: formData.notes || null,
         }),
       })
 
@@ -71,17 +72,19 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
         toast({
           title: t("common.success"),
           description: t("dashboard.cropAdded"),
+          className: "bg-green-50 border-green-200",
         })
         setFormData({
           field_id: "",
           crop_name: "",
           variety: "",
           planting_date: "",
-          expected_harvest: "",
+          expected_harvest_date: "",
           area: "",
+          notes: "",
         })
         onOpenChange(false)
-        window.location.reload()
+        setTimeout(() => window.location.reload(), 500)
       } else {
         throw new Error(data.error)
       }
@@ -89,7 +92,7 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
       console.error("[v0] Crop creation error:", error)
       toast({
         title: t("common.error"),
-        description: t("common.errorOccurred"),
+        description: error instanceof Error ? error.message : t("common.errorOccurred"),
         variant: "destructive",
       })
     } finally {
@@ -110,13 +113,14 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
               <Select
                 value={formData.field_id}
                 onValueChange={(value) => setFormData({ ...formData, field_id: value })}
+                required
               >
                 <SelectTrigger>
                   <SelectValue placeholder={t("fieldManagement.selectField")} />
                 </SelectTrigger>
                 <SelectContent>
-                  {fields.map((field) => (
-                    <SelectItem key={field.id} value={field.id}>
+                  {fields.map((field, index) => (
+                    <SelectItem key={field._id || index} value={field._id?.toString() || ""}>
                       {field.field_name}
                     </SelectItem>
                   ))}
@@ -168,26 +172,23 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="expected_harvest">{t("fieldManagement.expectedHarvest")}</Label>
+              <Label htmlFor="expected_harvest_date">{t("fieldManagement.expectedHarvest")}</Label>
               <Input
-                id="expected_harvest"
+                id="expected_harvest_date"
                 type="date"
-                value={formData.expected_harvest}
-                onChange={(e) => setFormData({ ...formData, expected_harvest: e.target.value })}
+                value={formData.expected_harvest_date}
+                onChange={(e) => setFormData({ ...formData, expected_harvest_date: e.target.value })}
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="area">{t("fieldManagement.area")} (hectares)</Label>
+            <Label htmlFor="notes">{t("fieldManagement.notes")}</Label>
             <Input
-              id="area"
-              type="number"
-              step="0.1"
-              value={formData.area}
-              onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-              placeholder="0.0"
-              required
+              id="notes"
+              value={formData.notes}
+              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              placeholder={t("fieldManagement.additionalNotes")}
             />
           </div>
 
