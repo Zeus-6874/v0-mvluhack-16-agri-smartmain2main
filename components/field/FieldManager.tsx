@@ -176,13 +176,9 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
   }
 
   const handleDelete = async (field: Field) => {
-    if (
-      !confirm(
-        language === "hi"
-          ? `क्या आप "${field.field_name}" फ़ील्ड को हटाना चाहते हैं?`
-          : `Are you sure you want to delete "${field.field_name}"?`,
-      )
-    ) {
+    const confirmMessage = `${t("common.deleteConfirmMessage")} "${field.field_name}"?\n${t("common.deleteConfirmQuestion")}`
+
+    if (!confirm(confirmMessage)) {
       return
     }
 
@@ -195,22 +191,24 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
 
       if (data.success) {
         toast({
-          title: language === "hi" ? "फ़ील्ड हटाया गया" : "Field deleted",
-          description: language === "hi" ? "फ़ील्ड सफलतापूर्वक हटाया गया" : "Field deleted successfully",
+          title: t("common.success"),
+          description: t("fieldManagement.fieldDeleted"),
+          variant: "default",
+          className: "bg-green-50 border-green-200",
         })
-        fetchFields()
+        await fetchFields()
       } else {
         toast({
-          title: language === "hi" ? "त्रुटि" : "Error",
-          description: data.error || "Failed to delete field",
+          title: t("common.error"),
+          description: data.error || t("common.operationFailed"),
           variant: "destructive",
         })
       }
     } catch (error) {
       console.error("Error deleting field:", error)
       toast({
-        title: language === "hi" ? "त्रुटि" : "Error",
-        description: language === "hi" ? "फ़ील्ड हटाने में त्रुटि" : "Failed to delete field",
+        title: t("common.error"),
+        description: t("common.operationFailed"),
         variant: "destructive",
       })
     }
@@ -344,18 +342,14 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       </div>
 
       {fields.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center p-8">
-            <MapPin className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {language === "hi" ? "कोई फ़ील्ड नहीं मिला" : "No fields found"}
-            </h3>
-            <p className="text-gray-600 text-center mb-4">
-              {language === "hi" ? "अपना पहला फ़ील्ड जोड़कर शुरू करें" : "Get started by adding your first field"}
-            </p>
-            <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
-              <Plus className="mr-2 h-4 w-4" />
-              {language === "hi" ? "पहला फ़ील्ड जोड़ें" : "Add First Field"}
+        <Card className="shadow-sm border-2 border-dashed">
+          <CardContent className="flex flex-col items-center justify-center p-12">
+            <MapPin className="h-16 w-16 text-gray-300 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">{t("fieldManagement.noFieldsFound")}</h3>
+            <p className="text-gray-600 text-center mb-6 max-w-sm">{t("fieldManagement.addFirstField")}</p>
+            <Button onClick={openCreateDialog} size="lg" className="bg-green-600 hover:bg-green-700">
+              <Plus className="mr-2 h-5 w-5" />
+              {t("fieldManagement.addField")}
             </Button>
           </CardContent>
         </Card>
@@ -363,63 +357,61 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {fields.map((field, index) => (
             <Card
-              key={index}
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              key={`field-${index}`}
+              className="hover:shadow-lg transition-all duration-200 cursor-pointer border-2 hover:border-green-200"
               onClick={() => onFieldSelect?.(field)}
             >
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 bg-gradient-to-r from-green-50 to-blue-50">
                 <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{field.field_name}</CardTitle>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl font-bold text-gray-900">{field.field_name}</CardTitle>
+                    <p className="text-sm text-gray-500 mt-1">
+                      {t("fieldManagement.field")} #{index + 1}
+                    </p>
+                  </div>
                   <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(field)}>
-                      <Edit className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(field)} className="hover:bg-white">
+                      <Edit className="h-4 w-4 text-blue-600" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(field)}>
-                      <Trash2 className="h-4 w-4" />
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(field)} className="hover:bg-white">
+                      <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center text-sm text-gray-600">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  {field.area_hectares} {language === "hi" ? "हेक्टेयर" : "hectares"}
+              <CardContent className="space-y-4 pt-4">
+                <div className="flex items-center text-base text-gray-700 bg-gray-50 p-3 rounded-lg">
+                  <MapPin className="h-5 w-5 mr-3 text-green-600" />
+                  <span className="font-semibold">
+                    {field.area_hectares} {t("dashboard.hectares")}
+                  </span>
                 </div>
 
                 {field.soil_type && (
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Sprout className="h-4 w-4 mr-2" />
-                    {field.soil_type} {language === "hi" ? "मिट्टी" : "soil"}
+                  <div className="flex items-center text-sm text-gray-600 bg-amber-50 p-2 rounded">
+                    <Sprout className="h-4 w-4 mr-2 text-amber-600" />
+                    {field.soil_type} soil
                   </div>
                 )}
 
                 {field.crop_cycles && field.crop_cycles.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="text-sm font-medium text-gray-700">
-                      {language === "hi" ? "वर्तमान फसलें:" : "Current Crops:"}
-                    </div>
+                  <div className="space-y-2 pt-2 border-t">
+                    <div className="text-sm font-semibold text-gray-700">{t("dashboard.activeCrops")}:</div>
                     <div className="flex flex-wrap gap-2">
-                      {field.crop_cycles.slice(0, 2).map((cycle) => (
+                      {field.crop_cycles.slice(0, 3).map((cycle, idx) => (
                         <Badge
-                          key={cycle.id}
+                          key={`crop-${idx}`}
                           className={cropStatusColors[cycle.status as keyof typeof cropStatusColors]}
                         >
                           {cycle.crop_name}
                         </Badge>
                       ))}
-                      {field.crop_cycles.length > 2 && (
-                        <Badge variant="secondary">
-                          +{field.crop_cycles.length - 2} {language === "hi" ? "और" : "more"}
+                      {field.crop_cycles.length > 3 && (
+                        <Badge variant="secondary" className="bg-gray-200">
+                          +{field.crop_cycles.length - 3} more
                         </Badge>
                       )}
                     </div>
-                  </div>
-                )}
-
-                {field.updated_at && (
-                  <div className="text-xs text-gray-500">
-                    {language === "hi" ? "अंतिम अपडेट:" : "Last updated"}{" "}
-                    {new Date(field.updated_at).toLocaleDateString()}
                   </div>
                 )}
               </CardContent>

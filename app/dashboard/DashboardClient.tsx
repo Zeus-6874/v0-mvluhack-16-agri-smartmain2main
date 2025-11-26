@@ -117,6 +117,12 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   }
 
   const handleDeleteCrop = async (cropId: number) => {
+    const confirmMessage = `${t("common.deleteConfirmMessage")} this crop?\n${t("common.deleteConfirmQuestion")}`
+
+    if (!confirm(confirmMessage)) {
+      return
+    }
+
     try {
       console.log("[v0] Deleting crop:", cropId)
 
@@ -131,8 +137,9 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
         toast({
           title: t("common.success"),
           description: t("dashboard.cropDeleted"),
+          variant: "default",
+          className: "bg-green-50 border-green-200",
         })
-        // Refresh the page to show updated data
         window.location.reload()
       } else {
         throw new Error(data.error)
@@ -309,7 +316,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Active Crops */}
             <Card className="border shadow-sm">
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 bg-gradient-to-r from-green-50 to-blue-50 border-b">
                 <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
                   <div className="flex items-center">
                     <Sprout className="mr-2 h-5 w-5 text-green-600" />
@@ -318,27 +325,32 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                   <Button
                     onClick={() => setShowAddCropModal(true)}
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                    className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm shadow-sm"
                   >
                     <Plus className="h-4 w-4 mr-1" />
                     {t("dashboard.addCrop")}
                   </Button>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-6">
                 {activeCrops.length === 0 ? (
                   <div className="text-center py-12">
                     <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500 mb-4 text-sm sm:text-base">{t("dashboard.noActiveCrops")}</p>
-                    <Button onClick={() => setShowAddCropModal(true)} className="bg-green-600 hover:bg-green-700">
-                      <Plus className="h-4 w-4 mr-2" />
-                      {t("dashboard.addFirstCrop")}
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">{t("dashboard.noActiveCrops")}</h3>
+                    <p className="text-gray-500 mb-6 text-sm sm:text-base">{t("dashboard.addFirstCrop")}</p>
+                    <Button
+                      onClick={() => setShowAddCropModal(true)}
+                      size="lg"
+                      className="bg-green-600 hover:bg-green-700 shadow-md"
+                    >
+                      <Plus className="h-5 w-5 mr-2" />
+                      {t("dashboard.addCrop")}
                     </Button>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {activeCrops.map((crop) => (
-                      <CropCard key={crop.id} crop={crop} language={language} onDelete={handleDeleteCrop} />
+                    {activeCrops.map((crop, index) => (
+                      <CropCard key={`crop-${index}`} crop={crop} language={language} onDelete={handleDeleteCrop} />
                     ))}
                   </div>
                 )}

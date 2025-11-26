@@ -54,6 +54,14 @@ export const translations = {
       hindi: "Hindi",
       marathi: "Marathi",
       errorOccurred: "An error occurred",
+      deleteConfirmTitle: "Confirm Deletion",
+      deleteConfirmMessage: "Are you sure you want to delete",
+      deleteConfirmQuestion: "This action cannot be undone.",
+      fieldDeletedSuccess: "Field deleted successfully",
+      cropDeletedSuccess: "Crop deleted successfully",
+      resourceDeletedSuccess: "Resource deleted successfully",
+      operationSuccess: "Operation completed successfully",
+      operationFailed: "Operation failed",
     },
 
     // Auth
@@ -195,6 +203,13 @@ export const translations = {
       fieldCalendar: "Field Calendar",
       resourceTracker: "Resource Tracker",
       cropCycles: "Crop Cycles",
+      fieldCreated: "Field created successfully",
+      fieldUpdated: "Field updated successfully",
+      fieldDeleted: "Field deleted successfully",
+      confirmDeleteField: "Are you sure you want to delete this field?",
+      deletingField: "Deleting field...",
+      noFieldsFound: "No fields found",
+      addFirstField: "Add your first field to get started",
     },
 
     // Soil Health
@@ -454,6 +469,14 @@ export const translations = {
       hindi: "हिंदी",
       marathi: "मराठी",
       errorOccurred: "एक त्रुटि हुई",
+      deleteConfirmTitle: "हटाने की पुष्टि करें",
+      deleteConfirmMessage: "क्या आप वाकई हटाना चाहते हैं",
+      deleteConfirmQuestion: "यह क्रिया पूर्ववत नहीं की जा सकती।",
+      fieldDeletedSuccess: "फ़ील्ड सफलतापूर्वक हटाया गया",
+      cropDeletedSuccess: "फसल सफलतापूर्वक हटाई गई",
+      resourceDeletedSuccess: "संसाधन सफलतापूर्वक हटाया गया",
+      operationSuccess: "ऑपरेशन सफलतापूर्वक पूर्ण हुआ",
+      operationFailed: "ऑपरेशन विफल रहा",
     },
 
     // Auth
@@ -595,6 +618,13 @@ export const translations = {
       fieldCalendar: "खेत कैलेंडर",
       resourceTracker: "संसाधन ट्रैकर",
       cropCycles: "फसल चक्र",
+      fieldCreated: "फ़ील्ड सफलतापूर्वक बनाया गया",
+      fieldUpdated: "फ़ील्ड सफलतापूर्वक अपडेट किया गया",
+      fieldDeleted: "फ़ील्ड सफलतापूर्वक हटाया गया",
+      confirmDeleteField: "क्या आप वाकई इस फ़ील्ड को हटाना चाहते हैं?",
+      deletingField: "फ़ील्ड हटाया जा रहा है...",
+      noFieldsFound: "कोई फ़ील्ड नहीं मिला",
+      addFirstField: "शुरू करने के लिए अपना पहला फ़ील्ड जोड़ें",
     },
 
     // Soil Health
@@ -833,6 +863,14 @@ export const translations = {
       hindi: "हिंदी",
       marathi: "मराठी",
       errorOccurred: "एक त्रुटी आली",
+      deleteConfirmTitle: "हटवण्याची पुष्टी करा",
+      deleteConfirmMessage: "तुम्हाला खरोखर हटवायचे आहे का",
+      deleteConfirmQuestion: "ही क्रिया पूर्ववत केली जाऊ शकत नाही.",
+      fieldDeletedSuccess: "शेत यशस्वीरित्या हटवले",
+      cropDeletedSuccess: "पीक यशस्वीरित्या हटवले",
+      resourceDeletedSuccess: "संसाधन यशस्वीरित्या हटवले",
+      operationSuccess: "ऑपरेशन यशस्वीरित्या पूर्ण झाले",
+      operationFailed: "ऑपरेशन अयशस्वी",
     },
 
     // Auth
@@ -974,6 +1012,13 @@ export const translations = {
       fieldCalendar: "शेत कॅलेंडर",
       resourceTracker: "संसाधन ट्रॅकर",
       cropCycles: "पीक चक्र",
+      fieldCreated: "शेत यशस्वीरित्या तयार केले",
+      fieldUpdated: "शेत यशस्वीरित्या अपडेट केले",
+      fieldDeleted: "शेत यशस्वीरित्या हटवले",
+      confirmDeleteField: "तुम्हाला खरोखर हे शेत हटवायचे आहे का?",
+      deletingField: "शेत हटवले जात आहे...",
+      noFieldsFound: "कोणतेही शेत आढळले नाही",
+      addFirstField: "सुरुवात करण्यासाठी तुमचे पहिले शेत जोडा",
     },
 
     // Soil Health
