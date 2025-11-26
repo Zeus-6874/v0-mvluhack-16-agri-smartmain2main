@@ -272,7 +272,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
             <Button
               variant="outline"
               size="sm"
-              className="bg-white text-gray-700 hover:bg-gray-50 border-gray-200"
+              className="bg-white text-black-700 hover:bg-white-50 border-gray-200"
               onClick={() => router.push("/settings")}
             >
               <Settings className="mr-2 h-4 w-4" />
