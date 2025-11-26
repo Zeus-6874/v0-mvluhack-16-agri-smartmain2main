@@ -254,15 +254,6 @@ export default function WeatherWidget({ language }: WeatherWidgetProps) {
             ))}
           </div>
         </div>
-
-        <div className="mt-4 p-3 bg-yellow-50 rounded-lg">
-          <p className="text-sm text-yellow-800">
-            <strong>{language === "hi" ? "चेतावनी:" : "Alert:"}</strong>{" "}
-            {language === "hi"
-              ? "कल हल्की बारिश की संभावना है। सिंचाई की योजना बनाएं।"
-              : "Light rain expected tomorrow. Plan irrigation accordingly."}
-          </p>
-        </div>
       </CardContent>
     </Card>
   )
