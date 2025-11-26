@@ -194,7 +194,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
           title: t("common.success"),
           description: t("fieldManagement.fieldDeleted"),
           variant: "default",
-          className: "bg-green-50 border-green-200",
+          className: "bg-green-50 border-green-200 text-green-900",
         })
         await fetchFields()
       } else {
@@ -342,12 +342,12 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
       </div>
 
       {fields.length === 0 ? (
-        <Card className="shadow-sm border-2 border-dashed">
+        <Card className="shadow-sm border-2 border-dashed border-gray-300 bg-gray-50">
           <CardContent className="flex flex-col items-center justify-center p-12">
             <MapPin className="h-16 w-16 text-gray-300 mb-4" />
             <h3 className="text-xl font-semibold text-gray-900 mb-2">{t("fieldManagement.noFieldsFound")}</h3>
             <p className="text-gray-600 text-center mb-6 max-w-sm">{t("fieldManagement.addFirstField")}</p>
-            <Button onClick={openCreateDialog} size="lg" className="bg-green-600 hover:bg-green-700">
+            <Button onClick={openCreateDialog} size="lg" className="bg-green-600 hover:bg-green-700 shadow-md">
               <Plus className="mr-2 h-5 w-5" />
               {t("fieldManagement.addField")}
             </Button>
@@ -358,10 +358,10 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
           {fields.map((field, index) => (
             <Card
               key={`field-${index}`}
-              className="hover:shadow-lg transition-all duration-200 cursor-pointer border-2 hover:border-green-200"
+              className="hover:shadow-xl transition-all duration-300 cursor-pointer border-2 border-gray-200 hover:border-green-300 bg-white"
               onClick={() => onFieldSelect?.(field)}
             >
-              <CardHeader className="pb-3 bg-gradient-to-r from-green-50 to-blue-50">
+              <CardHeader className="pb-3 bg-gradient-to-r from-green-50 to-blue-50 border-b">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <CardTitle className="text-xl font-bold text-gray-900">{field.field_name}</CardTitle>
@@ -370,17 +370,27 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
                     </p>
                   </div>
                   <div className="flex space-x-1" onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(field)} className="hover:bg-white">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(field)}
+                      className="hover:bg-white/80 transition-colors"
+                    >
                       <Edit className="h-4 w-4 text-blue-600" />
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(field)} className="hover:bg-white">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(field)}
+                      className="hover:bg-white/80 transition-colors"
+                    >
                       <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4 pt-4">
-                <div className="flex items-center text-base text-gray-700 bg-gray-50 p-3 rounded-lg">
+                <div className="flex items-center text-base text-gray-700 bg-gradient-to-r from-gray-50 to-green-50 p-3 rounded-lg border border-gray-200">
                   <MapPin className="h-5 w-5 mr-3 text-green-600" />
                   <span className="font-semibold">
                     {field.area_hectares} {t("dashboard.hectares")}
@@ -388,14 +398,14 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
                 </div>
 
                 {field.soil_type && (
-                  <div className="flex items-center text-sm text-gray-600 bg-amber-50 p-2 rounded">
+                  <div className="flex items-center text-sm text-gray-600 bg-amber-50 p-2 rounded border border-amber-100">
                     <Sprout className="h-4 w-4 mr-2 text-amber-600" />
                     {field.soil_type} soil
                   </div>
                 )}
 
                 {field.crop_cycles && field.crop_cycles.length > 0 && (
-                  <div className="space-y-2 pt-2 border-t">
+                  <div className="space-y-2 pt-2 border-t border-gray-200">
                     <div className="text-sm font-semibold text-gray-700">{t("dashboard.activeCrops")}:</div>
                     <div className="flex flex-wrap gap-2">
                       {field.crop_cycles.slice(0, 3).map((cycle, idx) => (

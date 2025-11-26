@@ -84,17 +84,17 @@ export default function Encyclopedia() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="mb-8">
+        <div className="mb-8 bg-white p-6 rounded-xl shadow-sm border-2 border-gray-200">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{t("encyclopedia.title")}</h1>
           <p className="text-sm sm:text-base text-gray-600">{t("encyclopedia.subtitle")}</p>
         </div>
 
         {/* Search Bar */}
-        <Card className="mb-6">
+        <Card className="mb-6 border-2 border-gray-200 shadow-md">
           <CardContent className="pt-6">
             <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1 relative">
@@ -117,8 +117,8 @@ export default function Encyclopedia() {
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Crops List */}
           <div className="lg:col-span-1">
-            <Card>
-              <CardHeader>
+            <Card className="border-2 border-gray-200 shadow-md bg-white sticky top-6">
+              <CardHeader className="bg-gradient-to-r from-green-50 to-blue-50 border-b-2">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <BookOpen className="h-5 w-5 text-green-600" />
                   {t("encyclopedia.allCrops")}
@@ -131,17 +131,17 @@ export default function Encyclopedia() {
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : filteredCrops.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500">
+                  <div className="p-8 text-center text-gray-500 bg-gray-50">
                     <p>{t("encyclopedia.noCropsFound")}</p>
                   </div>
                 ) : (
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-96 overflow-y-auto custom-scrollbar">
                     {filteredCrops.map((crop, index) => (
-                      <div key={crop.id}>
+                      <div key={`crop-list-${index}`}>
                         <button
                           onClick={() => setSelectedCrop(crop)}
-                          className={`w-full text-left p-4 hover:bg-gray-50 transition-colors ${
-                            selectedCrop?.id === crop.id ? "bg-green-50 border-r-2 border-green-500" : ""
+                          className={`w-full text-left p-4 hover:bg-green-50 transition-colors border-l-4 ${
+                            selectedCrop?.id === crop.id ? "bg-green-50 border-l-green-500" : "border-l-transparent"
                           }`}
                         >
                           <div className="flex items-center gap-3">
@@ -181,7 +181,7 @@ export default function Encyclopedia() {
             {selectedCrop ? (
               <div className="space-y-6">
                 {/* Header */}
-                <Card>
+                <Card className="border-2 border-gray-200 shadow-md bg-white">
                   <CardHeader>
                     <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
                       <div className="flex items-center gap-4">
@@ -212,7 +212,7 @@ export default function Encyclopedia() {
 
                 {/* Growing Information */}
                 <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-                  <Card>
+                  <Card className="border-2 border-blue-200 shadow-md bg-white hover:shadow-xl transition-shadow">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                         <Calendar className="h-5 w-5 text-blue-600" />
@@ -231,7 +231,7 @@ export default function Encyclopedia() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="border-2 border-blue-200 shadow-md bg-white hover:shadow-xl transition-shadow">
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                         <Droplets className="h-5 w-5 text-blue-600" />
@@ -252,7 +252,7 @@ export default function Encyclopedia() {
                 </div>
 
                 {/* Fertilizer Needs */}
-                <Card>
+                <Card className="border-2 border-green-200 shadow-md bg-white">
                   <CardHeader>
                     <CardTitle className="text-base sm:text-lg">{t("encyclopedia.fertilizerRequirements")}</CardTitle>
                   </CardHeader>
@@ -263,7 +263,7 @@ export default function Encyclopedia() {
 
                 {/* Diseases and Prevention */}
                 <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-                  <Card>
+                  <Card className="border-2 border-red-200 shadow-md bg-white">
                     <CardHeader>
                       <CardTitle className="text-red-700 text-base sm:text-lg">
                         {t("encyclopedia.commonDiseases")}
@@ -284,7 +284,7 @@ export default function Encyclopedia() {
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="border-2 border-green-200 shadow-md bg-white">
                     <CardHeader>
                       <CardTitle className="text-green-700 text-base sm:text-lg">
                         {t("encyclopedia.preventionTips")}
@@ -308,7 +308,7 @@ export default function Encyclopedia() {
                 </div>
               </div>
             ) : (
-              <Card>
+              <Card className="border-2 border-dashed border-gray-300 shadow-md bg-gray-50">
                 <CardContent className="flex items-center justify-center h-64 sm:h-96">
                   <div className="text-center px-4">
                     <BookOpen className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-4" />

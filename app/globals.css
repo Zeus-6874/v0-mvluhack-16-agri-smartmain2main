@@ -8,24 +8,45 @@
     text-wrap: balance;
   }
 
-  /* Custom scrollbar */
+  /* Enhanced custom scrollbar with better colors */
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
+    background: #f1f5f9;
     border-radius: 10px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #16a34a;
+    background: linear-gradient(180deg, #16a34a 0%, #15803d 100%);
     border-radius: 10px;
+    border: 2px solid #f1f5f9;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #15803d;
+    background: linear-gradient(180deg, #15803d 0%, #166534 100%);
+  }
+
+  /* Added smooth transitions for all interactive elements */
+  .transition-all-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Enhanced card hover effects */
+  .card-hover {
+    @apply hover:shadow-2xl hover:scale-[1.02] transition-all duration-300;
+  }
+
+  /* Success toast styling */
+  .toast-success {
+    @apply bg-green-50 border-2 border-green-200 text-green-900;
+  }
+
+  /* Error toast styling */
+  .toast-error {
+    @apply bg-red-50 border-2 border-red-200 text-red-900;
   }
 }
 
@@ -78,18 +99,34 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
-  /* Improved card and button styles */
+  /* Enhanced card styling with better shadows and borders */
   .card {
-    @apply bg-card text-card-foreground rounded-lg border shadow-sm;
+    @apply bg-card text-card-foreground rounded-xl border-2 shadow-md transition-all duration-300;
+  }
+
+  .card:hover {
+    @apply shadow-xl;
   }
 
   button:disabled {
     @apply opacity-50 cursor-not-allowed;
   }
 
+  /* Better focus states with green accent */
   input:focus,
   select:focus,
   textarea:focus {
-    @apply outline-none ring-2 ring-primary;
+    @apply outline-none ring-2 ring-green-500 border-green-500;
+  }
+
+  /* Smooth animations for all elements */
+  * {
+    @apply transition-colors duration-200;
+  }
+
+  /* Enhanced button hover states */
+  button:not(:disabled):hover {
+    @apply scale-105;
+    transition: transform 0.2s ease-in-out;
   }
 }

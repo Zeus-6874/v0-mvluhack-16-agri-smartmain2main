@@ -138,14 +138,14 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           title: t("common.success"),
           description: t("dashboard.cropDeleted"),
           variant: "default",
-          className: "bg-green-50 border-green-200",
+          className: "bg-green-50 border-green-200 text-green-900",
         })
-        window.location.reload()
+        await fetchUserData()
       } else {
         throw new Error(data.error)
       }
     } catch (error) {
-      console.error("[v0] Delete error:", error)
+      console.error("Delete error:", error)
       toast({
         title: t("common.error"),
         description: t("common.errorOccurred"),
@@ -246,10 +246,10 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   const weatherAlerts = generateWeatherAlerts()
 
   return (
-    <div className="min-h-screen">
-      <div className="space-y-6 p-4 sm:p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50/30">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t("dashboard.title")}</h1>
             <p className="text-gray-600 mt-1 flex items-center gap-2 flex-wrap">
@@ -292,7 +292,10 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
         {/* Stats Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat, index) => (
-            <Card key={index} className="border shadow-sm hover:shadow-md transition-shadow">
+            <Card
+              key={index}
+              className="border-2 border-gray-200 shadow-md hover:shadow-xl hover:border-green-300 transition-all duration-300 bg-white"
+            >
               <CardContent className="p-4 sm:p-5">
                 <div className="flex items-center justify-between">
                   <div className="flex-1 min-w-0">
@@ -315,8 +318,8 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           {/* Left Column - Crops */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
             {/* Active Crops */}
-            <Card className="border shadow-sm">
-              <CardHeader className="pb-3 bg-gradient-to-r from-green-50 to-blue-50 border-b">
+            <Card className="border-2 border-gray-200 shadow-md bg-white">
+              <CardHeader className="pb-3 bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 border-b-2 border-gray-200">
                 <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
                   <div className="flex items-center">
                     <Sprout className="mr-2 h-5 w-5 text-green-600" />
@@ -334,7 +337,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               </CardHeader>
               <CardContent className="p-6">
                 {activeCrops.length === 0 ? (
-                  <div className="text-center py-12">
+                  <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-green-50 rounded-xl border-2 border-dashed border-gray-300">
                     <Sprout className="h-16 w-16 text-gray-300 mx-auto mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">{t("dashboard.noActiveCrops")}</h3>
                     <p className="text-gray-500 mb-6 text-sm sm:text-base">{t("dashboard.addFirstCrop")}</p>
@@ -361,7 +364,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
           {/* Right Column - Weather & Tasks */}
           <div className="space-y-4 sm:space-y-6">
             {/* Weather Widget */}
-            <Card className="border shadow-sm">
+            <Card className="border-2 border-gray-200 shadow-md bg-white">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Cloud className="w-5 h-5" />
@@ -450,7 +453,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
             </Card>
 
             {/* Upcoming Tasks */}
-            <Card className="border shadow-sm">
+            <Card className="border-2 border-gray-200 shadow-md bg-white">
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center text-lg sm:text-xl">
                   <Calendar className="mr-2 h-5 w-5 text-blue-600" />
@@ -459,16 +462,16 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               </CardHeader>
               <CardContent>
                 {upcomingTasks.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
                     <Calendar className="h-12 w-12 text-gray-300 mx-auto mb-3" />
                     <p className="text-gray-500 text-sm">{t("dashboard.noTasksScheduled")}</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {upcomingTasks.map((task) => (
+                    {upcomingTasks.map((task, index) => (
                       <div
-                        key={task.id}
-                        className="flex items-start space-x-3 p-3 rounded-lg border hover:border-green-300 transition-colors"
+                        key={`task-${index}`}
+                        className="flex items-start space-x-3 p-3 rounded-lg border-2 border-gray-200 hover:border-green-300 hover:shadow-md transition-all bg-white"
                       >
                         <div
                           className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${

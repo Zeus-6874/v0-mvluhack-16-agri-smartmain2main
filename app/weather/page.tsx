@@ -104,11 +104,11 @@ export default function WeatherAlerts() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border-2 border-gray-200">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
               {language === "hi" ? "मौसम अलर्ट और सिंचाई गाइड" : "Weather Alerts & Irrigation Guide"}
@@ -128,12 +128,19 @@ export default function WeatherAlerts() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Current Weather */}
-            <WeatherWidget language={language} />
-
-            {/* Weather Alerts */}
-            <Card>
+            {/* Current Weather - Enhanced card */}
+            <Card className="border-2 border-blue-200 shadow-md bg-white">
               <CardHeader>
+                <CardTitle className="text-lg">{language === "hi" ? "वर्तमान मौसम" : "Current Weather"}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <WeatherWidget language={language} />
+              </CardContent>
+            </Card>
+
+            {/* Weather Alerts - Enhanced cards */}
+            <Card className="border-2 border-gray-200 shadow-md bg-white">
+              <CardHeader className="bg-gradient-to-r from-red-50 to-orange-50 border-b-2">
                 <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                   <Bell className="h-5 w-5 text-red-600" />
                   {language === "hi" ? "मौसम अलर्ट" : "Weather Alerts"}
@@ -146,8 +153,12 @@ export default function WeatherAlerts() {
                     <Loader2 className="h-6 w-6 animate-spin" />
                   </div>
                 ) : (
+                  /* Using index for keys instead of IDs */
                   weatherAlerts.map((alert, index) => (
-                    <div key={index} className={`p-3 sm:p-4 border rounded-lg ${getAlertColor(alert.severity)}`}>
+                    <div
+                      key={`alert-${index}`}
+                      className={`p-3 sm:p-4 border-2 rounded-lg ${getAlertColor(alert.severity)} shadow-sm hover:shadow-md transition-all`}
+                    >
                       <div className="flex items-start gap-3">
                         {getAlertIcon(alert.type)}
                         <div className="flex-1 min-w-0">
@@ -165,10 +176,9 @@ export default function WeatherAlerts() {
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {/* Sidebar - Enhanced cards */}
           <div className="space-y-4 sm:space-y-6">
-            {/* Weather Statistics */}
-            <Card>
+            <Card className="border-2 border-gray-200 shadow-md bg-white sticky top-6">
               <CardHeader>
                 <CardTitle className="text-lg">{language === "hi" ? "मौसम आंकड़े" : "Weather Statistics"}</CardTitle>
               </CardHeader>
@@ -190,8 +200,7 @@ export default function WeatherAlerts() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card>
+            <Card className="border-2 border-green-200 shadow-md bg-white">
               <CardHeader>
                 <CardTitle className="text-lg">{language === "hi" ? "त्वरित कार्य" : "Quick Actions"}</CardTitle>
               </CardHeader>

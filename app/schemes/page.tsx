@@ -135,11 +135,11 @@ export default function SchemesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50/30">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="mb-8">
+        <div className="mb-8 bg-white p-6 rounded-xl shadow-sm border-2 border-gray-200">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             {language === "hi" ? "सरकारी योजनाएं" : "Government Schemes"}
           </h1>
@@ -150,42 +150,37 @@ export default function SchemesPage() {
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Enhanced styling */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{filteredSchemes.length}</div>
-              <div className="text-sm text-gray-600">{language === "hi" ? "कुल योजनाएं" : "Total Schemes"}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-green-600">
-                {filteredSchemes.filter((s) => s.state === "All India").length}
-              </div>
-              <div className="text-sm text-gray-600">{language === "hi" ? "राष्ट्रीय योजनाएं" : "National Schemes"}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-purple-600">
-                {new Set(filteredSchemes.map((s) => s.category)).size}
-              </div>
-              <div className="text-sm text-gray-600">{language === "hi" ? "श्रेणियां" : "Categories"}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-orange-600">
-                {Math.round(filteredSchemes.reduce((sum, s) => sum + (s.beneficiaries_count || 0), 0) / 1000000)}M
-              </div>
-              <div className="text-sm text-gray-600">{language === "hi" ? "लाभार्थी" : "Beneficiaries"}</div>
-            </CardContent>
-          </Card>
+          {[
+            { value: filteredSchemes.length, label: language === "hi" ? "कुल योजनाएं" : "Total Schemes", color: "blue" },
+            {
+              value: filteredSchemes.filter((s) => s.state === "All India").length,
+              label: language === "hi" ? "राष्ट्रीय योजनाएं" : "National Schemes",
+              color: "green",
+            },
+            {
+              value: new Set(filteredSchemes.map((s) => s.category)).size,
+              label: language === "hi" ? "श्रेणियां" : "Categories",
+              color: "purple",
+            },
+            {
+              value: `${Math.round(filteredSchemes.reduce((sum, s) => sum + (s.beneficiaries_count || 0), 0) / 1000000)}M`,
+              label: language === "hi" ? "लाभार्थी" : "Beneficiaries",
+              color: "orange",
+            },
+          ].map((stat, idx) => (
+            <Card key={idx} className="border-2 border-gray-200 shadow-md hover:shadow-xl transition-all bg-white">
+              <CardContent className="p-4 text-center">
+                <div className={`text-2xl font-bold text-${stat.color}-600`}>{stat.value}</div>
+                <div className="text-sm text-gray-600 mt-1">{stat.label}</div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
 
-        {/* Search and Filters */}
-        <Card className="mb-6">
+        {/* Search and Filters - Enhanced styling */}
+        <Card className="mb-6 border-2 border-gray-200 shadow-md bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
@@ -231,15 +226,18 @@ export default function SchemesPage() {
           </CardContent>
         </Card>
 
-        {/* Schemes Grid */}
+        {/* Schemes Grid - Enhanced cards */}
         {loading ? (
           <div className="text-center py-12">
             <div className="text-lg">{language === "hi" ? "लोड हो रहा है..." : "Loading..."}</div>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSchemes.map((scheme) => (
-              <Card key={scheme.id} className="hover:shadow-lg transition-shadow">
+            {filteredSchemes.map((scheme, index) => (
+              <Card
+                key={`scheme-${index}`}
+                className="hover:shadow-2xl transition-all duration-300 border-2 border-gray-200 hover:border-green-300 bg-white"
+              >
                 <CardHeader>
                   <div className="flex justify-between items-start mb-2">
                     <CardTitle className="text-lg leading-tight">{scheme.scheme_name}</CardTitle>
@@ -368,8 +366,9 @@ export default function SchemesPage() {
           </div>
         )}
 
+        {/* Empty state - Enhanced styling */}
         {filteredSchemes.length === 0 && !loading && (
-          <div className="text-center py-12">
+          <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300 shadow-sm">
             <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               {language === "hi" ? "कोई योजना नहीं मिली" : "No schemes found"}
