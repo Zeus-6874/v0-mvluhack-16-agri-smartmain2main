@@ -42,7 +42,7 @@ interface Scheme {
 }
 
 export default function SchemesPage() {
-  const { language } = useI18n()
+  const { language, t } = useI18n()
   const [schemes, setSchemes] = useState<Scheme[]>([])
   const [filteredSchemes, setFilteredSchemes] = useState<Scheme[]>([])
   const [loading, setLoading] = useState(true)
@@ -103,23 +103,23 @@ export default function SchemesPage() {
   }
 
   const states = [
-    { value: "all", label: language === "hi" ? "सभी राज्य" : "All States" },
-    { value: "All India", label: language === "hi" ? "अखिल भारतीय" : "All India" },
-    { value: "Maharashtra", label: language === "hi" ? "महाराष्ट्र" : "Maharashtra" },
-    { value: "Punjab", label: language === "hi" ? "पंजाब" : "Punjab" },
-    { value: "Uttar Pradesh", label: language === "hi" ? "उत्तर प्रदेश" : "Uttar Pradesh" },
-    { value: "Gujarat", label: language === "hi" ? "गुजरात" : "Gujarat" },
-    { value: "Rajasthan", label: language === "hi" ? "राजस्थान" : "Rajasthan" },
+    { value: "all", label: t("schemes.allStates") },
+    { value: "All India", label: t("schemes.allIndia") },
+    { value: "Maharashtra", label: t("schemes.maharashtra") },
+    { value: "Punjab", label: t("schemes.punjab") },
+    { value: "Uttar Pradesh", label: t("schemes.uttarPradesh") },
+    { value: "Gujarat", label: t("schemes.gujarat") },
+    { value: "Rajasthan", label: t("schemes.rajasthan") },
   ]
 
   const categories = [
-    { value: "all", label: language === "hi" ? "सभी श्रेणियां" : "All Categories" },
-    { value: "Income Support", label: language === "hi" ? "आय सहायता" : "Income Support" },
-    { value: "Insurance", label: language === "hi" ? "बीमा" : "Insurance" },
-    { value: "Credit", label: language === "hi" ? "ऋण" : "Credit" },
-    { value: "Soil Health", label: language === "hi" ? "मिट्टी स्वास्थ्य" : "Soil Health" },
-    { value: "Pension", label: language === "hi" ? "पेंशन" : "Pension" },
-    { value: "Marketing", label: language === "hi" ? "विपणन" : "Marketing" },
+    { value: "all", label: t("schemes.allCategories") },
+    { value: "Income Support", label: t("schemes.incomeSupport") },
+    { value: "Insurance", label: t("schemes.insurance") },
+    { value: "Credit", label: t("schemes.credit") },
+    { value: "Soil Health", label: t("schemes.soilHealthCategory") },
+    { value: "Pension", label: t("schemes.pension") },
+    { value: "Marketing", label: t("schemes.marketing") },
   ]
 
   const getCategoryColor = (category: string) => {
@@ -140,33 +140,26 @@ export default function SchemesPage() {
 
       <main className="max-w-7xl mx-auto px-4 py-6">
         <div className="mb-8 bg-white p-6 rounded-xl shadow-sm border-2 border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {language === "hi" ? "सरकारी योजनाएं" : "Government Schemes"}
-          </h1>
-          <p className="text-gray-600">
-            {language === "hi"
-              ? "किसानों के लिए सरकारी योजनाओं और सब्सिडी की जानकारी प्राप्त करें"
-              : "Explore government schemes and subsidies available for farmers"}
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("schemes.title")}</h1>
+          <p className="text-gray-600">{t("schemes.subtitle")}</p>
         </div>
 
-        {/* Stats Cards - Enhanced styling */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {[
-            { value: filteredSchemes.length, label: language === "hi" ? "कुल योजनाएं" : "Total Schemes", color: "blue" },
+            { value: filteredSchemes.length, label: t("schemes.totalSchemes"), color: "blue" },
             {
               value: filteredSchemes.filter((s) => s.state === "All India").length,
-              label: language === "hi" ? "राष्ट्रीय योजनाएं" : "National Schemes",
+              label: t("schemes.nationalSchemes"),
               color: "green",
             },
             {
               value: new Set(filteredSchemes.map((s) => s.category)).size,
-              label: language === "hi" ? "श्रेणियां" : "Categories",
+              label: t("schemes.categories"),
               color: "purple",
             },
             {
               value: `${Math.round(filteredSchemes.reduce((sum, s) => sum + (s.beneficiaries_count || 0), 0) / 1000000)}M`,
-              label: language === "hi" ? "लाभार्थी" : "Beneficiaries",
+              label: t("schemes.beneficiaries"),
               color: "orange",
             },
           ].map((stat, idx) => (
@@ -179,12 +172,11 @@ export default function SchemesPage() {
           ))}
         </div>
 
-        {/* Search and Filters - Enhanced styling */}
         <Card className="mb-6 border-2 border-gray-200 shadow-md bg-white">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              {language === "hi" ? "खोज और फ़िल्टर" : "Search & Filter"}
+              {t("schemes.searchFilter")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -192,7 +184,7 @@ export default function SchemesPage() {
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder={language === "hi" ? "योजना खोजें..." : "Search schemes..."}
+                  placeholder={t("schemes.searchPlaceholder")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -226,10 +218,9 @@ export default function SchemesPage() {
           </CardContent>
         </Card>
 
-        {/* Schemes Grid - Enhanced cards */}
         {loading ? (
           <div className="text-center py-12">
-            <div className="text-lg">{language === "hi" ? "लोड हो रहा है..." : "Loading..."}</div>
+            <div className="text-lg">{t("common.loading")}</div>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -255,8 +246,7 @@ export default function SchemesPage() {
                     <div className="flex items-center gap-2 mb-2 text-sm">
                       <Users className="h-4 w-4 text-blue-500" />
                       <span>
-                        {(scheme.beneficiaries_count / 1000000).toFixed(1)}M{" "}
-                        {language === "hi" ? "लाभार्थी" : "beneficiaries"}
+                        {(scheme.beneficiaries_count / 1000000).toFixed(1)}M {t("schemes.beneficiariesLabel")}
                       </span>
                     </div>
                   )}
@@ -278,7 +268,7 @@ export default function SchemesPage() {
                           onClick={() => setSelectedScheme(scheme)}
                         >
                           <Info className="h-4 w-4 mr-2" />
-                          {language === "hi" ? "विवरण" : "Details"}
+                          {t("schemes.details")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -295,7 +285,7 @@ export default function SchemesPage() {
                             <div>
                               <h4 className="font-semibold mb-2 flex items-center gap-2">
                                 <FileText className="h-4 w-4" />
-                                {language === "hi" ? "विवरण" : "Description"}
+                                {t("schemes.description")}
                               </h4>
                               <p className="text-gray-600">{selectedScheme.description}</p>
                             </div>
@@ -303,7 +293,7 @@ export default function SchemesPage() {
                             <div>
                               <h4 className="font-semibold mb-2 flex items-center gap-2">
                                 <CheckCircle className="h-4 w-4" />
-                                {language === "hi" ? "पात्रता" : "Eligibility"}
+                                {t("schemes.eligibility")}
                               </h4>
                               <p className="text-gray-600">{selectedScheme.eligibility}</p>
                             </div>
@@ -311,7 +301,7 @@ export default function SchemesPage() {
                             <div>
                               <h4 className="font-semibold mb-2 flex items-center gap-2">
                                 <IndianRupee className="h-4 w-4" />
-                                {language === "hi" ? "लाभ" : "Benefits"}
+                                {t("schemes.benefits")}
                               </h4>
                               <p className="text-gray-600">{selectedScheme.benefits}</p>
                             </div>
@@ -319,7 +309,7 @@ export default function SchemesPage() {
                             <div>
                               <h4 className="font-semibold mb-2 flex items-center gap-2">
                                 <AlertCircle className="h-4 w-4" />
-                                {language === "hi" ? "आवेदन प्रक्रिया" : "Application Process"}
+                                {t("schemes.applicationProcess")}
                               </h4>
                               <p className="text-gray-600">{selectedScheme.application_process}</p>
                             </div>
@@ -327,7 +317,7 @@ export default function SchemesPage() {
                             <div>
                               <h4 className="font-semibold mb-2 flex items-center gap-2">
                                 <Phone className="h-4 w-4" />
-                                {language === "hi" ? "संपर्क जानकारी" : "Contact Information"}
+                                {t("schemes.contactInfo")}
                               </h4>
                               <p className="text-gray-600">{selectedScheme.contact_info}</p>
                             </div>
@@ -342,7 +332,7 @@ export default function SchemesPage() {
                                     className="flex items-center gap-2"
                                   >
                                     <ExternalLink className="h-4 w-4" />
-                                    {language === "hi" ? "आधिकारिक वेबसाइट पर जाएं" : "Visit Official Website"}
+                                    {t("schemes.visitWebsite")}
                                   </a>
                                 </Button>
                               </div>
@@ -366,16 +356,11 @@ export default function SchemesPage() {
           </div>
         )}
 
-        {/* Empty state - Enhanced styling */}
         {filteredSchemes.length === 0 && !loading && (
           <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300 shadow-sm">
             <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {language === "hi" ? "कोई योजना नहीं मिली" : "No schemes found"}
-            </h3>
-            <p className="text-gray-600">
-              {language === "hi" ? "अपने खोज मापदंड को समायोजित करने का प्रयास करें" : "Try adjusting your search criteria"}
-            </p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{t("schemes.noSchemesFound")}</h3>
+            <p className="text-gray-600">{t("schemes.adjustSearch")}</p>
           </div>
         )}
       </main>

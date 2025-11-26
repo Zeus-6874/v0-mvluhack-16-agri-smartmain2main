@@ -211,6 +211,7 @@ export default function Navbar() {
     { href: "/market-prices", label: t("nav.marketPrices") },
     { href: "/schemes", label: t("nav.schemes") },
     { href: "/knowledge", label: t("nav.knowledge") },
+    { href: "/settings", label: t("nav.settings") },
   ]
 
   const handleLogout = async () => {
