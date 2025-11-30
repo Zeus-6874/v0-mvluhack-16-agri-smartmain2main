@@ -11,7 +11,7 @@ import { Separator } from "@/components/ui/separator"
 import Navbar from "@/components/Navbar"
 import { Search, BookOpen, Sprout, Calendar, Droplets, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 interface CropInfo {
   id: string
@@ -29,7 +29,9 @@ interface CropInfo {
 }
 
 export default function Encyclopedia() {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [searchTerm, setSearchTerm] = useState("")
   const [crops, setCrops] = useState<CropInfo[]>([])
   const [filteredCrops, setFilteredCrops] = useState<CropInfo[]>([])

@@ -1,13 +1,24 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from "recharts"
-import { TrendingUp, TrendingDown, Calendar, Activity, Droplets, Flame } from "lucide-react"
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts"
+import { TrendingUp, TrendingDown, Activity } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 interface SoilAnalysis {
   id: string
@@ -27,21 +38,23 @@ interface SoilHealthHistoryProps {
 }
 
 export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }: SoilHealthHistoryProps) {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const { toast } = useToast()
   const [selectedPeriod, setSelectedPeriod] = useState("1year")
 
   const getChartData = () => {
     return analyses
       .sort((a, b) => new Date(a.analysis_date).getTime() - new Date(b.analysis_date).getTime())
-      .map(analysis => ({
+      .map((analysis) => ({
         date: new Date(analysis.analysis_date).toLocaleDateString(),
         nitrogen: analysis.nitrogen_level,
         phosphorus: analysis.phosphorus_level,
         potassium: analysis.potassium_level,
         ph: analysis.ph_level,
         organic: analysis.organic_matter || 0,
-        healthScore: calculateHealthScore(analysis)
+        healthScore: calculateHealthScore(analysis),
       }))
   }
 
@@ -75,8 +88,8 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
   const getLatestTrend = (nutrient: keyof SoilAnalysis) => {
     if (analyses.length < 2) return { trend: "neutral", change: 0 }
 
-    const sorted = [...analyses].sort((a, b) =>
-      new Date(b.analysis_date).getTime() - new Date(a.analysis_date).getTime()
+    const sorted = [...analyses].sort(
+      (a, b) => new Date(b.analysis_date).getTime() - new Date(a.analysis_date).getTime(),
     )
 
     const current = sorted[0][nutrient] as number
@@ -92,7 +105,7 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
       nitrogen: { min: 150, max: 400, optimal: 250 },
       phosphorus: { min: 15, max: 50, optimal: 30 },
       potassium: { min: 120, max: 300, optimal: 200 },
-      ph: { min: 6.0, max: 8.0, optimal: 7.0 }
+      ph: { min: 6.0, max: 8.0, optimal: 7.0 },
     }
 
     const range = ranges[type as keyof typeof ranges]
@@ -105,42 +118,60 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
 
   const getNutrientColor = (status: string) => {
     switch (status) {
-      case "deficient": return "text-red-600"
-      case "excessive": return "text-orange-600"
-      case "optimal": return "text-green-600"
-      default: return "text-gray-600"
+      case "deficient":
+        return "text-red-600"
+      case "excessive":
+        return "text-orange-600"
+      case "optimal":
+        return "text-green-600"
+      default:
+        return "text-gray-600"
     }
   }
 
   const getNutrientIcon = (status: string) => {
     switch (status) {
-      case "deficient": return <TrendingDown className="h-4 w-4" />
-      case "excessive": return <TrendingUp className="h-4 w-4" />
-      case "optimal": return <Activity className="h-4 w-4" />
-      default: return <Activity className="h-4 w-4" />
+      case "deficient":
+        return <TrendingDown className="h-4 w-4" />
+      case "excessive":
+        return <TrendingUp className="h-4 w-4" />
+      case "optimal":
+        return <Activity className="h-4 w-4" />
+      default:
+        return <Activity className="h-4 w-4" />
     }
   }
 
   const exportData = async () => {
     try {
       const csvContent = [
-        ["Date", "Nitrogen (kg/ha)", "Phosphorus (kg/ha)", "Potassium (kg/ha)", "pH", "Organic Matter (%)", "Health Score"],
-        ...analyses.map(analysis => [
+        [
+          "Date",
+          "Nitrogen (kg/ha)",
+          "Phosphorus (kg/ha)",
+          "Potassium (kg/ha)",
+          "pH",
+          "Organic Matter (%)",
+          "Health Score",
+        ],
+        ...analyses.map((analysis) => [
           analysis.analysis_date,
           analysis.nitrogen_level,
           analysis.phosphorus_level,
           analysis.potassium_level,
           analysis.ph_level,
           analysis.organic_matter || 0,
-          calculateHealthScore(analysis)
-        ])
-      ].map(row => row.join(",")).join("\n")
+          calculateHealthScore(analysis),
+        ]),
+      ]
+        .map((row) => row.join(","))
+        .join("\n")
 
       const blob = new Blob([csvContent], { type: "text/csv" })
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `soil-health-history-${new Date().toISOString().split('T')[0]}.csv`
+      a.download = `soil-health-history-${new Date().toISOString().split("T")[0]}.csv`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -148,13 +179,14 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
 
       toast({
         title: language === "hi" ? "डेटा निर्यात" : "Export Complete",
-        description: language === "hi" ? "मिट्टी स्वास्थ्य इतिहास निर्यात किया गया" : "Soil health history exported successfully"
+        description:
+          language === "hi" ? "मिट्टी स्वास्थ्य इतिहास निर्यात किया गया" : "Soil health history exported successfully",
       })
     } catch (error) {
       toast({
         title: language === "hi" ? "त्रुटि" : "Error",
         description: language === "hi" ? "निर्यात में त्रुटि" : "Failed to export data",
-        variant: "destructive"
+        variant: "destructive",
       })
     }
   }
@@ -163,17 +195,9 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
     return (
       <div className="text-center py-12">
         <Activity className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          {language === "hi" ? "कोई इतिहास नहीं" : "No History Available"}
-        </h3>
-        <p className="text-gray-600 mb-6">
-          {language === "hi"
-            ? "अपने मिट्टी स्वास्थ्य इतिहास देखने के लिए पहले मिट्टी विश्लेषण करें"
-            : "Start analyzing your soil to see health trends and improvements over time"}
-        </p>
-        <Button onClick={() => window.location.href = "/soil-health"}>
-          {language === "hi" ? "मिट्टी विश्लेषण करें" : "Analyze Soil"}
-        </Button>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">{t("soil-health-history.no-history")}</h3>
+        <p className="text-gray-600 mb-6">{t("soil-health-history.start-analysis")}</p>
+        <Button onClick={() => (window.location.href = "/soil-health")}>{t("soil-health-history.analyze-soil")}</Button>
       </div>
     )
   }
@@ -187,12 +211,10 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">
-          {language === "hi" ? "मिट्टी स्वास्थ्य इतिहास" : "Soil Health History"}
-        </h3>
+        <h3 className="text-xl font-semibold text-gray-900">{t("soil-health-history.title")}</h3>
         <div className="flex space-x-3">
           <Button variant="outline" onClick={exportData}>
-            {language === "hi" ? "निर्यात करें" : "Export Data"}
+            {t("soil-health-history.export-data")}
           </Button>
         </div>
       </div>
@@ -203,10 +225,10 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "नाइट्रोजन (N)" : "Nitrogen (N)"}
-                </span>
-                <div className={`flex items-center gap-1 ${getNutrientColor(getNutrientStatus(latestAnalysis.nitrogen_level, "nitrogen"))}`}>
+                <span className="text-sm font-medium text-gray-600">{t("soil-health-history.nitrogen")}</span>
+                <div
+                  className={`flex items-center gap-1 ${getNutrientColor(getNutrientStatus(latestAnalysis.nitrogen_level, "nitrogen"))}`}
+                >
                   {getNutrientIcon(getNutrientStatus(latestAnalysis.nitrogen_level, "nitrogen"))}
                   <span className="text-xs">
                     {nitrogenTrend.trend === "improving" ? "+" : nitrogenTrend.trend === "declining" ? "-" : ""}
@@ -222,10 +244,10 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "फॉस्फोरस (P)" : "Phosphorus (P)"}
-                </span>
-                <div className={`flex items-center gap-1 ${getNutrientColor(getNutrientStatus(latestAnalysis.phosphorus_level, "phosphorus"))}`}>
+                <span className="text-sm font-medium text-gray-600">{t("soil-health-history.phosphorus")}</span>
+                <div
+                  className={`flex items-center gap-1 ${getNutrientColor(getNutrientStatus(latestAnalysis.phosphorus_level, "phosphorus"))}`}
+                >
                   {getNutrientIcon(getNutrientStatus(latestAnalysis.phosphorus_level, "phosphorus"))}
                   <span className="text-xs">
                     {phosphorusTrend.trend === "improving" ? "+" : phosphorusTrend.trend === "declining" ? "-" : ""}
@@ -241,10 +263,10 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "पोटैशियम (K)" : "Potassium (K)"}
-                </span>
-                <div className={`flex items-center gap-1 ${getNutrientColor(getNutrientStatus(latestAnalysis.potassium_level, "potassium"))}`}>
+                <span className="text-sm font-medium text-gray-600">{t("soil-health-history.potassium")}</span>
+                <div
+                  className={`flex items-center gap-1 ${getNutrientColor(getNutrientStatus(latestAnalysis.potassium_level, "potassium"))}`}
+                >
                   {getNutrientIcon(getNutrientStatus(latestAnalysis.potassium_level, "potassium"))}
                   <span className="text-xs">
                     {potassiumTrend.trend === "improving" ? "+" : potassiumTrend.trend === "declining" ? "-" : ""}
@@ -261,7 +283,9 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-600">pH</span>
-                <div className={`flex items-center gap-1 ${getNutrientColor(getNutrientStatus(latestAnalysis.ph_level, "ph"))}`}>
+                <div
+                  className={`flex items-center gap-1 ${getNutrientColor(getNutrientStatus(latestAnalysis.ph_level, "ph"))}`}
+                >
                   {getNutrientIcon(getNutrientStatus(latestAnalysis.ph_level, "ph"))}
                   <span className="text-xs">
                     {phTrend.trend === "improving" ? "+" : phTrend.trend === "declining" ? "-" : ""}
@@ -279,9 +303,7 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
       {/* Health Score Trend */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            {language === "hi" ? "मिट्टी स्वास्थ्य रुझान" : "Soil Health Score Trend"}
-          </CardTitle>
+          <CardTitle>{t("soil-health-history.health-score-trend")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
@@ -308,9 +330,7 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
       {/* NPK Trends */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            {language === "hi" ? "पोषक तत्व रुझान" : "Nutrient Trends"}
-          </CardTitle>
+          <CardTitle>{t("soil-health-history.nutrient-trends")}</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={400}>
@@ -320,27 +340,9 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
               <YAxis />
               <Tooltip />
               <Legend />
-              <Line
-                type="monotone"
-                dataKey="nitrogen"
-                stroke="#3b82f6"
-                strokeWidth={2}
-                name="Nitrogen (kg/ha)"
-              />
-              <Line
-                type="monotone"
-                dataKey="phosphorus"
-                stroke="#f59e0b"
-                strokeWidth={2}
-                name="Phosphorus (kg/ha)"
-              />
-              <Line
-                type="monotone"
-                dataKey="potassium"
-                stroke="#ef4444"
-                strokeWidth={2}
-                name="Potassium (kg/ha)"
-              />
+              <Line type="monotone" dataKey="nitrogen" stroke="#3b82f6" strokeWidth={2} name="Nitrogen (kg/ha)" />
+              <Line type="monotone" dataKey="phosphorus" stroke="#f59e0b" strokeWidth={2} name="Phosphorus (kg/ha)" />
+              <Line type="monotone" dataKey="potassium" stroke="#ef4444" strokeWidth={2} name="Potassium (kg/ha)" />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
@@ -350,9 +352,7 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>
-              {language === "hi" ? "pH स्तर रुझान" : "pH Level Trend"}
-            </CardTitle>
+            <CardTitle>{t("soil-health-history.ph-level-trend")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -361,13 +361,7 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
                 <XAxis dataKey="date" />
                 <YAxis domain={[0, 14]} />
                 <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="ph"
-                  stroke="#8b5cf6"
-                  strokeWidth={2}
-                  name="pH Level"
-                />
+                <Line type="monotone" dataKey="ph" stroke="#8b5cf6" strokeWidth={2} name="pH Level" />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -375,9 +369,7 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
 
         <Card>
           <CardHeader>
-            <CardTitle>
-              {language === "hi" ? "कार्बनिक पदार्थ" : "Organic Matter"}
-            </CardTitle>
+            <CardTitle>{t("soil-health-history.organic-matter")}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -404,9 +396,7 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
       {/* Analysis History Table */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            {language === "hi" ? "विश्लेषण इतिहास" : "Analysis History"}
-          </CardTitle>
+          <CardTitle>{t("soil-health-history.analysis-history")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -415,18 +405,20 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h4 className="font-medium">
-                      {language === "hi" ? "विश्लेषण #" : "Analysis #"} {analyses.length - index}
+                      {t("soil-health-history.analysis-number")} {analyses.length - index}
                     </h4>
-                    <p className="text-sm text-gray-600">
-                      {new Date(analysis.analysis_date).toLocaleDateString()}
-                    </p>
+                    <p className="text-sm text-gray-600">{new Date(analysis.analysis_date).toLocaleDateString()}</p>
                   </div>
-                  <Badge className={
-                    calculateHealthScore(analysis) >= 85 ? "bg-green-100 text-green-800" :
-                    calculateHealthScore(analysis) >= 70 ? "bg-yellow-100 text-yellow-800" :
-                    "bg-red-100 text-red-800"
-                  }>
-                    Score: {calculateHealthScore(analysis)}/100
+                  <Badge
+                    className={
+                      calculateHealthScore(analysis) >= 85
+                        ? "bg-green-100 text-green-800"
+                        : calculateHealthScore(analysis) >= 70
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800"
+                    }
+                  >
+                    {t("soil-health-history.score")}: {calculateHealthScore(analysis)}/100
                   </Badge>
                 </div>
 
@@ -448,9 +440,7 @@ export default function SoilHealthHistory({ farmerId, analyses, latestAnalysis }
                     <p className="font-semibold">{analysis.ph_level.toFixed(1)}</p>
                   </div>
                   <div>
-                    <span className="text-gray-600">
-                      {language === "hi" ? "कार्बनिक" : "Organic"}:
-                    </span>
+                    <span className="text-gray-600">{t("soil-health-history.organic")}</span>
                     <p className="font-semibold">{analysis.organic_matter || 0}%</p>
                   </div>
                 </div>

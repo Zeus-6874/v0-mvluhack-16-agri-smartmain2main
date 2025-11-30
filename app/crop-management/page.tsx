@@ -8,10 +8,12 @@ import Navbar from "@/components/Navbar"
 import CropCard from "@/components/CropCard"
 import { CROP_SEASONS } from "@/lib/constants"
 import { Sprout, Plus, Calendar, TrendingUp, Loader2 } from "lucide-react"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 export default function CropManagement() {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [selectedSeason, setSelectedSeason] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [loading, setLoading] = useState(true)

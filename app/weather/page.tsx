@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button"
 import Navbar from "@/components/Navbar"
 import WeatherWidget from "@/components/WeatherWidget"
 import { Droplets, AlertTriangle, Info, Bell, Loader2, RefreshCw } from "lucide-react"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 export default function WeatherAlerts() {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [weatherAlerts, setWeatherAlerts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -109,18 +111,12 @@ export default function WeatherAlerts() {
       <main className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
         <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-xl shadow-sm border-2 border-gray-200">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-              {language === "hi" ? "मौसम अलर्ट और सिंचाई गाइड" : "Weather Alerts & Irrigation Guide"}
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              {language === "hi"
-                ? "मौसम की जानकारी और सिंचाई के सुझाव प्राप्त करें"
-                : "Get weather information and irrigation recommendations"}
-            </p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">{t("weather-alerts-title")}</h1>
+            <p className="text-sm sm:text-base text-gray-600">{t("weather-alerts-description")}</p>
           </div>
           <Button onClick={handleRefresh} disabled={refreshing} variant="outline" size="sm">
             {refreshing ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-2" />}
-            {language === "hi" ? "रिफ्रेश" : "Refresh"}
+            {t("refresh")}
           </Button>
         </div>
 
@@ -130,7 +126,7 @@ export default function WeatherAlerts() {
             {/* Current Weather - Enhanced card */}
             <Card className="border-2 border-blue-200 shadow-md bg-white">
               <CardHeader>
-                <CardTitle className="text-lg">{language === "hi" ? "वर्तमान मौसम" : "Current Weather"}</CardTitle>
+                <CardTitle className="text-lg">{t("current-weather")}</CardTitle>
               </CardHeader>
               <CardContent>
                 <WeatherWidget language={language} />
@@ -142,16 +138,16 @@ export default function WeatherAlerts() {
           <div className="space-y-4 sm:space-y-6">
             <Card className="border-2 border-green-200 shadow-md bg-white">
               <CardHeader>
-                <CardTitle className="text-lg">{language === "hi" ? "त्वरित कार्य" : "Quick Actions"}</CardTitle>
+                <CardTitle className="text-lg">{t("quick-actions")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button
                   variant="outline"
                   className="w-full justify-start bg-transparent text-sm sm:text-base"
-                  onClick={() => alert(language === "hi" ? "अलर्ट सुविधा जल्द आ रही है" : "Alert feature coming soon")}
+                  onClick={() => alert(t("alert-feature-soon"))}
                 >
                   <Bell className="h-4 w-4 mr-2" />
-                  {language === "hi" ? "अलर्ट सेट करें" : "Set Alerts"}
+                  {t("set-alerts")}
                 </Button>
                 <Button
                   variant="outline"
@@ -159,7 +155,7 @@ export default function WeatherAlerts() {
                   onClick={() => (window.location.href = "/field-management")}
                 >
                   <Droplets className="h-4 w-4 mr-2" />
-                  {language === "hi" ? "सिंचाई प्लान करें" : "Plan Irrigation"}
+                  {t("plan-irrigation")}
                 </Button>
               </CardContent>
             </Card>

@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Suspense } from "react"
-import { I18nProvider } from "@/lib/i18n/context"
+import { TolgeeProvider } from "@/lib/tolgee"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -25,9 +25,9 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <Suspense fallback={null}>
-          <I18nProvider>
+          <TolgeeProvider>
             <TooltipProvider>{children}</TooltipProvider>
-          </I18nProvider>
+          </TolgeeProvider>
         </Suspense>
       </body>
     </html>

@@ -11,7 +11,7 @@ import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import Navbar from "@/components/Navbar"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 import {
   Sprout,
@@ -49,7 +49,9 @@ interface RecommendationResult {
 }
 
 export default function CropRecommendation() {
-  const { language } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [result, setResult] = useState<RecommendationResult | null>(null)
   const [formData, setFormData] = useState({

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 import { User, Bell, Globe, Save, Loader2, Check } from "lucide-react"
 import { maharashtraData, indianStates } from "@/lib/location-data"
 
@@ -27,7 +27,9 @@ interface Profile {
 
 export default function SettingsPage() {
   const router = useRouter()
-  const { language, setLanguage, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -231,7 +233,7 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Select value={language} onValueChange={(value) => setLanguage(value as "en" | "hi" | "mr")}>
+              <Select value={language} onValueChange={(val) => tolgee.changeLanguage(val)}>
                 <SelectTrigger className="w-full md:w-64">
                   <SelectValue />
                 </SelectTrigger>

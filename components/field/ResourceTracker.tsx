@@ -1,7 +1,9 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,9 +12,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Package, Plus, AlertTriangle, TrendingDown, TrendingUp, Sprout } from "lucide-react"
+import { Package, Plus, AlertTriangle, TrendingDown, TrendingUp } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 interface Resource {
   id: string
@@ -40,11 +42,15 @@ interface ResourceUsage {
 }
 
 interface ResourceTrackerProps {
+  fieldId: string
+  cropCycleId: string
   farmerId: string
 }
 
-export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
-  const { language, t } = useI18n()
+export default function ResourceTracker({ fieldId, cropCycleId, farmerId }: ResourceTrackerProps) {
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const { toast } = useToast()
   const [resources, setResources] = useState<Resource[]>([])
   const [usage, setUsage] = useState<ResourceUsage[]>([])
@@ -58,7 +64,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
     fertilizers: { label: language === "hi" ? "उर्वरक" : "Fertilizers", icon: "🧪", color: "blue" },
     pesticides: { label: language === "hi" ? "कीटनाशक" : "Pesticides", icon: "⚠️", color: "red" },
     tools: { label: language === "hi" ? "उपकरण" : "Tools", icon: "🔧", color: "gray" },
-    other: { label: language === "hi" ? "अन्य" : "Other", icon: "📦", color: "purple" }
+    other: { label: language === "hi" ? "अन्य" : "Other", icon: "📦", color: "purple" },
   }
 
   const units = ["kg", "liters", "bags", "bottles", "packs", "units", "tons"]
@@ -72,7 +78,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
     max_quantity: "",
     cost_per_unit: "",
     supplier: "",
-    notes: ""
+    notes: "",
   })
 
   const [usageForm, setUsageForm] = useState({
@@ -80,7 +86,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
     quantity_used: "",
     purpose: "",
     field_id: "",
-    crop_cycle_id: ""
+    crop_cycle_id: "",
   })
 
   useEffect(() => {
@@ -101,7 +107,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
         max_quantity: 200,
         cost_per_unit: 30,
         supplier: "AgriSeeds Co.",
-        last_restocked: "2024-01-15"
+        last_restocked: "2024-01-15",
       },
       {
         id: "2",
@@ -112,7 +118,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
         min_quantity: 10,
         max_quantity: 50,
         cost_per_unit: 300,
-        supplier: "FertiPlus"
+        supplier: "FertiPlus",
       },
       {
         id: "3",
@@ -122,8 +128,8 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
         unit: "liters",
         min_quantity: 5,
         max_quantity: 25,
-        cost_per_unit: 150
-      }
+        cost_per_unit: 150,
+      },
     ]
     setResources(mockResources)
   }
@@ -139,8 +145,8 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
         crop_cycle_id: "cycle-1",
         usage_date: "2024-01-20",
         purpose: "Wheat planting",
-        cost: 300
-      }
+        cost: 300,
+      },
     ]
     setUsage(mockUsage)
     setIsLoading(false)
@@ -165,7 +171,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
       toast({
         title: language === "hi" ? "वैलिडेशन त्रुटि" : "Validation Error",
         description: language === "hi" ? "नाम, मात्रा और इकाई आवश्यक है" : "Name, quantity, and unit are required",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -174,14 +180,14 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
       id: Date.now().toString(),
       name: resourceForm.name,
       category: resourceForm.category,
-      current_quantity: parseFloat(resourceForm.current_quantity),
+      current_quantity: Number.parseFloat(resourceForm.current_quantity),
       unit: resourceForm.unit,
-      min_quantity: parseFloat(resourceForm.min_quantity) || 0,
-      max_quantity: parseFloat(resourceForm.max_quantity) || 100,
-      cost_per_unit: parseFloat(resourceForm.cost_per_unit) || 0,
+      min_quantity: Number.parseFloat(resourceForm.min_quantity) || 0,
+      max_quantity: Number.parseFloat(resourceForm.max_quantity) || 100,
+      cost_per_unit: Number.parseFloat(resourceForm.cost_per_unit) || 0,
       supplier: resourceForm.supplier || undefined,
       notes: resourceForm.notes || undefined,
-      last_restocked: new Date().toISOString().split('T')[0]
+      last_restocked: new Date().toISOString().split("T")[0],
     }
 
     setResources([...resources, newResource])
@@ -190,7 +196,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
 
     toast({
       title: language === "hi" ? "संसाधन जोड़ा गया" : "Resource Added",
-      description: language === "hi" ? "संसाधन सफलतापूर्वक जोड़ा गया" : "Resource added successfully"
+      description: language === "hi" ? "संसाधन सफलतापूर्वक जोड़ा गया" : "Resource added successfully",
     })
   }
 
@@ -200,21 +206,22 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
     if (!usageForm.resource_id || !usageForm.quantity_used || !usageForm.purpose) {
       toast({
         title: language === "hi" ? "वैलिडेशन त्रुटि" : "Validation Error",
-        description: language === "hi" ? "संसाधन, मात्रा और उद्देश्य आवश्यक है" : "Resource, quantity, and purpose are required",
-        variant: "destructive"
+        description:
+          language === "hi" ? "संसाधन, मात्रा और उद्देश्य आवश्यक है" : "Resource, quantity, and purpose are required",
+        variant: "destructive",
       })
       return
     }
 
-    const resource = resources.find(r => r.id === usageForm.resource_id)
+    const resource = resources.find((r) => r.id === usageForm.resource_id)
     if (!resource) return
 
-    const quantityUsed = parseFloat(usageForm.quantity_used)
+    const quantityUsed = Number.parseFloat(usageForm.quantity_used)
     if (quantityUsed > resource.current_quantity) {
       toast({
         title: language === "hi" ? "अपर्याप्त स्टॉक" : "Insufficient Stock",
         description: language === "hi" ? "पर्याप्त संसाधन उपलब्ध नहीं है" : "Not enough resources available",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
@@ -225,16 +232,14 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
       quantity_used: quantityUsed,
       field_id: usageForm.field_id || undefined,
       crop_cycle_id: usageForm.crop_cycle_id || undefined,
-      usage_date: new Date().toISOString().split('T')[0],
+      usage_date: new Date().toISOString().split("T")[0],
       purpose: usageForm.purpose,
-      cost: quantityUsed * resource.cost_per_unit
+      cost: quantityUsed * resource.cost_per_unit,
     }
 
     // Update resource quantity
-    const updatedResources = resources.map(r =>
-      r.id === usageForm.resource_id
-        ? { ...r, current_quantity: r.current_quantity - quantityUsed }
-        : r
+    const updatedResources = resources.map((r) =>
+      r.id === usageForm.resource_id ? { ...r, current_quantity: r.current_quantity - quantityUsed } : r,
     )
 
     setResources(updatedResources)
@@ -244,7 +249,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
 
     toast({
       title: language === "hi" ? "उपयोग दर्ज किया गया" : "Usage Recorded",
-      description: language === "hi" ? "संसाधन उपयोग सफलतापूर्वक दर्ज किया गया" : "Resource usage recorded successfully"
+      description: language === "hi" ? "संसाधन उपयोग सफलतापूर्वक दर्ज किया गया" : "Resource usage recorded successfully",
     })
   }
 
@@ -258,7 +263,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
       max_quantity: "",
       cost_per_unit: "",
       supplier: "",
-      notes: ""
+      notes: "",
     })
   }
 
@@ -268,20 +273,19 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
       quantity_used: "",
       purpose: "",
       field_id: "",
-      crop_cycle_id: ""
+      crop_cycle_id: "",
     })
   }
 
-  const filteredResources = selectedCategory === "all"
-    ? resources
-    : resources.filter(r => r.category === selectedCategory)
+  const filteredResources =
+    selectedCategory === "all" ? resources : resources.filter((r) => r.category === selectedCategory)
 
   const getTotalValue = () => {
-    return resources.reduce((sum, resource) => sum + (resource.current_quantity * resource.cost_per_unit), 0)
+    return resources.reduce((sum, resource) => sum + resource.current_quantity * resource.cost_per_unit, 0)
   }
 
   const getCriticalResources = () => {
-    return resources.filter(r => r.current_quantity <= r.min_quantity)
+    return resources.filter((r) => r.current_quantity <= r.min_quantity)
   }
 
   if (isLoading) {
@@ -295,9 +299,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {language === "hi" ? "संसाधन ट्रैकर" : "Resource Tracker"}
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900">{language === "hi" ? "संसाधन ट्रैकर" : "Resource Tracker"}</h2>
         <div className="flex space-x-3">
           <Dialog open={isUsageDialogOpen} onOpenChange={setIsUsageDialogOpen}>
             <DialogTrigger asChild>
@@ -308,9 +310,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>
-                  {language === "hi" ? "संसाधन उपयोग दर्ज करें" : "Record Resource Usage"}
-                </DialogTitle>
+                <DialogTitle>{language === "hi" ? "संसाधन उपयोग दर्ज करें" : "Record Resource Usage"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleUsageSubmit} className="space-y-4">
                 <div>
@@ -375,9 +375,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>
-                  {language === "hi" ? "नया संसाधन जोड़ें" : "Add New Resource"}
-                </DialogTitle>
+                <DialogTitle>{language === "hi" ? "नया संसाधन जोड़ें" : "Add New Resource"}</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleAddResource} className="space-y-4">
                 <div>
@@ -394,7 +392,9 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
                   <Label>{language === "hi" ? "श्रेणी" : "Category"}</Label>
                   <Select
                     value={resourceForm.category}
-                    onValueChange={(value: keyof typeof categories) => setResourceForm({ ...resourceForm, category: value })}
+                    onValueChange={(value: keyof typeof categories) =>
+                      setResourceForm({ ...resourceForm, category: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -431,7 +431,9 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {units.map((unit) => (
-                          <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                          <SelectItem key={unit} value={unit}>
+                            {unit}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -504,9 +506,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "कुल मूल्य" : "Total Value"}
-                </p>
+                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "कुल मूल्य" : "Total Value"}</p>
                 <p className="text-2xl font-bold">₹{getTotalValue().toLocaleString()}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-600" />
@@ -518,9 +518,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "कम स्टॉक" : "Low Stock"}
-                </p>
+                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "कम स्टॉक" : "Low Stock"}</p>
                 <p className="text-2xl font-bold text-red-600">{getCriticalResources().length}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-red-600" />
@@ -536,7 +534,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
                   {language === "hi" ? "आज का उपयोग" : "Today's Usage"}
                 </p>
                 <p className="text-2xl font-bold">
-                  {usage.filter(u => u.usage_date === new Date().toISOString().split('T')[0]).length}
+                  {usage.filter((u) => u.usage_date === new Date().toISOString().split("T")[0]).length}
                 </p>
               </div>
               <TrendingDown className="h-8 w-8 text-orange-600" />
@@ -548,12 +546,8 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
       {/* Main Content */}
       <Tabs defaultValue="resources" className="w-full">
         <TabsList>
-          <TabsTrigger value="resources">
-            {language === "hi" ? "संसाधन" : "Resources"}
-          </TabsTrigger>
-          <TabsTrigger value="usage">
-            {language === "hi" ? "उपयोग इतिहास" : "Usage History"}
-          </TabsTrigger>
+          <TabsTrigger value="resources">{language === "hi" ? "संसाधन" : "Resources"}</TabsTrigger>
+          <TabsTrigger value="usage">{language === "hi" ? "उपयोग इतिहास" : "Usage History"}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="resources" className="space-y-4">
@@ -590,20 +584,18 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h3 className="font-semibold">{resource.name}</h3>
-                        <p className="text-sm text-gray-600">
-                          {categories[resource.category].label}
-                        </p>
+                        <p className="text-sm text-gray-600">{categories[resource.category].label}</p>
                       </div>
-                      <Badge className={`bg-${status.color}-100 text-${status.color}-800`}>
-                        {status.text}
-                      </Badge>
+                      <Badge className={`bg-${status.color}-100 text-${status.color}-800`}>{status.text}</Badge>
                     </div>
 
                     <div className="space-y-3">
                       <div>
                         <div className="flex justify-between text-sm mb-1">
                           <span>{language === "hi" ? "स्टॉक" : "Stock"}</span>
-                          <span>{resource.current_quantity} / {resource.max_quantity} {resource.unit}</span>
+                          <span>
+                            {resource.current_quantity} / {resource.max_quantity} {resource.unit}
+                          </span>
                         </div>
                         <Progress value={percentage} className="h-2" />
                       </div>
@@ -638,7 +630,7 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
         <TabsContent value="usage" className="space-y-4">
           <div className="space-y-3">
             {usage.map((usage) => {
-              const resource = resources.find(r => r.id === usage.resource_id)
+              const resource = resources.find((r) => r.id === usage.resource_id)
               if (!resource) return null
 
               return (
@@ -648,12 +640,12 @@ export default function ResourceTracker({ farmerId }: ResourceTrackerProps) {
                       <div>
                         <h4 className="font-semibold">{resource.name}</h4>
                         <p className="text-sm text-gray-600">{usage.purpose}</p>
-                        <p className="text-xs text-gray-500">
-                          {new Date(usage.usage_date).toLocaleDateString()}
-                        </p>
+                        <p className="text-xs text-gray-500">{new Date(usage.usage_date).toLocaleDateString()}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">{usage.quantity_used} {resource.unit}</p>
+                        <p className="font-semibold">
+                          {usage.quantity_used} {resource.unit}
+                        </p>
                         <p className="text-sm text-gray-600">₹{usage.cost}</p>
                       </div>
                     </div>

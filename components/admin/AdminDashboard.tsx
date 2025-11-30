@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import {
@@ -34,11 +34,7 @@ import {
   MapPin,
   Phone,
 } from "lucide-react"
-import type { User } from "@supabase/supabase-js"
-
-interface AdminDashboardProps {
-  user: User
-}
+// import type { User } from "@supabase/supabase-js"
 
 interface DashboardStats {
   totalFarmers: number
@@ -90,8 +86,11 @@ interface MarketPrice {
   modal_price: number
 }
 
-export default function AdminDashboard({ user }: AdminDashboardProps) {
-  const { language, setLanguage } = useI18n()
+export default function AdminDashboard() {
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
+  const setLanguage = (lang: string) => tolgee.changeLanguage(lang)
   const router = useRouter()
   const { toast } = useToast()
   const [stats, setStats] = useState<DashboardStats>({
@@ -298,10 +297,6 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
     router.push("/admin/login")
   }
 
-  const toggleLanguage = () => {
-    setLanguage(language === "en" ? "hi" : "en")
-  }
-
   const exportData = async (tableName: string) => {
     // Supabase export logic is no longer relevant, assume API route for export
     const response = await fetch(`/api/admin/export/${tableName}`)
@@ -327,42 +322,42 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
   const statCards = [
     {
-      title: language === "hi" ? "कुल किसान" : "Total Farmers",
+      title: t("totalFarmers"),
       value: stats.totalFarmers,
       icon: <Users className="h-6 w-6 text-blue-600" />,
       color: "bg-blue-50 border-blue-200",
       trend: "+12%",
     },
     {
-      title: language === "hi" ? "फसल डेटा" : "Crop Data",
+      title: t("totalCrops"),
       value: stats.totalCrops,
       icon: <Sprout className="h-6 w-6 text-green-600" />,
       color: "bg-green-50 border-green-200",
       trend: "+8%",
     },
     {
-      title: language === "hi" ? "रोग रिपोर्ट" : "Disease Reports",
+      title: t("diseaseReports"),
       value: stats.diseaseReports,
       icon: <AlertTriangle className="h-6 w-6 text-red-600" />,
       color: "bg-red-50 border-red-200",
       trend: "+25%",
     },
     {
-      title: language === "hi" ? "मिट्टी विश्लेषण" : "Soil Analyses",
+      title: t("soilAnalyses"),
       value: stats.soilAnalyses,
       icon: <BarChart3 className="h-6 w-6 text-purple-600" />,
       color: "bg-purple-50 border-purple-200",
       trend: "+15%",
     },
     {
-      title: language === "hi" ? "बाजार मूल्य" : "Market Prices",
+      title: t("marketPrices"),
       value: stats.marketPrices,
       icon: <TrendingUp className="h-6 w-6 text-orange-600" />,
       color: "bg-orange-50 border-orange-200",
       trend: "+5%",
     },
     {
-      title: language === "hi" ? "सरकारी योजनाएं" : "Government Schemes",
+      title: t("schemes"),
       value: stats.schemes,
       icon: <FileText className="h-6 w-6 text-teal-600" />,
       color: "bg-teal-50 border-teal-200",
@@ -381,22 +376,23 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                 <span className="text-white font-bold">AS</span>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  {language === "hi" ? "एग्रीस्मार्ट एडमिन" : "AgriSmart Admin"}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {language === "hi" ? `स्वागत, ${user.email}` : `Welcome, ${user.email}`}
-                </p>
+                <h1 className="text-2xl font-bold text-gray-900">{t("adminTitle")}</h1>
+                <p className="text-sm text-gray-600">{t("welcome", { email: "admin@example.com" })}</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={toggleLanguage} className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLanguage(language === "en" ? "hi" : "en")}
+                className="flex items-center space-x-2"
+              >
                 <Globe className="h-4 w-4" />
                 <span>{language === "en" ? "हिं" : "EN"}</span>
               </Button>
               <Button variant="ghost" size="sm" onClick={() => router.push("/")}>
                 <Settings className="h-4 w-4 mr-2" />
-                {language === "hi" ? "साइट देखें" : "View Site"}
+                {t("viewSite")}
               </Button>
               <Button
                 variant="outline"
@@ -405,7 +401,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                 className="text-red-600 border-red-200 hover:bg-red-50 bg-transparent"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                {language === "hi" ? "लॉगआउट" : "Logout"}
+                {t("logout")}
               </Button>
             </div>
           </div>
@@ -438,11 +434,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
         {/* Management Tabs */}
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
           <TabsList className="grid w-full grid-cols-5 bg-white/80 backdrop-blur-sm">
-            <TabsTrigger value="overview">{language === "hi" ? "अवलोकन" : "Overview"}</TabsTrigger>
-            <TabsTrigger value="farmers">{language === "hi" ? "किसान" : "Farmers"}</TabsTrigger>
-            <TabsTrigger value="crops">{language === "hi" ? "फसलें" : "Crops"}</TabsTrigger>
-            <TabsTrigger value="reports">{language === "hi" ? "रिपोर्ट" : "Reports"}</TabsTrigger>
-            <TabsTrigger value="data">{language === "hi" ? "डेटा" : "Data"}</TabsTrigger>
+            <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
+            <TabsTrigger value="farmers">{t("farmers")}</TabsTrigger>
+            <TabsTrigger value="crops">{t("crops")}</TabsTrigger>
+            <TabsTrigger value="reports">{t("reports")}</TabsTrigger>
+            <TabsTrigger value="data">{t("data")}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -451,21 +447,19 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                 <CardHeader>
                   <CardTitle className="flex items-center space-x-2">
                     <Database className="h-5 w-5" />
-                    <span>{language === "hi" ? "सिस्टम अवलोकन" : "System Overview"}</span>
+                    <span>{t("systemOverview")}</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">
-                        {language === "hi" ? "डेटाबेस स्थिति" : "Database Status"}
-                      </span>
+                      <span className="text-sm text-gray-600">{t("databaseStatus")}</span>
                       <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        {language === "hi" ? "सक्रिय" : "Active"}
+                        {t("active")}
                       </Badge>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">{language === "hi" ? "कुल रिकॉर्ड" : "Total Records"}</span>
+                      <span className="text-sm text-gray-600">{t("totalRecords")}</span>
                       <span className="font-medium">
                         {(
                           stats.totalFarmers +
@@ -478,7 +472,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">{language === "hi" ? "अंतिम अपडेट" : "Last Updated"}</span>
+                      <span className="text-sm text-gray-600">{t("lastUpdated")}</span>
                       <span className="font-medium">
                         {new Date().toLocaleDateString(language === "hi" ? "hi-IN" : "en-US")}
                       </span>
@@ -489,20 +483,20 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
 
               <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
                 <CardHeader>
-                  <CardTitle>{language === "hi" ? "त्वरित कार्य" : "Quick Actions"}</CardTitle>
+                  <CardTitle>{t("quickActions")}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button onClick={() => setSelectedTab("farmers")} variant="outline" className="w-full justify-start">
                     <Users className="h-4 w-4 mr-2" />
-                    {language === "hi" ? "नया किसान जोड़ें" : "Add New Farmer"}
+                    {t("addFarmer")}
                   </Button>
                   <Button onClick={() => setSelectedTab("crops")} variant="outline" className="w-full justify-start">
                     <Sprout className="h-4 w-4 mr-2" />
-                    {language === "hi" ? "नई फसल जोड़ें" : "Add New Crop"}
+                    {t("addCrop")}
                   </Button>
                   <Button onClick={() => setSelectedTab("data")} variant="outline" className="w-full justify-start">
                     <TrendingUp className="h-4 w-4 mr-2" />
-                    {language === "hi" ? "बाजार मूल्य अपडेट करें" : "Update Market Prices"}
+                    {t("updateMarketPrices")}
                   </Button>
                 </CardContent>
               </Card>
@@ -515,52 +509,50 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center gap-2">
                     <Users className="h-5 w-5" />
-                    {language === "hi" ? "किसान प्रबंधन" : "Farmer Management"}
+                    {t("farmerManagement")}
                   </CardTitle>
                   <div className="flex gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button size="sm">
                           <Plus className="h-4 w-4 mr-2" />
-                          {language === "hi" ? "नया किसान" : "Add Farmer"}
+                          {t("addFarmer")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>{language === "hi" ? "नया किसान जोड़ें" : "Add New Farmer"}</DialogTitle>
+                          <DialogTitle>{t("addFarmer")}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div>
-                            <Label htmlFor="name">{language === "hi" ? "नाम" : "Name"} *</Label>
+                            <Label htmlFor="name">{t("name")} *</Label>
                             <Input
                               id="name"
                               value={newFarmer.name}
                               onChange={(e) => setNewFarmer({ ...newFarmer, name: e.target.value })}
-                              placeholder={language === "hi" ? "किसान का नाम" : "Farmer's name"}
+                              placeholder={t("farmerName")}
                             />
                           </div>
                           <div>
-                            <Label htmlFor="phone">{language === "hi" ? "फोन" : "Phone"}</Label>
+                            <Label htmlFor="phone">{t("phone")}</Label>
                             <Input
                               id="phone"
                               value={newFarmer.phone}
                               onChange={(e) => setNewFarmer({ ...newFarmer, phone: e.target.value })}
-                              placeholder={language === "hi" ? "फोन नंबर" : "Phone number"}
+                              placeholder={t("phoneNumber")}
                             />
                           </div>
                           <div>
-                            <Label htmlFor="location">{language === "hi" ? "स्थान" : "Location"}</Label>
+                            <Label htmlFor="location">{t("location")}</Label>
                             <Input
                               id="location"
                               value={newFarmer.location}
                               onChange={(e) => setNewFarmer({ ...newFarmer, location: e.target.value })}
-                              placeholder={language === "hi" ? " गांव, जिला" : "Village, District"}
+                              placeholder={t("villageDistrict")}
                             />
                           </div>
                           <div>
-                            <Label htmlFor="farm_size">
-                              {language === "hi" ? "खेत का आकार (एकड़)" : "Farm Size (Acres)"}
-                            </Label>
+                            <Label htmlFor="farm_size">{t("farmSizeAcres")}</Label>
                             <Input
                               id="farm_size"
                               type="number"
@@ -570,14 +562,14 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                             />
                           </div>
                           <Button onClick={handleAddFarmer} className="w-full">
-                            {language === "hi" ? "जोड़ें" : "Add Farmer"}
+                            {t("addFarmer")}
                           </Button>
                         </div>
                       </DialogContent>
                     </Dialog>
                     <Button variant="outline" size="sm" onClick={() => exportData("farmers")}>
                       <Download className="h-4 w-4 mr-2" />
-                      {language === "hi" ? "निर्यात" : "Export"}
+                      {t("export")}
                     </Button>
                   </div>
                 </div>
@@ -587,7 +579,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder={language === "hi" ? "किसान खोजें..." : "Search farmers..."}
+                      placeholder={t("searchFarmers")}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -598,12 +590,12 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{language === "hi" ? "नाम" : "Name"}</TableHead>
-                        <TableHead>{language === "hi" ? "फोन" : "Phone"}</TableHead>
-                        <TableHead>{language === "hi" ? "स्थान" : "Location"}</TableHead>
-                        <TableHead>{language === "hi" ? "खेत का आकार" : "Farm Size"}</TableHead>
-                        <TableHead>{language === "hi" ? "जुड़ने की तारीख" : "Joined Date"}</TableHead>
-                        <TableHead>{language === "hi" ? "कार्य" : "Actions"}</TableHead>
+                        <TableHead>{t("name")}</TableHead>
+                        <TableHead>{t("phone")}</TableHead>
+                        <TableHead>{t("location")}</TableHead>
+                        <TableHead>{t("farmSize")}</TableHead>
+                        <TableHead>{t("joinedDate")}</TableHead>
+                        <TableHead>{t("actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -669,84 +661,80 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center gap-2">
                     <Sprout className="h-5 w-5" />
-                    {language === "hi" ? "फसल डेटा प्रबंधन" : "Crop Data Management"}
+                    {t("cropDataManagement")}
                   </CardTitle>
                   <div className="flex gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button size="sm">
                           <Plus className="h-4 w-4 mr-2" />
-                          {language === "hi" ? "नई फसल" : "Add Crop"}
+                          {t("addCrop")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl">
                         <DialogHeader>
-                          <DialogTitle>{language === "hi" ? "नई फसल जोड़ें" : "Add New Crop"}</DialogTitle>
+                          <DialogTitle>{t("addCrop")}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="crop_name">{language === "hi" ? "फसल का नाम" : "Crop Name"} *</Label>
+                              <Label htmlFor="crop_name">{t("cropName")} *</Label>
                               <Input
                                 id="crop_name"
                                 value={newCrop.crop_name}
                                 onChange={(e) => setNewCrop({ ...newCrop, crop_name: e.target.value })}
-                                placeholder={language === "hi" ? "जैसे: चावल" : "e.g., Rice"}
+                                placeholder={t("rice")}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="scientific_name">
-                                {language === "hi" ? "वैज्ञानिक नाम" : "Scientific Name"}
-                              </Label>
+                              <Label htmlFor="scientific_name">{t("scientificName")}</Label>
                               <Input
                                 id="scientific_name"
                                 value={newCrop.scientific_name}
                                 onChange={(e) => setNewCrop({ ...newCrop, scientific_name: e.target.value })}
-                                placeholder={language === "hi" ? "जैसे: Oryza sativa" : "e.g., Oryza sativa"}
+                                placeholder={t("oryzaSativa")}
                               />
                             </div>
                           </div>
                           <div>
-                            <Label htmlFor="description">{language === "hi" ? "विवरण" : "Description"}</Label>
+                            <Label htmlFor="description">{t("description")}</Label>
                             <Textarea
                               id="description"
                               value={newCrop.description}
                               onChange={(e) => setNewCrop({ ...newCrop, description: e.target.value })}
-                              placeholder={language === "hi" ? "फसल का विवरण..." : "Crop description..."}
+                              placeholder={t("cropDescription")}
                               rows={3}
                             />
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="planting_season">
-                                {language === "hi" ? "बुआई का मौसम" : "Planting Season"}
-                              </Label>
+                              <Label htmlFor="planting_season">{t("plantingSeason")}</Label>
                               <Input
                                 id="planting_season"
                                 value={newCrop.planting_season}
                                 onChange={(e) => setNewCrop({ ...newCrop, planting_season: e.target.value })}
-                                placeholder={language === "hi" ? "जैसे: खरीफ" : "e.g., Kharif"}
+                                placeholder={t("kharif")}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="harvest_time">{language === "hi" ? "कटाई का समय" : "Harvest Time"}</Label>
+                              <Label htmlFor="harvest_time">{t("harvestTime")}</Label>
                               <Input
                                 id="harvest_time"
                                 value={newCrop.harvest_time}
                                 onChange={(e) => setNewCrop({ ...newCrop, harvest_time: e.target.value })}
-                                placeholder={language === "hi" ? "जैसे: 3-4 महीने" : "e.g., 3-4 months"}
+                                placeholder={t("threeFourMonths")}
                               />
                             </div>
                           </div>
                           <Button onClick={handleAddCrop} className="w-full">
-                            {language === "hi" ? "जोड़ें" : "Add Crop"}
+                            {t("addCrop")}
                           </Button>
                         </div>
                       </DialogContent>
                     </Dialog>
                     <Button variant="outline" size="sm" onClick={() => exportData("encyclopedia")}>
                       <Download className="h-4 w-4 mr-2" />
-                      {language === "hi" ? "निर्यात" : "Export"}
+                      {t("export")}
                     </Button>
                   </div>
                 </div>
@@ -756,11 +744,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{language === "hi" ? "फसल का नाम" : "Crop Name"}</TableHead>
-                        <TableHead>{language === "hi" ? "वैज्ञानिक नाम" : "Scientific Name"}</TableHead>
-                        <TableHead>{language === "hi" ? "बुआई का मौसम" : "Planting Season"}</TableHead>
-                        <TableHead>{language === "hi" ? "कटाई का समय" : "Harvest Time"}</TableHead>
-                        <TableHead>{language === "hi" ? "कार्य" : "Actions"}</TableHead>
+                        <TableHead>{t("cropName")}</TableHead>
+                        <TableHead>{t("scientificName")}</TableHead>
+                        <TableHead>{t("plantingSeason")}</TableHead>
+                        <TableHead>{t("harvestTime")}</TableHead>
+                        <TableHead>{t("actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -794,7 +782,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <AlertTriangle className="h-5 w-5" />
-                  {language === "hi" ? "रोग रिपोर्ट और विश्लेषण" : "Disease Reports & Analytics"}
+                  {t("diseaseReportsAnalytics")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -802,11 +790,11 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{language === "hi" ? "फसल" : "Crop"}</TableHead>
-                        <TableHead>{language === "hi" ? "रोग" : "Disease"}</TableHead>
-                        <TableHead>{language === "hi" ? "विश्वसनीयता" : "Confidence"}</TableHead>
-                        <TableHead>{language === "hi" ? "रिपोर्ट की तारीख" : "Report Date"}</TableHead>
-                        <TableHead>{language === "hi" ? "स्थिति" : "Status"}</TableHead>
+                        <TableHead>{t("crop")}</TableHead>
+                        <TableHead>{t("disease")}</TableHead>
+                        <TableHead>{t("confidence")}</TableHead>
+                        <TableHead>{t("reportDate")}</TableHead>
+                        <TableHead>{t("status")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -834,7 +822,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                           </TableCell>
                           <TableCell>{new Date(report.reported_date).toLocaleDateString()}</TableCell>
                           <TableCell>
-                            <Badge variant="outline">{language === "hi" ? "समीक्षाधीन" : "Under Review"}</Badge>
+                            <Badge variant="outline">{t("underReview")}</Badge>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -851,46 +839,44 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                 <div className="flex justify-between items-center">
                   <CardTitle className="flex items-center gap-2">
                     <TrendingUp className="h-5 w-5" />
-                    {language === "hi" ? "बाजार मूल्य प्रबंधन" : "Market Price Management"}
+                    {t("marketPriceManagement")}
                   </CardTitle>
                   <div className="flex gap-2">
                     <Dialog>
                       <DialogTrigger asChild>
                         <Button size="sm">
                           <Plus className="h-4 w-4 mr-2" />
-                          {language === "hi" ? "नया मूल्य" : "Add Price"}
+                          {t("addPrice")}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
                         <DialogHeader>
-                          <DialogTitle>{language === "hi" ? "नया बाजार मूल्य जोड़ें" : "Add New Market Price"}</DialogTitle>
+                          <DialogTitle>{t("addNewMarketPrice")}</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="commodity">{language === "hi" ? "फसल का नाम" : "Commodity Name"} *</Label>
+                              <Label htmlFor="commodity">{t("commodityName")} *</Label>
                               <Input
                                 id="commodity"
                                 value={newMarketPrice.commodity}
                                 onChange={(e) => setNewMarketPrice({ ...newMarketPrice, commodity: e.target.value })}
-                                placeholder={language === "hi" ? "जैसे: चावल" : "e.g., Rice"}
+                                placeholder={t("rice")}
                               />
                             </div>
                             <div>
-                              <Label htmlFor="market_name">
-                                {language === "hi" ? "बाजार का नाम" : "Market Name"} *
-                              </Label>
+                              <Label htmlFor="market_name">{t("marketName")}</Label>
                               <Input
                                 id="market_name"
                                 value={newMarketPrice.market_name}
                                 onChange={(e) => setNewMarketPrice({ ...newMarketPrice, market_name: e.target.value })}
-                                placeholder={language === "hi" ? "जैसे: दिल्ली मंडी" : "e.g., Delhi Mandi"}
+                                placeholder={t("delhiMandi")}
                               />
                             </div>
                           </div>
                           <div className="grid grid-cols-3 gap-4">
                             <div>
-                              <Label htmlFor="min_price">{language === "hi" ? "न्यूनतम मूल्य (₹)" : "Min Price (₹)"}</Label>
+                              <Label htmlFor="min_price">{t("minPrice")} (₹)</Label>
                               <Input
                                 id="min_price"
                                 type="number"
@@ -901,9 +887,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="modal_price">
-                                {language === "hi" ? "मुख्य मूल्य (₹)" : "Modal Price (₹)"} *
-                              </Label>
+                              <Label htmlFor="modal_price">{t("modalPrice")} (₹) *</Label>
                               <Input
                                 id="modal_price"
                                 type="number"
@@ -915,9 +899,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                               />
                             </div>
                             <div>
-                              <Label htmlFor="max_price">
-                                {language === "hi" ? "अधिकतम मूल्य (₹)" : "Max Price (₹)"}
-                              </Label>
+                              <Label htmlFor="max_price">{t("maxPrice")} (₹)</Label>
                               <Input
                                 id="max_price"
                                 type="number"
@@ -930,34 +912,34 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                             <div>
-                              <Label htmlFor="state">{language === "hi" ? "राज्य" : "State"} *</Label>
+                              <Label htmlFor="state">{t("state")} *</Label>
                               <Input
                                 id="state"
                                 value={newMarketPrice.state}
                                 onChange={(e) => setNewMarketPrice({ ...newMarketPrice, state: e.target.value })}
-                                placeholder={language === "hi" ? "जैसे: महाराष्ट्र" : "e.g., Maharashtra"}
+                                placeholder={t("maharashtra")}
                                 required
                               />
                             </div>
                             <div>
-                              <Label htmlFor="district">{language === "hi" ? "जिला" : "District"}</Label>
+                              <Label htmlFor="district">{t("district")}</Label>
                               <Input
                                 id="district"
                                 value={newMarketPrice.district}
                                 onChange={(e) => setNewMarketPrice({ ...newMarketPrice, district: e.target.value })}
-                                placeholder={language === "hi" ? "जैसे: पुणे" : "e.g., Pune"}
+                                placeholder={t("pune")}
                               />
                             </div>
                           </div>
                           <Button onClick={handleAddMarketPrice} className="w-full">
-                            {language === "hi" ? "जोड़ें" : "Add Price"}
+                            {t("addPrice")}
                           </Button>
                         </div>
                       </DialogContent>
                     </Dialog>
                     <Button variant="outline" size="sm" onClick={() => exportData("market_prices")}>
                       <Download className="h-4 w-4 mr-2" />
-                      {language === "hi" ? "निर्यात" : "Export"}
+                      {t("export")}
                     </Button>
                   </div>
                 </div>
@@ -967,12 +949,12 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>{language === "hi" ? "फसल" : "Commodity"}</TableHead>
-                        <TableHead>{language === "hi" ? "बाजार" : "Market"}</TableHead>
-                        <TableHead>{language === "hi" ? "मूल्य रेंज (₹)" : "Price Range (₹)"}</TableHead>
-                        <TableHead>{language === "hi" ? "स्थान" : "Location"}</TableHead>
-                        <TableHead>{language === "hi" ? "तारीख" : "Date"}</TableHead>
-                        <TableHead>{language === "hi" ? "कार्य" : "Actions"}</TableHead>
+                        <TableHead>{t("commodity")}</TableHead>
+                        <TableHead>{t("market")}</TableHead>
+                        <TableHead>{t("priceRange")} (₹)</TableHead>
+                        <TableHead>{t("location")}</TableHead>
+                        <TableHead>{t("date")}</TableHead>
+                        <TableHead>{t("actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

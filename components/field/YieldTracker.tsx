@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -11,7 +13,7 @@ import { Badge } from "@/components/ui/badge"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { TrendingUp, BarChart3, Plus, Calendar, Wheat } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 interface YieldRecord {
   id: string
@@ -37,12 +39,15 @@ interface CropCycle {
 }
 
 interface YieldTrackerProps {
-  farmerId: string
+  fieldId: string
   cropCycleId?: string
+  farmerId: string
 }
 
-export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProps) {
-  const { language, t } = useI18n()
+export default function YieldTracker({ fieldId, cropCycleId, farmerId }: YieldTrackerProps) {
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const { toast } = useToast()
   const [yieldRecords, setYieldRecords] = useState<YieldRecord[]>([])
   const [cropCycles, setCropCycles] = useState<CropCycle[]>([])
@@ -54,9 +59,9 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
     actual_yield: "",
     yield_unit: "tons",
     quality_grade: "A" as const,
-    harvest_date: new Date().toISOString().split('T')[0],
+    harvest_date: new Date().toISOString().split("T")[0],
     market_price: "",
-    notes: ""
+    notes: "",
   })
 
   const yieldUnits = ["tons", "kg", "quintals", "bags"]
@@ -64,7 +69,7 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
     { value: "Premium", label: "Premium", color: "bg-purple-100 text-purple-800" },
     { value: "A", label: "Grade A", color: "bg-green-100 text-green-800" },
     { value: "B", label: "Grade B", color: "bg-yellow-100 text-yellow-800" },
-    { value: "C", label: "Grade C", color: "bg-red-100 text-red-800" }
+    { value: "C", label: "Grade C", color: "bg-red-100 text-red-800" },
   ]
 
   useEffect(() => {
@@ -82,17 +87,17 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
           variety: "HD-2967",
           fields: {
             field_name: "North Field",
-            area_hectares: 5.2
-          }
+            area_hectares: 5.2,
+          },
         },
         {
           id: "2",
           crop_name: "Rice",
           fields: {
             field_name: "South Field",
-            area_hectares: 3.8
-          }
-        }
+            area_hectares: 3.8,
+          },
+        },
       ]
       setCropCycles(mockCropCycles)
     } catch (error) {
@@ -114,8 +119,8 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
           market_price: 2500,
           total_revenue: 31250,
           notes: "Good quality harvest",
-          created_at: "2024-01-16T10:00:00Z"
-        }
+          created_at: "2024-01-16T10:00:00Z",
+        },
       ]
       setYieldRecords(mockYieldRecords)
       setIsLoading(false)
@@ -132,25 +137,25 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
       toast({
         title: language === "hi" ? "वैलिडेशन त्रुटि" : "Validation Error",
         description: language === "hi" ? "सभी आवश्यक फ़ील्ड भरें" : "Please fill all required fields",
-        variant: "destructive"
+        variant: "destructive",
       })
       return
     }
 
-    const cropCycle = cropCycles.find(c => c.id === yieldForm.crop_cycle_id)
+    const cropCycle = cropCycles.find((c) => c.id === yieldForm.crop_cycle_id)
     if (!cropCycle) return
 
     const newYieldRecord: YieldRecord = {
       id: Date.now().toString(),
       crop_cycle_id: yieldForm.crop_cycle_id,
-      actual_yield: parseFloat(yieldForm.actual_yield),
+      actual_yield: Number.parseFloat(yieldForm.actual_yield),
       yield_unit: yieldForm.yield_unit,
       quality_grade: yieldForm.quality_grade,
       harvest_date: yieldForm.harvest_date,
-      market_price: parseFloat(yieldForm.market_price),
-      total_revenue: parseFloat(yieldForm.actual_yield) * parseFloat(yieldForm.market_price),
+      market_price: Number.parseFloat(yieldForm.market_price),
+      total_revenue: Number.parseFloat(yieldForm.actual_yield) * Number.parseFloat(yieldForm.market_price),
       notes: yieldForm.notes || undefined,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
     }
 
     setYieldRecords([newYieldRecord, ...yieldRecords])
@@ -159,7 +164,7 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
 
     toast({
       title: language === "hi" ? "उपज दर्ज की गई" : "Yield Recorded",
-      description: language === "hi" ? "उपज रिकॉर्ड सफलतापूर्वक जोड़ा गया" : "Yield record added successfully"
+      description: language === "hi" ? "उपज रिकॉर्ड सफलतापूर्वक जोड़ा गया" : "Yield record added successfully",
     })
   }
 
@@ -169,19 +174,19 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
       actual_yield: "",
       yield_unit: "tons",
       quality_grade: "A",
-      harvest_date: new Date().toISOString().split('T')[0],
+      harvest_date: new Date().toISOString().split("T")[0],
       market_price: "",
-      notes: ""
+      notes: "",
     })
   }
 
   const getQualityColor = (grade: string) => {
-    const quality = qualityGrades.find(q => q.value === grade)
+    const quality = qualityGrades.find((q) => q.value === grade)
     return quality ? quality.color : "bg-gray-100 text-gray-800"
   }
 
   const calculateYieldPerHectare = (record: YieldRecord) => {
-    const cropCycle = cropCycles.find(c => c.id === record.crop_cycle_id)
+    const cropCycle = cropCycles.find((c) => c.id === record.crop_cycle_id)
     if (!cropCycle) return 0
     return (record.actual_yield / cropCycle.fields.area_hectares).toFixed(2)
   }
@@ -189,14 +194,14 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
   const getYieldTrendData = () => {
     return yieldRecords
       .sort((a, b) => new Date(a.harvest_date).getTime() - new Date(b.harvest_date).getTime())
-      .map(record => {
-        const cropCycle = cropCycles.find(c => c.id === record.crop_cycle_id)
+      .map((record) => {
+        const cropCycle = cropCycles.find((c) => c.id === record.crop_cycle_id)
         return {
           date: new Date(record.harvest_date).toLocaleDateString(),
           crop: cropCycle?.crop_name || "Unknown",
           yield: record.actual_yield,
-          yieldPerHa: parseFloat(calculateYieldPerHectare(record)),
-          revenue: record.total_revenue
+          yieldPerHa: Number.parseFloat(calculateYieldPerHectare(record)),
+          revenue: record.total_revenue,
         }
       })
   }
@@ -213,9 +218,7 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
 
   const getCropWithHighestYield = () => {
     if (yieldRecords.length === 0) return null
-    return yieldRecords.reduce((max, record) =>
-      record.actual_yield > max.actual_yield ? record : max
-    )
+    return yieldRecords.reduce((max, record) => (record.actual_yield > max.actual_yield ? record : max))
   }
 
   if (isLoading) {
@@ -229,9 +232,7 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">
-          {language === "hi" ? "उपज ट्रैकर" : "Yield Tracker"}
-        </h2>
+        <h2 className="text-2xl font-bold text-gray-900">{language === "hi" ? "उपज ट्रैकर" : "Yield Tracker"}</h2>
 
         <Dialog open={isAddYieldDialogOpen} onOpenChange={setIsAddYieldDialogOpen}>
           <DialogTrigger asChild>
@@ -242,9 +243,7 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>
-                {language === "hi" ? "उपज दर्ज करें" : "Record Harvest Yield"}
-              </DialogTitle>
+              <DialogTitle>{language === "hi" ? "उपज दर्ज करें" : "Record Harvest Yield"}</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmitYield} className="space-y-4">
               <div>
@@ -290,7 +289,9 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
                     </SelectTrigger>
                     <SelectContent>
                       {yieldUnits.map((unit) => (
-                        <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                        <SelectItem key={unit} value={unit}>
+                          {unit}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -301,7 +302,9 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
                 <Label>{language === "hi" ? "गुणवत्ता ग्रेड" : "Quality Grade"}</Label>
                 <Select
                   value={yieldForm.quality_grade}
-                  onValueChange={(value: "A" | "B" | "C" | "Premium") => setYieldForm({ ...yieldForm, quality_grade: value })}
+                  onValueChange={(value: "A" | "B" | "C" | "Premium") =>
+                    setYieldForm({ ...yieldForm, quality_grade: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -367,13 +370,9 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "कुल उपज" : "Total Yield"}
-                </p>
+                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "कुल उपज" : "Total Yield"}</p>
                 <p className="text-2xl font-bold">{getAverageYield()} avg</p>
-                <p className="text-xs text-gray-500">
-                  {language === "hi" ? "औसत उपज" : "Average yield"}
-                </p>
+                <p className="text-xs text-gray-500">{language === "hi" ? "औसत उपज" : "Average yield"}</p>
               </div>
               <Wheat className="h-8 w-8 text-yellow-600" />
             </div>
@@ -384,13 +383,9 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "कुल आय" : "Total Revenue"}
-                </p>
+                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "कुल आय" : "Total Revenue"}</p>
                 <p className="text-2xl font-bold">₹{getTotalRevenue().toLocaleString()}</p>
-                <p className="text-xs text-gray-500">
-                  {language === "hi" ? "सभी फसलों से" : "From all crops"}
-                </p>
+                <p className="text-xs text-gray-500">{language === "hi" ? "सभी फसलों से" : "From all crops"}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-600" />
             </div>
@@ -401,13 +396,9 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "रिकॉर्ड" : "Records"}
-                </p>
+                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "रिकॉर्ड" : "Records"}</p>
                 <p className="text-2xl font-bold">{yieldRecords.length}</p>
-                <p className="text-xs text-gray-500">
-                  {language === "hi" ? "उपज रिकॉर्ड" : "Yield records"}
-                </p>
+                <p className="text-xs text-gray-500">{language === "hi" ? "उपज रिकॉर्ड" : "Yield records"}</p>
               </div>
               <BarChart3 className="h-8 w-8 text-blue-600" />
             </div>
@@ -418,14 +409,10 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">
-                  {language === "hi" ? "सर्वोच्च उपज" : "Best Yield"}
-                </p>
-                <p className="text-2xl font-bold">
-                  {getCropWithHighestYield()?.actual_yield || 0}
-                </p>
+                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "सर्वोच्च उपज" : "Best Yield"}</p>
+                <p className="text-2xl font-bold">{getCropWithHighestYield()?.actual_yield || 0}</p>
                 <p className="text-xs text-gray-500">
-                  {cropCycles.find(c => c.id === getCropWithHighestYield()?.crop_cycle_id)?.crop_name || "-"}
+                  {cropCycles.find((c) => c.id === getCropWithHighestYield()?.crop_cycle_id)?.crop_name || "-"}
                 </p>
               </div>
               <Calendar className="h-8 w-8 text-purple-600" />
@@ -438,9 +425,7 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
       {yieldRecords.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>
-              {language === "hi" ? "उपज रुझान" : "Yield Trends"}
-            </CardTitle>
+            <CardTitle>{language === "hi" ? "उपज रुझान" : "Yield Trends"}</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -451,14 +436,7 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
                 <YAxis yAxisId="right" orientation="right" />
                 <Tooltip />
                 <Legend />
-                <Line
-                  yAxisId="left"
-                  type="monotone"
-                  dataKey="yield"
-                  stroke="#10b981"
-                  strokeWidth={2}
-                  name="Yield"
-                />
+                <Line yAxisId="left" type="monotone" dataKey="yield" stroke="#10b981" strokeWidth={2} name="Yield" />
                 <Line
                   yAxisId="left"
                   type="monotone"
@@ -484,17 +462,13 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
       {/* Yield Records Table */}
       <Card>
         <CardHeader>
-          <CardTitle>
-            {language === "hi" ? "उपज रिकॉर्ड" : "Yield Records"}
-          </CardTitle>
+          <CardTitle>{language === "hi" ? "उपज रिकॉर्ड" : "Yield Records"}</CardTitle>
         </CardHeader>
         <CardContent>
           {yieldRecords.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Wheat className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>
-                {language === "hi" ? "कोई उपज रिकॉर्ड नहीं मिला" : "No yield records found"}
-              </p>
+              <p>{language === "hi" ? "कोई उपज रिकॉर्ड नहीं मिला" : "No yield records found"}</p>
               <p className="text-sm text-gray-400 mt-2">
                 {language === "hi" ? "अपनी पहली फसल की उपज दर्ज करें" : "Record your first harvest yield"}
               </p>
@@ -502,63 +476,45 @@ export default function YieldTracker({ farmerId, cropCycleId }: YieldTrackerProp
           ) : (
             <div className="space-y-4">
               {yieldRecords.map((record) => {
-                const cropCycle = cropCycles.find(c => c.id === record.crop_cycle_id)
+                const cropCycle = cropCycles.find((c) => c.id === record.crop_cycle_id)
                 return (
                   <div key={record.id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h4 className="font-semibold text-lg">
-                          {cropCycle?.crop_name || "Unknown Crop"}
-                        </h4>
-                        {cropCycle?.variety && (
-                          <p className="text-sm text-gray-600">{cropCycle.variety}</p>
-                        )}
+                        <h4 className="font-semibold text-lg">{cropCycle?.crop_name || "Unknown Crop"}</h4>
+                        {cropCycle?.variety && <p className="text-sm text-gray-600">{cropCycle.variety}</p>}
                         <p className="text-sm text-gray-500">
                           {cropCycle?.fields.field_name} • {cropCycle?.fields.area_hectares} ha
                         </p>
                       </div>
-                      <Badge className={getQualityColor(record.quality_grade)}>
-                        {record.quality_grade}
-                      </Badge>
+                      <Badge className={getQualityColor(record.quality_grade)}>{record.quality_grade}</Badge>
                     </div>
 
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-600">
-                          {language === "hi" ? "उपज:" : "Yield:"}
-                        </span>
+                        <span className="text-gray-600">{language === "hi" ? "उपज:" : "Yield:"}</span>
                         <p className="font-semibold">
                           {record.actual_yield} {record.yield_unit}
                         </p>
                       </div>
                       <div>
-                        <span className="text-gray-600">
-                          {language === "hi" ? "प्रति हेक्टेयर:" : "Per ha:"}
-                        </span>
+                        <span className="text-gray-600">{language === "hi" ? "प्रति हेक्टेयर:" : "Per ha:"}</span>
                         <p className="font-semibold">
                           {calculateYieldPerHectare(record)} {record.yield_unit}/ha
                         </p>
                       </div>
                       <div>
-                        <span className="text-gray-600">
-                          {language === "hi" ? "आय:" : "Revenue:"}
-                        </span>
+                        <span className="text-gray-600">{language === "hi" ? "आय:" : "Revenue:"}</span>
                         <p className="font-semibold">₹{record.total_revenue.toLocaleString()}</p>
                       </div>
                       <div>
-                        <span className="text-gray-600">
-                          {language === "hi" ? "तारीख:" : "Date:"}
-                        </span>
-                        <p className="font-semibold">
-                          {new Date(record.harvest_date).toLocaleDateString()}
-                        </p>
+                        <span className="text-gray-600">{language === "hi" ? "तारीख:" : "Date:"}</span>
+                        <p className="font-semibold">{new Date(record.harvest_date).toLocaleDateString()}</p>
                       </div>
                     </div>
 
                     {record.notes && (
-                      <p className="text-sm text-gray-600 mt-3 bg-gray-50 p-2 rounded">
-                        {record.notes}
-                      </p>
+                      <p className="text-sm text-gray-600 mt-3 bg-gray-50 p-2 rounded">{record.notes}</p>
                     )}
                   </div>
                 )

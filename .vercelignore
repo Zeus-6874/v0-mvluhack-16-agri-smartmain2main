@@ -1,0 +1,4 @@
+lib/i18n
+lib/supabase
+.next
+node_modules

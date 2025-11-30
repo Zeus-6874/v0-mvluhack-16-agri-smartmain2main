@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import Navbar from "@/components/Navbar"
 import { Beaker, TrendingUp, CheckCircle, Loader2, Sprout } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 interface SoilAnalysisResult {
   soil_health: string
@@ -39,7 +39,9 @@ interface SoilAnalysisResult {
 }
 
 export default function SoilHealth() {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<SoilAnalysisResult | null>(null)
   const [formData, setFormData] = useState({

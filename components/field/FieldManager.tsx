@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Badge } from "@/components/ui/badge"
 import { MapPin, Plus, Edit, Trash2, Sprout } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 interface Field {
   id: string
@@ -45,7 +44,9 @@ interface FieldManagerProps {
 }
 
 export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerProps) {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const { toast } = useToast()
   const [fields, setFields] = useState<Field[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -245,59 +246,53 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-gray-900">{language === "hi" ? "फ़ील्ड प्रबंधन" : "Field Management"}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t("fieldManagement.fieldManagement")}</h2>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
               <Plus className="mr-2 h-4 w-4" />
-              {language === "hi" ? "नया फ़ील्ड" : "Add Field"}
+              {t("fieldManagement.addField")}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {editingField
-                  ? language === "hi"
-                    ? "फ़ील्ड संपादित करें"
-                    : "Edit Field"
-                  : language === "hi"
-                    ? "नया फ़ील्ड बनाएं"
-                    : "Create New Field"}
+                {editingField ? t("fieldManagement.editField") : t("fieldManagement.createField")}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="field_name">{language === "hi" ? "फ़ील्ड का नाम" : "Field Name"}</Label>
+                <Label htmlFor="field_name">{t("fieldManagement.fieldName")}</Label>
                 <Input
                   id="field_name"
                   value={formData.field_name}
                   onChange={(e) => setFormData({ ...formData, field_name: e.target.value })}
-                  placeholder={language === "hi" ? "फ़ील्ड का नाम दर्ज करें" : "Enter field name"}
+                  placeholder={t("fieldManagement.enterFieldName")}
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="area_hectares">{language === "hi" ? "क्षेत्रफल (हेक्टेयर)" : "Area (hectares)"}</Label>
+                <Label htmlFor="area_hectares">{t("fieldManagement.areaHectares")}</Label>
                 <Input
                   id="area_hectares"
                   type="number"
                   step="0.01"
                   value={formData.area_hectares}
                   onChange={(e) => setFormData({ ...formData, area_hectares: e.target.value })}
-                  placeholder={language === "hi" ? "क्षेत्रफल दर्ज करें" : "Enter area in hectares"}
+                  placeholder={t("fieldManagement.enterArea")}
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="soil_type">{language === "hi" ? "मिट्टी का प्रकार" : "Soil Type"}</Label>
+                <Label htmlFor="soil_type">{t("fieldManagement.soilType")}</Label>
                 <Select
                   value={formData.soil_type}
                   onValueChange={(value) => setFormData({ ...formData, soil_type: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={language === "hi" ? "मिट्टी का प्रकार चुनें" : "Select soil type"} />
+                    <SelectValue placeholder={t("fieldManagement.selectSoilType")} />
                   </SelectTrigger>
                   <SelectContent>
                     {soilTypes.map((type) => (
@@ -310,13 +305,13 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
               </div>
 
               <div>
-                <Label htmlFor="irrigation_type">{language === "hi" ? "सिंचाई का प्रकार" : "Irrigation Type"}</Label>
+                <Label htmlFor="irrigation_type">{t("fieldManagement.irrigationType")}</Label>
                 <Select
                   value={formData.irrigation_type}
                   onValueChange={(value) => setFormData({ ...formData, irrigation_type: value })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={language === "hi" ? "सिंचाई का प्रकार चुनें" : "Select irrigation type"} />
+                    <SelectValue placeholder={t("fieldManagement.selectIrrigationType")} />
                   </SelectTrigger>
                   <SelectContent>
                     {irrigationTypes.map((type) => (
@@ -330,10 +325,10 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
 
               <div className="flex justify-end space-x-3 pt-4">
                 <Button type="button" variant="outline" onClick={closeDialog}>
-                  {language === "hi" ? "रद्द करें" : "Cancel"}
+                  {t("common.cancel")}
                 </Button>
                 <Button type="submit" className="bg-green-600 hover:bg-green-700">
-                  {editingField ? (language === "hi" ? "अपडेट करें" : "Update") : language === "hi" ? "बनाएं" : "Create"}
+                  {editingField ? t("common.update") : t("common.create")}
                 </Button>
               </div>
             </form>

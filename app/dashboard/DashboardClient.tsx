@@ -4,21 +4,8 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import {
-  Sprout,
-  CloudRain,
-  TrendingUp,
-  Plus,
-  Settings,
-  Calendar,
-  Droplets,
-  BarChart3,
-  MapPin,
-  Wind,
-  Cloud,
-  AlertCircle,
-} from "lucide-react"
-import { useI18n } from "@/lib/i18n/context"
+import { Sprout, CloudRain, TrendingUp, Plus, Settings, BarChart3, MapPin } from "lucide-react"
+import { useTranslate, useTolgee } from "@tolgee/react"
 import { useToast } from "@/hooks/use-toast"
 import CropCard from "@/components/CropCard"
 import AddCropModal from "@/components/AddCropModal"
@@ -54,7 +41,9 @@ const cropIcons: Record<string, string> = {
 
 export default function DashboardClient({ profile }: DashboardClientProps) {
   const router = useRouter()
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const { toast } = useToast()
   const [weather, setWeather] = useState<any>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
@@ -117,9 +106,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   }
 
   const handleDeleteCrop = async (cropId: number) => {
-    const confirmMessage = `${t("common.deleteConfirmMessage")} this crop?\n${t("common.deleteConfirmQuestion")}`
-
-    if (!confirm(confirmMessage)) {
+    if (!confirm(t("feedback.confirmDelete"))) {
       return
     }
 
@@ -135,8 +122,8 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
 
       if (data.success) {
         toast({
-          title: t("common.success"),
-          description: t("dashboard.cropDeleted"),
+          title: t("feedback.success"),
+          description: t("feedback.cropDeleted"),
           variant: "default",
           className: "bg-green-50 border-green-200 text-green-900",
         })
@@ -147,8 +134,8 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     } catch (error) {
       console.error("Delete error:", error)
       toast({
-        title: t("common.error"),
-        description: t("common.errorOccurred"),
+        title: t("feedback.error"),
+        description: t("feedback.error"),
         variant: "destructive",
       })
     }
@@ -276,7 +263,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
               onClick={() => router.push("/settings")}
             >
               <Settings className="mr-2 h-4 w-4" />
-              {("Settings")}
+              {t("settings")}
             </Button>
           </div>
         </div>

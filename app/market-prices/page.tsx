@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Navbar from "@/components/Navbar"
 import { TrendingUp, TrendingDown, IndianRupee, BarChart3, RefreshCw, Loader2 } from "lucide-react"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 interface MarketPrice {
   crop: string
@@ -23,7 +23,9 @@ interface MarketPrice {
 }
 
 export default function MarketPrices() {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [prices, setPrices] = useState<MarketPrice[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)

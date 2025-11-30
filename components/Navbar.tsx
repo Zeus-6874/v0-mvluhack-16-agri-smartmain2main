@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LogOut, Menu, X } from "lucide-react"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 import styled from "styled-components"
 
 const StyledWrapper = styled.div`
@@ -198,17 +198,19 @@ const StyledWrapper = styled.div`
 
 export default function Navbar() {
   const pathname = usePathname()
-  const { language, setLanguage, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const navItems = [
     { href: "/dashboard", label: t("nav.dashboard") },
-    { href: "/field-management", label: t("nav.fieldManagement") },
-    { href: "/soil-health", label: t("nav.soilHealth") },
-    { href: "/disease-detection", label: t("nav.diseaseDetection") },
+    { href: "/field-management", label: t("nav.fields") },
+    { href: "/soil-health", label: t("nav.soil") },
+    { href: "/disease-detection", label: t("nav.disease") },
     { href: "/encyclopedia", label: t("nav.encyclopedia") },
     { href: "/weather", label: t("nav.weather") },
-    { href: "/market-prices", label: t("nav.marketPrices") },
+    { href: "/market-prices", label: t("nav.market") },
     { href: "/schemes", label: t("nav.schemes") },
     { href: "/knowledge", label: t("nav.knowledge") },
     { href: "/settings", label: t("nav.settings") },
@@ -251,7 +253,7 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
-              <Select value={language} onValueChange={(val) => setLanguage(val as "en" | "hi" | "mr")}>
+              <Select value={language} onValueChange={(val) => tolgee.changeLanguage(val)}>
                 <SelectTrigger className="w-[100px] h-9 bg-white border-gray-300 hidden sm:flex">
                   <SelectValue />
                 </SelectTrigger>
@@ -269,7 +271,7 @@ export default function Navbar() {
                 className="hidden sm:flex text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                {t("nav.logout")}
+                {t("common.logout")}
               </Button>
 
               {/* Mobile menu button */}
@@ -335,8 +337,8 @@ export default function Navbar() {
             {/* Menu Footer */}
             <div className="border-t border-gray-200 p-4 space-y-3">
               <div className="px-2">
-                <label className="text-sm font-medium text-gray-700 mb-2 block">{t("common.language")}</label>
-                <Select value={language} onValueChange={(val) => setLanguage(val as "en" | "hi" | "mr")}>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">{t("settings.language")}</label>
+                <Select value={language} onValueChange={(val) => tolgee.changeLanguage(val)}>
                   <SelectTrigger className="w-full bg-white border-gray-300">
                     <SelectValue />
                   </SelectTrigger>
@@ -353,7 +355,7 @@ export default function Navbar() {
                 onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4 mr-2" />
-                {t("nav.logout")}
+                {t("common.logout")}
               </Button>
             </div>
           </div>

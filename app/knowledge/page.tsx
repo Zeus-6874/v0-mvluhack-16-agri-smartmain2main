@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import Navbar from "@/components/Navbar"
 import { BookOpen, Search, Tag, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 
 interface KnowledgeArticle {
   id: string | number
@@ -22,7 +22,9 @@ interface KnowledgeArticle {
 }
 
 export default function KnowledgeBase() {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [searchTerm, setSearchTerm] = useState("")
   const [articles, setArticles] = useState<KnowledgeArticle[]>([])
   const [loading, setLoading] = useState(true)

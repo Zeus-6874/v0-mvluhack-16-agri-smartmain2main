@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate } from "@tolgee/react"
 import { useToast } from "@/hooks/use-toast"
 
 interface AddCropModalProps {
@@ -17,7 +17,7 @@ interface AddCropModalProps {
 }
 
 export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCropModalProps) {
-  const { t } = useI18n()
+  const { t } = useTranslate()
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -50,8 +50,6 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
     setLoading(true)
 
     try {
-      console.log("[v0] Submitting crop data:", formData)
-
       const response = await fetch("/api/crop-cycles", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -66,12 +64,11 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
       })
 
       const data = await response.json()
-      console.log("[v0] Crop creation response:", data)
 
       if (data.success) {
         toast({
-          title: t("common.success"),
-          description: t("dashboard.cropAdded"),
+          title: t("feedback.success"),
+          description: t("feedback.cropAdded"),
           className: "bg-green-50 border-green-200",
         })
         setFormData({
@@ -89,10 +86,9 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
         throw new Error(data.error)
       }
     } catch (error) {
-      console.error("[v0] Crop creation error:", error)
       toast({
-        title: t("common.error"),
-        description: error instanceof Error ? error.message : t("common.errorOccurred"),
+        title: t("feedback.error"),
+        description: error instanceof Error ? error.message : t("feedback.error"),
         variant: "destructive",
       })
     } finally {

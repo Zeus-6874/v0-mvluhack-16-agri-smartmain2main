@@ -3,12 +3,15 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function HomePage() {
   const router = useRouter()
-  const { language, setLanguage, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
+
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -77,7 +80,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-xl">
         <div className="flex justify-end mb-4">
-          <Select value={language} onValueChange={setLanguage}>
+          <Select value={language} onValueChange={(value) => tolgee.changeLanguage(value)}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>

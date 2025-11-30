@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import Navbar from "@/components/Navbar"
 import { Camera, Upload, Loader2, AlertTriangle, CheckCircle, Brain, Zap } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 import Image from "next/image"
 
 interface DiseaseDetectionResult {
@@ -26,7 +26,9 @@ interface DiseaseDetectionResult {
 }
 
 export default function DiseaseDetection() {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [selectedCrop, setSelectedCrop] = useState("")
   const [selectedImage, setSelectedImage] = useState<File | null>(null)

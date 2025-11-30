@@ -3,13 +3,15 @@
 import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 import { maharashtraData, indianStates } from "@/lib/location-data"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 const ProfileSetupPage = () => {
   const router = useRouter()
-  const { language, setLanguage, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [formData, setFormData] = useState({
@@ -71,7 +73,7 @@ const ProfileSetupPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-3xl bg-white rounded-xl shadow-2xl p-8">
         <div className="flex justify-end mb-4">
-          <Select value={language} onValueChange={setLanguage}>
+          <Select value={language} onValueChange={(val) => tolgee.changeLanguage(val)}>
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>

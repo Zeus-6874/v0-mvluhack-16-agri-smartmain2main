@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import Navbar from "@/components/Navbar"
-import { useI18n } from "@/lib/i18n/context"
+import { useTranslate, useTolgee } from "@tolgee/react"
 import {
   Search,
   Filter,
@@ -42,7 +42,9 @@ interface Scheme {
 }
 
 export default function SchemesPage() {
-  const { language, t } = useI18n()
+  const { t } = useTranslate()
+  const tolgee = useTolgee(["language"])
+  const language = tolgee.getLanguage()
   const [schemes, setSchemes] = useState<Scheme[]>([])
   const [filteredSchemes, setFilteredSchemes] = useState<Scheme[]>([])
   const [loading, setLoading] = useState(true)
