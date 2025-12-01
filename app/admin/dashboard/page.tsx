@@ -18,6 +18,5 @@ export default async function AdminDashboardPage() {
     redirect("/dashboard")
   }
 
-  // Return admin dashboard with user info
-  return <AdminDashboard user={{ userId: session.userId, email: "admin@agrismart.com" } as any} />
+  return <AdminDashboard />
 }
