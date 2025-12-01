@@ -13,7 +13,7 @@ import { useTranslate, useTolgee } from "@tolgee/react"
 export default function CropManagement() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [selectedSeason, setSelectedSeason] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [loading, setLoading] = useState(true)
