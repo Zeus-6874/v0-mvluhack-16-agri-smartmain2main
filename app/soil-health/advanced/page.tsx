@@ -10,10 +10,12 @@ import { Activity, TrendingUp, AlertTriangle, Leaf } from "lucide-react"
 import Navbar from "@/components/Navbar"
 import type { MongoSoilAnalysis } from "@/types/mongo"
 
+/* -------------------------------- TYPES -------------------------------- */
+
 interface FarmerProfile {
   id: string
   full_name: string
-  location?: string
+  location: string
 }
 
 interface SoilAnalysis {
@@ -27,6 +29,8 @@ interface SoilAnalysis {
   created_at: string
 }
 
+/* -------------------------------- PAGE -------------------------------- */
+
 export default async function AdvancedSoilHealthPage() {
   const session = await getSession()
 
@@ -35,9 +39,26 @@ export default async function AdvancedSoilHealthPage() {
   }
 
   const userId = session.userId
-
   const db = await getDb()
-  const profile = await db.collection("farmers").findOne({ user_id: userId })
+
+  /* ------------------------- FETCH FARMER PROFILE ------------------------- */
+
+  const rawProfile = await db.collection("farmers").findOne({ user_id: userId })
+
+  if (!rawProfile) {
+    redirect("/profile-setup")
+  }
+
+  const profile: FarmerProfile = {
+    id: rawProfile._id.toString(),
+    full_name: rawProfile.full_name ?? "Farmer",
+    location:
+      [rawProfile.village, rawProfile.district, rawProfile.state]
+        .filter(Boolean)
+        .join(", ") || "Unknown location",
+  }
+
+  /* -------------------------- FETCH SOIL ANALYSES -------------------------- */
 
   const rawSoilAnalyses = await db
     .collection("soil_analysis")
@@ -57,9 +78,11 @@ export default async function AdvancedSoilHealthPage() {
     created_at: doc.created_at?.toISOString() || doc.test_date.toISOString(),
   }))
 
-  const latestAnalysis = soilAnalyses?.[0]
+  const latestAnalysis = soilAnalyses[0]
   const healthScore = latestAnalysis ? calculateSoilHealthScore(latestAnalysis) : 0
   const healthStatus = getHealthStatus(healthScore)
+
+  /* ---------------------------------- UI ---------------------------------- */
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,7 +90,9 @@ export default async function AdvancedSoilHealthPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Advanced Soil Health Monitoring</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Advanced Soil Health Monitoring
+          </h1>
           <p className="text-gray-600">
             Comprehensive soil analysis, historical tracking, and improvement recommendations
           </p>
@@ -75,8 +100,8 @@ export default async function AdvancedSoilHealthPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Soil Health Score</CardTitle>
+            <CardHeader className="flex justify-between items-center pb-2">
+              <CardTitle>Soil Health Score</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -86,30 +111,32 @@ export default async function AdvancedSoilHealthPage() {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Analyses</CardTitle>
+            <CardHeader className="flex justify-between items-center pb-2">
+              <CardTitle>Total Analyses</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{soilAnalyses?.length || 0}</div>
+              <div className="text-2xl font-bold">{soilAnalyses.length}</div>
               <p className="text-xs text-muted-foreground">Historical records</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">pH Level</CardTitle>
+            <CardHeader className="flex justify-between items-center pb-2">
+              <CardTitle>pH Level</CardTitle>
               <Leaf className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{latestAnalysis?.ph_level?.toFixed(1) || "-"}</div>
+              <div className="text-2xl font-bold">
+                {latestAnalysis?.ph_level?.toFixed(1) || "-"}
+              </div>
               <p className="text-xs text-muted-foreground">Current soil pH</p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Deficiencies</CardTitle>
+            <CardHeader className="flex justify-between items-center pb-2">
+              <CardTitle>Deficiencies</CardTitle>
               <AlertTriangle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -121,38 +148,43 @@ export default async function AdvancedSoilHealthPage() {
           </Card>
         </div>
 
-        <Tabs defaultValue="history" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="history" className="flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Health History
-            </TabsTrigger>
-            <TabsTrigger value="improvement" className="flex items-center gap-2">
-              <Leaf className="h-4 w-4" />
-              Improvement Plan
-            </TabsTrigger>
-            <TabsTrigger value="alerts" className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4" />
-              Nutrient Alerts
-            </TabsTrigger>
+        <Tabs defaultValue="history">
+          <TabsList className="grid grid-cols-3 w-full">
+            <TabsTrigger value="history">Health History</TabsTrigger>
+            <TabsTrigger value="improvement">Improvement Plan</TabsTrigger>
+            <TabsTrigger value="alerts">Nutrient Alerts</TabsTrigger>
           </TabsList>
 
           <TabsContent value="history" className="mt-6">
-            <SoilHealthHistory farmerId={userId} analyses={soilAnalyses || []} latestAnalysis={latestAnalysis} />
+            <SoilHealthHistory
+              farmerId={userId}
+              analyses={soilAnalyses}
+              latestAnalysis={latestAnalysis}
+            />
           </TabsContent>
 
           <TabsContent value="improvement" className="mt-6">
-            <SoilImprovementPlan farmerId={userId} latestAnalysis={latestAnalysis} profile={profile} />
+            <SoilImprovementPlan
+              farmerId={userId}
+              latestAnalysis={latestAnalysis}
+              profile={profile}
+            />
           </TabsContent>
 
           <TabsContent value="alerts" className="mt-6">
-            <NutrientDeficiencyAlert farmerId={userId} latestAnalysis={latestAnalysis} analyses={soilAnalyses || []} />
+            <NutrientDeficiencyAlert
+              farmerId={userId}
+              latestAnalysis={latestAnalysis}
+              analyses={soilAnalyses}
+            />
           </TabsContent>
         </Tabs>
       </main>
     </div>
   )
 }
+
+/* ----------------------------- HELPERS ----------------------------- */
 
 function calculateSoilHealthScore(analysis: SoilAnalysis): number {
   let score = 100
@@ -168,7 +200,7 @@ function calculateSoilHealthScore(analysis: SoilAnalysis): number {
 
   if (analysis.ph_level < 5.5) score -= 25
   else if (analysis.ph_level > 8.5) score -= 20
-  else if (analysis.ph_level < 6.0 || analysis.ph_level > 8.0) score -= 10
+  else if (analysis.ph_level < 6 || analysis.ph_level > 8) score -= 10
 
   if (analysis.organic_matter && analysis.organic_matter < 1) score -= 20
   else if (analysis.organic_matter && analysis.organic_matter < 2) score -= 10
