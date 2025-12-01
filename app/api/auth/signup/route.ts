@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createSession } from "@/lib/auth/session"
 import { getDatabase } from "@/lib/mongodb/client"
-import { ObjectId } from "mongodb"
+import type { MongoUser } from "@/types/mongo"
 
 function hashPassword(password: string): string {
   const secret = process.env.JWT_SECRET || "fallback-secret"
@@ -40,15 +40,13 @@ export async function POST(request: NextRequest) {
     const db = await getDatabase()
     const usersCollection = db.collection("users")
 
-    // Check if user already exists
-    const existing = await usersCollection.findOne({ email: email.toLowerCase() })
+    const existing = await usersCollection.findOne<MongoUser>({ email: email.toLowerCase() })
     if (existing) {
       return NextResponse.json({ error: "User already exists" }, { status: 400 })
     }
 
     const hashedPassword = hashPassword(password)
-    const isAdmin =
-      email.toLowerCase() === (process.env.ADMIN_EMAIL || "admin@agrismart.com").toLowerCase()
+    const isAdmin = email.toLowerCase() === (process.env.ADMIN_EMAIL || "admin@agrismart.com").toLowerCase()
 
     // ✅ Insert user (MongoDB auto creates _id)
     const result = await usersCollection.insertOne({
@@ -65,10 +63,7 @@ export async function POST(request: NextRequest) {
     // ✅ Create session
     await createSession(userId)
 
-    return NextResponse.json(
-      { success: true, userId, isAdmin },
-      { status: 201 }
-    )
+    return NextResponse.json({ success: true, userId, isAdmin }, { status: 201 })
   } catch (error) {
     console.error("[v0] SIGNUP ERROR:", error)
 
@@ -77,7 +72,7 @@ export async function POST(request: NextRequest) {
         error: "Internal server error",
         message: error instanceof Error ? error.message : String(error),
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

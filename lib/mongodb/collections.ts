@@ -1,4 +1,6 @@
+import { ObjectId } from "mongodb"
 import { getDatabase } from "./client"
+import type { MongoUser } from "./types"
 
 // Collection names
 export const COLLECTIONS = {
@@ -51,6 +53,6 @@ export async function initializeCollections() {
 
 export async function isUserAdmin(userId: string): Promise<boolean> {
   const usersCollection = await getCollection(COLLECTIONS.USERS)
-  const user = await usersCollection.findOne({ _id: userId })
+  const user = await usersCollection.findOne<MongoUser>({ _id: new ObjectId(userId) })
   return user?.is_admin === true
 }

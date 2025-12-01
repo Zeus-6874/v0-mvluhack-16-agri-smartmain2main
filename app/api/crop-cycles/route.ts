@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
 import { ObjectId } from "mongodb"
+import type { MongoCropCycle, MongoField } from "@/types/mongo"
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,11 @@ export async function GET(request: NextRequest) {
     const filter: any = {}
 
     // First verify fields belong to user
-    const userFields = await db.collection("fields").find({ farmer_id: userId }).project({ _id: 1 }).toArray()
+    const userFields = await db
+      .collection("fields")
+      .find<MongoField>({ farmer_id: userId })
+      .project({ _id: 1 })
+      .toArray()
 
     const fieldIds = userFields.map((f) => f._id)
     filter.field_id = { $in: fieldIds.map((id) => id.toString()) }
@@ -32,7 +37,11 @@ export async function GET(request: NextRequest) {
       filter.status = status
     }
 
-    const cropCycles = await db.collection("crop_cycles").find(filter).sort({ created_at: -1 }).toArray()
+    const cropCycles = await db
+      .collection("crop_cycles")
+      .find<MongoCropCycle>(filter)
+      .sort({ created_at: -1 })
+      .toArray()
 
     return NextResponse.json({
       success: true,
@@ -67,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb()
 
-    const field = await db.collection("fields").findOne({
+    const field = await db.collection("fields").findOne<MongoField>({
       _id: new ObjectId(field_id),
       farmer_id: userId,
     })
@@ -83,7 +92,7 @@ export async function POST(request: NextRequest) {
 
     const overlappingCycles = await db
       .collection("crop_cycles")
-      .find({
+      .find<MongoCropCycle>({
         field_id,
         status: { $in: ["planning", "planted", "growing"] },
       })
@@ -111,7 +120,7 @@ export async function POST(request: NextRequest) {
       updated_at: new Date(),
     })
 
-    const cropCycle = await db.collection("crop_cycles").findOne({ _id: result.insertedId })
+    const cropCycle = await db.collection("crop_cycles").findOne<MongoCropCycle>({ _id: result.insertedId })
 
     return NextResponse.json({
       success: true,

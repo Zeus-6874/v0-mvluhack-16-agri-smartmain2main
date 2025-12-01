@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
+import type { MongoField } from "@/types/mongo"
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,7 +12,11 @@ export async function GET(request: NextRequest) {
 
     const db = await getDb()
 
-    const fields = await db.collection("fields").find({ farmer_id: userId }).sort({ created_at: -1 }).toArray()
+    const fields = await db
+      .collection("fields")
+      .find<MongoField>({ farmer_id: userId })
+      .sort({ created_at: -1 })
+      .toArray()
 
     return NextResponse.json({
       success: true,
@@ -66,7 +71,7 @@ export async function POST(request: NextRequest) {
       updated_at: new Date(),
     })
 
-    const field = await db.collection("fields").findOne({ _id: result.insertedId })
+    const field = await db.collection("fields").findOne<MongoField>({ _id: result.insertedId })
 
     return NextResponse.json({
       success: true,

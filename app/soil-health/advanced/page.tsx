@@ -8,11 +8,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Activity, TrendingUp, AlertTriangle, Leaf } from "lucide-react"
 import Navbar from "@/components/Navbar"
+import type { MongoSoilAnalysis } from "@/types/mongo"
 
 interface FarmerProfile {
   id: string
   full_name: string
   location?: string
+}
+
+interface SoilAnalysis {
+  id: string
+  nitrogen_level: number
+  phosphorus_level: number
+  potassium_level: number
+  ph_level: number
+  organic_matter?: number
+  analysis_date: string
+  created_at: string
 }
 
 export default async function AdvancedSoilHealthPage() {
@@ -27,15 +39,24 @@ export default async function AdvancedSoilHealthPage() {
   const db = await getDb()
   const profile = await db.collection("farmers").findOne({ user_id: userId })
 
-  // Fetch recent soil analyses
-  const soilAnalyses = await db
+  const rawSoilAnalyses = await db
     .collection("soil_analysis")
-    .find({ farmer_id: userId })
-    .sort({ analysis_date: -1 })
+    .find<MongoSoilAnalysis>({ farmer_id: userId })
+    .sort({ test_date: -1 })
     .limit(10)
     .toArray()
 
-  // Calculate soil health metrics
+  const soilAnalyses: SoilAnalysis[] = rawSoilAnalyses.map((doc) => ({
+    id: doc._id.toString(),
+    nitrogen_level: doc.nitrogen || 0,
+    phosphorus_level: doc.phosphorus || 0,
+    potassium_level: doc.potassium || 0,
+    ph_level: doc.ph_level || 7.0,
+    organic_matter: doc.organic_matter,
+    analysis_date: doc.test_date.toISOString(),
+    created_at: doc.created_at?.toISOString() || doc.test_date.toISOString(),
+  }))
+
   const latestAnalysis = soilAnalyses?.[0]
   const healthScore = latestAnalysis ? calculateSoilHealthScore(latestAnalysis) : 0
   const healthStatus = getHealthStatus(healthScore)
@@ -52,7 +73,6 @@ export default async function AdvancedSoilHealthPage() {
           </p>
         </div>
 
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -101,7 +121,6 @@ export default async function AdvancedSoilHealthPage() {
           </Card>
         </div>
 
-        {/* Main Content */}
         <Tabs defaultValue="history" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="history" className="flex items-center gap-2">
@@ -135,10 +154,9 @@ export default async function AdvancedSoilHealthPage() {
   )
 }
 
-function calculateSoilHealthScore(analysis: any): number {
+function calculateSoilHealthScore(analysis: SoilAnalysis): number {
   let score = 100
 
-  // NPK scoring (40 points total)
   if (analysis.nitrogen_level < 150) score -= 15
   else if (analysis.nitrogen_level > 400) score -= 10
 
@@ -148,17 +166,12 @@ function calculateSoilHealthScore(analysis: any): number {
   if (analysis.potassium_level < 120) score -= 15
   else if (analysis.potassium_level > 300) score -= 5
 
-  // pH scoring (30 points)
   if (analysis.ph_level < 5.5) score -= 25
   else if (analysis.ph_level > 8.5) score -= 20
   else if (analysis.ph_level < 6.0 || analysis.ph_level > 8.0) score -= 10
 
-  // Organic matter (20 points)
-  if (analysis.organic_matter < 1) score -= 20
-  else if (analysis.organic_matter < 2) score -= 10
-
-  // Micronutrients (10 points)
-  // This would be based on actual micronutrient tests
+  if (analysis.organic_matter && analysis.organic_matter < 1) score -= 20
+  else if (analysis.organic_matter && analysis.organic_matter < 2) score -= 10
 
   return Math.max(0, Math.round(score))
 }
@@ -170,14 +183,14 @@ function getHealthStatus(score: number): string {
   return "Poor"
 }
 
-function countDeficiencies(analysis: any): number {
+function countDeficiencies(analysis: SoilAnalysis): number {
   let count = 0
 
   if (analysis.nitrogen_level < 150) count++
   if (analysis.phosphorus_level < 15) count++
   if (analysis.potassium_level < 120) count++
   if (analysis.ph_level < 5.5 || analysis.ph_level > 8.5) count++
-  if (analysis.organic_matter < 2) count++
+  if (analysis.organic_matter && analysis.organic_matter < 2) count++
 
   return count
 }
