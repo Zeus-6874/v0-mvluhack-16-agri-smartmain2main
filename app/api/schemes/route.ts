@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
+import type { SchemeFilter } from "@/types/mongodb-filters"
 
 const fallbackSchemes = [
   {
@@ -104,13 +105,12 @@ export async function GET(request: NextRequest) {
 
     try {
       const db = await getDb()
-      const filter: any = {}
+      const filter: SchemeFilter = {}
 
-      // Only add is_active filter if checking database
       const schemesData = await db.collection("schemes").find(filter).sort({ scheme_name: 1 }).toArray()
 
       if (schemesData && schemesData.length > 0) {
-        schemes = schemesData.map((s: any, index: number) => ({
+        schemes = schemesData.map((s, index: number) => ({
           id: s._id?.toString() || String(index),
           ...s,
         }))
@@ -122,10 +122,10 @@ export async function GET(request: NextRequest) {
     // Apply filters
     let filteredSchemes = schemes
     if (state && state !== "all" && state !== "All India") {
-      filteredSchemes = filteredSchemes.filter((s: any) => s.state === state || s.state === "All India")
+      filteredSchemes = filteredSchemes.filter((s) => s.state === state || s.state === "All India")
     }
     if (category && category !== "all") {
-      filteredSchemes = filteredSchemes.filter((s: any) => s.category === category)
+      filteredSchemes = filteredSchemes.filter((s) => s.category === category)
     }
 
     return NextResponse.json({

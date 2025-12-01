@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
+import type { MarketPriceFilter } from "@/types/mongodb-filters"
 
 const fallbackPrices = [
   {
@@ -125,7 +126,7 @@ export async function GET(request: NextRequest) {
     try {
       const db = await getDb()
       const collection = db.collection("market_prices")
-      const filter: any = {}
+      const filter: MarketPriceFilter = {}
 
       if (crop) {
         filter.crop = new RegExp(crop, "i")
@@ -137,7 +138,7 @@ export async function GET(request: NextRequest) {
       const pricesData = await collection.find(filter).sort({ lastUpdated: -1 }).limit(50).toArray()
 
       if (pricesData && pricesData.length > 0) {
-        prices = pricesData.map((p: any) => ({
+        prices = pricesData.map((p) => ({
           crop: p.crop || p.commodity,
           cropHi: p.cropHi || p.crop,
           price: p.price || p.modal_price || 0,
@@ -153,13 +154,12 @@ export async function GET(request: NextRequest) {
       console.log("[v0] Database not available, using fallback prices")
     }
 
-    // Apply filters to fallback data
     let filteredPrices = prices
     if (crop) {
-      filteredPrices = filteredPrices.filter((p: any) => p.crop.toLowerCase().includes(crop.toLowerCase()))
+      filteredPrices = filteredPrices.filter((p) => p.crop.toLowerCase().includes(crop.toLowerCase()))
     }
     if (state) {
-      filteredPrices = filteredPrices.filter((p: any) => p.state.toLowerCase().includes(state.toLowerCase()))
+      filteredPrices = filteredPrices.filter((p) => p.state.toLowerCase().includes(state.toLowerCase()))
     }
 
     return NextResponse.json({

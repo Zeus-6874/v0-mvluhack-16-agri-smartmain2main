@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
+import type { Db } from "mongodb"
+import type { CropRecommendation, FertilizerRecommendation, MarketInsight } from "@/types/api-responses"
 
 // -------- TYPES --------
 type MandiRecord = {
@@ -13,9 +15,16 @@ type MandiRecord = {
   arrival_date?: string
 }
 
-type CropRecommendation = {
-  name: string
-  suitability_score: number
+interface CropRecommendationParams {
+  nitrogen: number
+  phosphorus: number
+  potassium: number
+  ph: number
+  location: string
+  season: string
+  rainfall: number | null
+  temperature: number | null
+  db: Db
 }
 
 // -------- API HANDLER --------
@@ -47,12 +56,12 @@ export async function POST(request: NextRequest) {
       season,
       rainfall,
       temperature,
-      db
+      db,
     })
 
     return NextResponse.json({
       success: true,
-      ...recommendations
+      ...recommendations,
     })
   } catch (error) {
     console.error(error)
@@ -61,7 +70,7 @@ export async function POST(request: NextRequest) {
 }
 
 // -------- CORE ENGINE --------
-async function generateEnhancedCropRecommendations(params: any) {
+async function generateEnhancedCropRecommendations(params: CropRecommendationParams) {
   const crop_recommendations = generateMLBasedCropRecommendations(params)
   const fertilizer_recommendations = generatePrecisionFertilizerRecommendations(params)
   const market_insights = await generateMarketInsights(crop_recommendations)
@@ -74,7 +83,7 @@ async function generateEnhancedCropRecommendations(params: any) {
 }
 
 // -------- CROP MODEL --------
-function generateMLBasedCropRecommendations(params: any): CropRecommendation[] {
+function generateMLBasedCropRecommendations(params: CropRecommendationParams): CropRecommendation[] {
   return [
     { name: "Rice", suitability_score: 85 },
     { name: "Wheat", suitability_score: 78 },
@@ -83,14 +92,14 @@ function generateMLBasedCropRecommendations(params: any): CropRecommendation[] {
 }
 
 // -------- FERTILIZER --------
-function generatePrecisionFertilizerRecommendations(params: any) {
-  const list = []
+function generatePrecisionFertilizerRecommendations(params: CropRecommendationParams): FertilizerRecommendation[] {
+  const list: FertilizerRecommendation[] = []
   if (params.nitrogen < 150) {
     list.push({
       nutrient: "Nitrogen",
       fertilizer: "Urea",
       quantity: "50kg/acre",
-      priority: "High"
+      priority: "High",
     })
   }
   return list
@@ -115,8 +124,8 @@ async function fetchMandiData(crops: string[]): Promise<MandiRecord[]> {
 }
 
 // -------- MARKET ENGINE --------
-async function generateMarketInsights(cropRecommendations: CropRecommendation[]) {
-  const names = cropRecommendations.map(c => c.name)
+async function generateMarketInsights(cropRecommendations: CropRecommendation[]): Promise<MarketInsight[]> {
+  const names = cropRecommendations.map((c) => c.name)
 
   let mandiData: MandiRecord[] = []
 
@@ -135,15 +144,11 @@ async function generateMarketInsights(cropRecommendations: CropRecommendation[])
     priceMap.get(price.commodity)!.push(price)
   })
 
-  return cropRecommendations.map(crop => {
+  return cropRecommendations.map((crop) => {
     const history = priceMap.get(crop.name) || []
     const latest = history[0]
 
-    const value =
-      Number(latest?.modal_price) ||
-      Number(latest?.max_price) ||
-      Number(latest?.min_price) ||
-      null
+    const value = Number(latest?.modal_price) || Number(latest?.max_price) || Number(latest?.min_price) || null
 
     return {
       crop_name: crop.name,

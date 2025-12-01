@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
 import { isCropSupported } from "@/lib/teachable-machine-models"
+import type { AIPrediction } from "@/types/components"
+import type { DiseaseDetectionResult } from "@/types/api-responses"
 
 // Enhanced disease database with more comprehensive information
 interface DiseaseInfo {
@@ -216,7 +218,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing image or crop name" }, { status: 400 })
     }
 
-    let predictions = null
+    let predictions: AIPrediction[] | null = null
     if (predictionsJson) {
       try {
         predictions = JSON.parse(predictionsJson)
@@ -253,7 +255,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function processAIPredictions(cropName: string, predictions: any[]) {
+async function processAIPredictions(cropName: string, predictions: AIPrediction[]): Promise<DiseaseDetectionResult> {
   try {
     const sortedPredictions = [...predictions].sort((a, b) => b.probability - a.probability)
     const topPrediction = sortedPredictions[0]
