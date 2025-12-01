@@ -24,7 +24,7 @@ interface KnowledgeArticle {
 export default function KnowledgeBase() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [searchTerm, setSearchTerm] = useState("")
   const [articles, setArticles] = useState<KnowledgeArticle[]>([])
   const [loading, setLoading] = useState(true)

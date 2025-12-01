@@ -10,7 +10,7 @@ export default function HomePage() {
   const router = useRouter()
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
 
   const [isLogin, setIsLogin] = useState(true)
   const [loading, setLoading] = useState(false)

@@ -25,7 +25,7 @@ interface MarketPrice {
 export default function MarketPrices() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [prices, setPrices] = useState<MarketPrice[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)

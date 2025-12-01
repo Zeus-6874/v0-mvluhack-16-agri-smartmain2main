@@ -29,7 +29,7 @@ export default function SettingsPage() {
   const router = useRouter()
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)

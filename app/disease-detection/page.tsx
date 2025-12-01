@@ -29,7 +29,7 @@ interface DiseaseDetectionResult {
 export default function DiseaseDetection() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en" // Added fallback to "en" for language
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [isLoadingModel, setIsLoadingModel] = useState(false)
   const [model, setModel] = useState<tmImage.CustomMobileNet | null>(null)

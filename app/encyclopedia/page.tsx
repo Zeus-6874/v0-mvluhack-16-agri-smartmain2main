@@ -31,7 +31,7 @@ interface CropInfo {
 export default function Encyclopedia() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [searchTerm, setSearchTerm] = useState("")
   const [crops, setCrops] = useState<CropInfo[]>([])
   const [filteredCrops, setFilteredCrops] = useState<CropInfo[]>([])

@@ -89,7 +89,7 @@ interface MarketPrice {
 export default function AdminDashboard() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const setLanguage = (lang: string) => tolgee.changeLanguage(lang)
   const router = useRouter()
   const { toast } = useToast()

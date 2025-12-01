@@ -11,7 +11,7 @@ import { useTranslate, useTolgee } from "@tolgee/react"
 export default function WeatherAlerts() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [weatherAlerts, setWeatherAlerts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)

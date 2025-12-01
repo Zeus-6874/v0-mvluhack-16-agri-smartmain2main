@@ -44,7 +44,7 @@ interface Scheme {
 export default function SchemesPage() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [schemes, setSchemes] = useState<Scheme[]>([])
   const [filteredSchemes, setFilteredSchemes] = useState<Scheme[]>([])
   const [loading, setLoading] = useState(true)

@@ -70,7 +70,7 @@ const { language, t, setLanguage } = useI18n()
 import { useTranslate, useTolgee } from "@tolgee/react"
 const { t } = useTranslate()
 const tolgee = useTolgee(['language'])
-const language = tolgee.getLanguage()
+const language = tolgee.getLanguage() || "en"
 const setLanguage = (lang) => tolgee.changeLanguage(lang)
 \`\`\`
 

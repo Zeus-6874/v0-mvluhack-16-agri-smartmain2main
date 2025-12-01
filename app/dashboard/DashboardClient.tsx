@@ -43,7 +43,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   const router = useRouter()
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en" // Added fallback to "en" for language
   const { toast } = useToast()
   const [weather, setWeather] = useState<any>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)

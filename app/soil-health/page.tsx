@@ -41,7 +41,7 @@ interface SoilAnalysisResult {
 export default function SoilHealth() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<SoilAnalysisResult | null>(null)
   const [formData, setFormData] = useState({
