@@ -3,7 +3,15 @@ import { getDb } from "@/lib/mongodb/client"
 import { isCropSupported } from "@/lib/teachable-machine-models"
 
 // Enhanced disease database with more comprehensive information
-const DISEASE_DATABASE = {
+interface DiseaseInfo {
+  symptoms: string[]
+  treatments: string[]
+  prevention: string[]
+}
+
+type DiseaseDatabase = Record<string, Record<string, DiseaseInfo>>
+
+const DISEASE_DATABASE: DiseaseDatabase = {
   Rice: {
     Blast: {
       symptoms: [
@@ -247,31 +255,24 @@ export async function POST(request: NextRequest) {
 
 async function processAIPredictions(cropName: string, predictions: any[]) {
   try {
-    // Sort predictions by probability
     const sortedPredictions = [...predictions].sort((a, b) => b.probability - a.probability)
     const topPrediction = sortedPredictions[0]
 
     console.log("[v0] Top prediction:", topPrediction)
 
-    // Get disease information from database
-    const cropDiseases = DISEASE_DATABASE[cropName as keyof typeof DISEASE_DATABASE]
+    const cropDiseases = DISEASE_DATABASE[cropName]
     const diseaseName = topPrediction.className
     const confidence = topPrediction.probability
 
-    // Find matching disease info or use default
-    let diseaseInfo: {
-      symptoms: string[]
-      treatments: string[]
-      prevention: string[]
-    } | null = cropDiseases?.[diseaseName as keyof typeof cropDiseases] || null
+    const diseaseInfo: DiseaseInfo | undefined = cropDiseases?.[diseaseName]
 
-    if (!diseaseInfo) {
-      // Use first available disease as fallback
-      const firstDisease = Object.keys(cropDiseases || {})[0]
-      diseaseInfo = firstDisease ? cropDiseases[firstDisease as keyof typeof cropDiseases] : null
+    let finalDiseaseInfo = diseaseInfo
+    if (!finalDiseaseInfo && cropDiseases) {
+      const firstDisease = Object.keys(cropDiseases)[0]
+      finalDiseaseInfo = cropDiseases[firstDisease]
     }
 
-    if (!diseaseInfo) {
+    if (!finalDiseaseInfo) {
       return {
         disease_name: diseaseName,
         confidence: confidence,
@@ -285,9 +286,9 @@ async function processAIPredictions(cropName: string, predictions: any[]) {
     return {
       disease_name: diseaseName,
       confidence: confidence,
-      symptoms: diseaseInfo.symptoms,
-      treatments: diseaseInfo.treatments,
-      prevention_tips: diseaseInfo.prevention || [],
+      symptoms: finalDiseaseInfo.symptoms,
+      treatments: finalDiseaseInfo.treatments,
+      prevention_tips: finalDiseaseInfo.prevention,
       crop_name: cropName,
       severity: confidence >= 0.8 ? "Severe" : confidence >= 0.6 ? "Moderate" : "Mild",
       analysis_method: "Teachable Machine AI Model",
@@ -301,13 +302,7 @@ async function processAIPredictions(cropName: string, predictions: any[]) {
 
 async function performAdvancedDiseaseDetection(cropName: string, image: File) {
   try {
-    // In a real implementation, this would integrate with:
-    // 1. TensorFlow.js models for client-side processing
-    // 2. Cloud-based ML APIs (Google Vision AI, AWS Rekognition Custom Labels)
-    // 3. Custom trained models using PyTorch/TensorFlow
-    // 4. Teachable Machine models for quick prototyping
-
-    const cropDiseases = DISEASE_DATABASE[cropName as keyof typeof DISEASE_DATABASE]
+    const cropDiseases = DISEASE_DATABASE[cropName]
 
     if (!cropDiseases) {
       return {
@@ -320,16 +315,13 @@ async function performAdvancedDiseaseDetection(cropName: string, image: File) {
       }
     }
 
-    // Simulate advanced AI analysis with multiple factors
     const diseaseNames = Object.keys(cropDiseases)
     const selectedDisease = diseaseNames[Math.floor(Math.random() * diseaseNames.length)]
-    const diseaseInfo = cropDiseases[selectedDisease as keyof typeof cropDiseases]
+    const diseaseInfo: DiseaseInfo = cropDiseases[selectedDisease]
 
-    // Simulate confidence based on image quality factors
-    const baseConfidence = 0.7 + Math.random() * 0.25 // 70-95% confidence
+    const baseConfidence = 0.7 + Math.random() * 0.25
     const confidence = Math.round(baseConfidence * 100) / 100
 
-    // Determine severity based on confidence
     let severity = "Mild"
     if (confidence >= 0.85) severity = "Severe"
     else if (confidence >= 0.7) severity = "Moderate"
@@ -339,7 +331,7 @@ async function performAdvancedDiseaseDetection(cropName: string, image: File) {
       confidence: confidence,
       symptoms: diseaseInfo.symptoms,
       treatments: diseaseInfo.treatments,
-      prevention_tips: diseaseInfo.prevention || [],
+      prevention_tips: diseaseInfo.prevention,
       crop_name: cropName,
       severity: severity,
       analysis_method: "Advanced AI Model v2.1",
