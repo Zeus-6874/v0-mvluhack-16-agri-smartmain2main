@@ -1,11 +1,17 @@
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth/session"
 import { getDb } from "@/lib/mongodb/client"
+import { isUserAdmin } from "@/lib/mongodb/collections"
 import DataManager from "@/components/admin/DataManager"
 
 export default async function AdminDataPage() {
   const session = await getSession()
-  if (!session || !session.isAdmin) {
+  if (!session) {
+    redirect("/admin/login")
+  }
+
+  const isAdmin = await isUserAdmin(session.userId)
+  if (!isAdmin) {
     redirect("/admin/login")
   }
 
