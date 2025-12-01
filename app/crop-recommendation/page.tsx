@@ -51,7 +51,7 @@ interface RecommendationResult {
 export default function CropRecommendation() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
+  const language = tolgee.getLanguage() || "en"
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [result, setResult] = useState<RecommendationResult | null>(null)
   const [formData, setFormData] = useState({
