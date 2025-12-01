@@ -28,6 +28,8 @@
     "@radix-ui/react-toast": "latest",
     "@radix-ui/react-tooltip": "latest",
     "@tanstack/react-query": "5.87.4",
+    "@teachablemachine/image": "latest",
+    "@tensorflow/tfjs": "^4.22.0",
     "@tolgee/react": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

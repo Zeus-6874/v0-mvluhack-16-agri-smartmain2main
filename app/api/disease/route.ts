@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
+import { isCropSupported } from "@/lib/teachable-machine-models"
 
 // Enhanced disease database with more comprehensive information
 const DISEASE_DATABASE = {
@@ -201,16 +202,26 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const image = formData.get("image") as File
     const cropName = formData.get("crop_name") as string
+    const predictionsJson = formData.get("predictions") as string | null
 
     if (!image || !cropName) {
       return NextResponse.json({ error: "Missing image or crop name" }, { status: 400 })
     }
 
-    // Simulate AI processing time for realistic experience
-    const processingTime = 2000 + Math.random() * 3000 // 2-5 seconds
-    await new Promise((resolve) => setTimeout(resolve, processingTime))
+    let predictions = null
+    if (predictionsJson) {
+      try {
+        predictions = JSON.parse(predictionsJson)
+        console.log("[v0] Received AI predictions:", predictions)
+      } catch (e) {
+        console.error("[v0] Failed to parse predictions:", e)
+      }
+    }
 
-    const detection = await performAdvancedDiseaseDetection(cropName, image)
+    const detection =
+      predictions && isCropSupported(cropName)
+        ? await processAIPredictions(cropName, predictions)
+        : await performAdvancedDiseaseDetection(cropName, image)
 
     const db = await getDb()
     const reportData = await db.collection("disease_reports").insertOne({
@@ -219,6 +230,7 @@ export async function POST(request: NextRequest) {
       confidence_score: detection.confidence,
       symptoms: detection.symptoms,
       treatment_recommendations: detection.treatments,
+      ai_powered: predictions !== null,
       created_at: new Date(),
     })
 
@@ -230,6 +242,56 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("[v0] Disease API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
+}
+
+async function processAIPredictions(cropName: string, predictions: any[]) {
+  try {
+    // Sort predictions by probability
+    const sortedPredictions = [...predictions].sort((a, b) => b.probability - a.probability)
+    const topPrediction = sortedPredictions[0]
+
+    console.log("[v0] Top prediction:", topPrediction)
+
+    // Get disease information from database
+    const cropDiseases = DISEASE_DATABASE[cropName as keyof typeof DISEASE_DATABASE]
+    const diseaseName = topPrediction.className
+    const confidence = topPrediction.probability
+
+    // Find matching disease info or use default
+    let diseaseInfo = cropDiseases?.[diseaseName as keyof typeof cropDiseases]
+
+    if (!diseaseInfo) {
+      // Use first available disease as fallback
+      const firstDisease = Object.keys(cropDiseases || {})[0]
+      diseaseInfo = firstDisease ? cropDiseases[firstDisease as keyof typeof cropDiseases] : null
+    }
+
+    if (!diseaseInfo) {
+      return {
+        disease_name: diseaseName,
+        confidence: confidence,
+        symptoms: ["Disease detected by AI", "Consult local agricultural expert for confirmation"],
+        treatments: ["Contact agricultural extension officer", "Submit sample for laboratory analysis"],
+        crop_name: cropName,
+        severity: confidence >= 0.8 ? "High" : confidence >= 0.5 ? "Moderate" : "Low",
+      }
+    }
+
+    return {
+      disease_name: diseaseName,
+      confidence: confidence,
+      symptoms: diseaseInfo.symptoms,
+      treatments: diseaseInfo.treatments,
+      prevention_tips: diseaseInfo.prevention || [],
+      crop_name: cropName,
+      severity: confidence >= 0.8 ? "Severe" : confidence >= 0.6 ? "Moderate" : "Mild",
+      analysis_method: "Teachable Machine AI Model",
+      ai_confidence: `${(confidence * 100).toFixed(1)}%`,
+    }
+  } catch (error) {
+    console.error("[v0] Error processing AI predictions:", error)
+    throw error
   }
 }
 

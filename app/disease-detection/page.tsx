@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -14,6 +13,8 @@ import { Camera, Upload, Loader2, AlertTriangle, CheckCircle, Brain, Zap } from 
 import { useToast } from "@/hooks/use-toast"
 import { useTranslate, useTolgee } from "@tolgee/react"
 import Image from "next/image"
+import * as tmImage from "@teachablemachine/image"
+import { getModelForCrop, isCropSupported } from "@/lib/teachable-machine-models"
 
 interface DiseaseDetectionResult {
   disease_name: string
@@ -30,6 +31,8 @@ export default function DiseaseDetection() {
   const tolgee = useTolgee(["language"])
   const language = tolgee.getLanguage()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isLoadingModel, setIsLoadingModel] = useState(false)
+  const [model, setModel] = useState<tmImage.CustomMobileNet | null>(null)
   const [selectedCrop, setSelectedCrop] = useState("")
   const [selectedImage, setSelectedImage] = useState<File | null>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -39,24 +42,81 @@ export default function DiseaseDetection() {
   const { toast } = useToast()
 
   const crops = [
-    { value: "Rice", label: language === "hi" ? "चावल" : "Rice" },
-    { value: "Wheat", label: language === "hi" ? "गेहूं" : "Wheat" },
-    { value: "Maize", label: language === "hi" ? "मक्का" : "Maize" },
-    { value: "Cotton", label: language === "hi" ? "कपास" : "Cotton" },
-    { value: "Sugarcane", label: language === "hi" ? "गन्ना" : "Sugarcane" },
-    { value: "Tomato", label: language === "hi" ? "टमाटर" : "Tomato" },
-    { value: "Potato", label: language === "hi" ? "आलू" : "Potato" },
-    { value: "Onion", label: language === "hi" ? "प्याज" : "Onion" },
-    { value: "Soybean", label: language === "hi" ? "सोयाबीन" : "Soybean" },
+    { value: "Rice", label: language === "hi" ? "चावल" : language === "mr" ? "तांदूळ" : "Rice" },
+    { value: "Wheat", label: language === "hi" ? "गेहूं" : language === "mr" ? "गहू" : "Wheat" },
+    { value: "Maize", label: language === "hi" ? "मक्का" : language === "mr" ? "मका" : "Maize" },
+    { value: "Cotton", label: language === "hi" ? "कपास" : language === "mr" ? "कापूस" : "Cotton" },
+    { value: "Sugarcane", label: language === "hi" ? "गन्ना" : language === "mr" ? "ऊस" : "Sugarcane" },
+    { value: "Tomato", label: language === "hi" ? "टमाटर" : language === "mr" ? "टोमॅटो" : "Tomato" },
+    { value: "Potato", label: language === "hi" ? "आलू" : language === "mr" ? "बटाटा" : "Potato" },
+    { value: "Onion", label: language === "hi" ? "प्याज" : language === "mr" ? "कांदा" : "Onion" },
+    { value: "Corn", label: language === "hi" ? "मकई" : language === "mr" ? "मका" : "Corn" },
   ]
+
+  useEffect(() => {
+    const loadModel = async () => {
+      if (!selectedCrop || !isCropSupported(selectedCrop)) {
+        setModel(null)
+        return
+      }
+
+      setIsLoadingModel(true)
+      try {
+        const modelUrl = getModelForCrop(selectedCrop)
+        if (!modelUrl) {
+          console.error("[v0] No model found for crop:", selectedCrop)
+          return
+        }
+
+        const modelURL = modelUrl + "model.json"
+        const metadataURL = modelUrl + "metadata.json"
+
+        console.log("[v0] Loading AI model for", selectedCrop)
+        const loadedModel = await tmImage.load(modelURL, metadataURL)
+        setModel(loadedModel)
+        console.log("[v0] Model loaded successfully")
+
+        toast({
+          title: language === "hi" ? "AI मॉडल तैयार" : language === "mr" ? "AI मॉडेल तयार" : "AI Model Ready",
+          description:
+            language === "hi"
+              ? `${selectedCrop} रोग पहचान के लिए तैयार`
+              : language === "mr"
+                ? `${selectedCrop} रोग ओळख साठी तयार`
+                : `Ready to detect ${selectedCrop} diseases`,
+        })
+      } catch (error) {
+        console.error("[v0] Error loading model:", error)
+        toast({
+          title: language === "hi" ? "मॉडल लोड त्रुटि" : language === "mr" ? "मॉडेल लोड त्रुटी" : "Model Load Error",
+          description:
+            language === "hi"
+              ? "AI मॉडल लोड नहीं हो सका"
+              : language === "mr"
+                ? "AI मॉडेल लोड होऊ शकले नाही"
+                : "Failed to load AI model",
+          variant: "destructive",
+        })
+      } finally {
+        setIsLoadingModel(false)
+      }
+    }
+
+    loadModel()
+  }, [selectedCrop, language, toast])
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
         toast({
-          title: language === "hi" ? "त्रुटि" : "Error",
-          description: language === "hi" ? "फ़ाइल का आकार 10MB से कम होना चाहिए" : "File size should be less than 10MB",
+          title: language === "hi" ? "त्रुटि" : language === "mr" ? "त्रुटी" : "Error",
+          description:
+            language === "hi"
+              ? "फ़ाइल का आकार 10MB से कम होना चाहिए"
+              : language === "mr"
+                ? "फाइलचे आकार 10MB निम्न असे असावे"
+                : "File size should be less than 10MB",
           variant: "destructive",
         })
         return
@@ -74,8 +134,27 @@ export default function DiseaseDetection() {
   const handleDetectDisease = async () => {
     if (!selectedImage || !selectedCrop) {
       toast({
-        title: language === "hi" ? "त्रुटि" : "Error",
-        description: language === "hi" ? "कृपया फसल चुनें और छवि अपलोड करें" : "Please select crop and upload image",
+        title: language === "hi" ? "त्रुटि" : language === "mr" ? "त्रुटी" : "Error",
+        description:
+          language === "hi"
+            ? "कृपया फसल चुनें और छवि अपलोड करें"
+            : language === "mr"
+              ? "कृपया पीक निवडा आणि प्रतिमा अपलोड करा"
+              : "Please select crop and upload image",
+        variant: "destructive",
+      })
+      return
+    }
+
+    if (!model && isCropSupported(selectedCrop)) {
+      toast({
+        title: language === "hi" ? "मॉडल लोड हो रहा है" : language === "mr" ? "मॉडेल लोड होत आहे" : "Loading Model",
+        description:
+          language === "hi"
+            ? "कृपया AI मॉडल लोड होने तक प्रतीक्षा करें"
+            : language === "mr"
+              ? "कृपया AI मॉडेल लोड होईपर्यंत प्रतीक्षा करा"
+              : "Please wait for AI model to load",
         variant: "destructive",
       })
       return
@@ -84,9 +163,27 @@ export default function DiseaseDetection() {
     setIsAnalyzing(true)
 
     try {
+      let predictions = null
+      if (model && isCropSupported(selectedCrop)) {
+        const img = new window.Image()
+        img.src = imagePreview!
+
+        await new Promise((resolve) => {
+          img.onload = resolve
+        })
+
+        console.log("[v0] Running AI prediction...")
+        predictions = await model.predict(img)
+        console.log("[v0] Predictions:", predictions)
+      }
+
       const formData = new FormData()
       formData.append("image", selectedImage)
       formData.append("crop_name", selectedCrop)
+
+      if (predictions) {
+        formData.append("predictions", JSON.stringify(predictions))
+      }
 
       const response = await fetch("/api/disease", {
         method: "POST",
@@ -97,19 +194,29 @@ export default function DiseaseDetection() {
 
       if (data.success) {
         setDetectionResult(data.detection)
-        setAnalysisHistory((prev) => [data.detection, ...prev.slice(0, 4)]) // Keep last 5 analyses
+        setAnalysisHistory((prev) => [data.detection, ...prev.slice(0, 4)])
         toast({
-          title: language === "hi" ? "विश्लेषण पूर्ण" : "Analysis Complete",
-          description: language === "hi" ? "रोग की पहचान सफलतापूर्वक की गई" : "Disease detection completed successfully",
+          title: language === "hi" ? "विश्लेषण पूर्ण" : language === "mr" ? "विश्लेषण पूर्ण" : "Analysis Complete",
+          description:
+            language === "hi"
+              ? "रोग की पहचान सफलतापूर्वक की गई"
+              : language === "mr"
+                ? "रोग ओळख यशस्वीरित्या पूर्ण झाली"
+                : "Disease detection completed successfully",
         })
       } else {
         throw new Error(data.error || "Detection failed")
       }
     } catch (error) {
-      console.error("Detection error:", error)
+      console.error("[v0] Detection error:", error)
       toast({
-        title: language === "hi" ? "त्रुटि" : "Error",
-        description: language === "hi" ? "रोग की पहचान में त्रुटि हुई" : "Error occurred during disease detection",
+        title: language === "hi" ? "त्रुटि" : language === "mr" ? "त्रुटी" : "Error",
+        description:
+          language === "hi"
+            ? "रोग की पहचान में त्रुटि हुई"
+            : language === "mr"
+              ? "रोग ओळखीत त्रुटी झाली"
+              : "Error occurred during disease detection",
         variant: "destructive",
       })
     } finally {
@@ -124,9 +231,9 @@ export default function DiseaseDetection() {
   }
 
   const getSeverityLevel = (confidence: number) => {
-    if (confidence >= 0.8) return language === "hi" ? "गंभीर" : "Severe"
-    if (confidence >= 0.6) return language === "hi" ? "मध्यम" : "Moderate"
-    return language === "hi" ? "हल्का" : "Mild"
+    if (confidence >= 0.8) return language === "hi" ? "गंभीर" : language === "mr" ? "गंभीर" : "Severe"
+    if (confidence >= 0.6) return language === "hi" ? "मध्यम" : language === "mr" ? "मध्यम" : "Moderate"
+    return language === "hi" ? "हल्का" : language === "mr" ? "हल्का" : "Mild"
   }
 
   return (
@@ -141,35 +248,61 @@ export default function DiseaseDetection() {
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                {language === "hi" ? "AI रोग पहचान प्रणाली" : "AI Disease Detection System"}
+                {language === "hi"
+                  ? "AI रोग पहचान प्रणाली"
+                  : language === "mr"
+                    ? "AI रोग ओळख प्रणाली"
+                    : "AI Disease Detection System"}
               </h1>
               <p className="text-gray-600">
                 {language === "hi"
                   ? "उन्नत AI तकनीक के साथ फसल रोगों की तुरंत पहचान करें"
-                  : "Instantly identify crop diseases with advanced AI technology"}
+                  : language === "mr"
+                    ? "प्रगत AI तंत्रज्ञानासह पीक रोगांची तात्काळ ओळख करा"
+                    : "Instantly identify crop diseases with advanced AI technology"}
               </p>
             </div>
           </div>
 
-          {/* AI Features Banner */}
+          {isLoadingModel && (
+            <Alert className="bg-blue-50 border-blue-200 mb-4">
+              <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                {language === "hi"
+                  ? "AI मॉडल लोड हो रहा है..."
+                  : language === "mr"
+                    ? "AI मॉडेल लोड होत आहे..."
+                    : "Loading AI model..."}
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl p-6 mb-6">
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-xl font-semibold mb-2">
-                  {language === "hi" ? "AI-संचालित विश्लेषण" : "AI-Powered Analysis"}
+                  {language === "hi"
+                    ? "AI-संचालित विश्लेषण"
+                    : language === "mr"
+                      ? "AI संचालित विश्लेषण"
+                      : "AI-Powered Analysis"}
                 </h2>
                 <p className="text-blue-100">
-                  {language === "hi" ? "95% सटीकता के साथ 50+ रोगों की पहचान" : "Identify 50+ diseases with 95% accuracy"}
+                  {language === "hi"
+                    ? "95% सटीकता के साथ 50+ रोगों की पहचान"
+                    : language === "mr"
+                      ? "95% सटीकता साठी 50+ रोगांची पहचान"
+                      : "Identify 50+ diseases with 95% accuracy"}
                 </p>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-center">
                   <Zap className="h-8 w-8 mx-auto mb-1" />
-                  <div className="text-sm">{language === "hi" ? "तुरंत" : "Instant"}</div>
+                  <div className="text-sm">{language === "hi" ? "तुरंत" : language === "mr" ? "तुरंत" : "Instant"}</div>
                 </div>
                 <div className="text-center">
                   <Brain className="h-8 w-8 mx-auto mb-1" />
-                  <div className="text-sm">{language === "hi" ? "स्मार्ट" : "Smart"}</div>
+                  <div className="text-sm">{language === "hi" ? "स्मार्ट" : language === "mr" ? "स्मार्ट" : "Smart"}</div>
                 </div>
               </div>
             </div>
@@ -177,22 +310,24 @@ export default function DiseaseDetection() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Image Upload and Detection */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Camera className="h-5 w-5 text-blue-600" />
-                  {language === "hi" ? "छवि अपलोड करें" : "Upload Image"}
+                  {language === "hi" ? "छवि अपलोड करें" : language === "mr" ? "प्रतिमा अपलोड करा" : "Upload Image"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Crop Selection */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">{language === "hi" ? "फसल का चयन करें" : "Select Crop"}</Label>
+                  <Label className="text-sm font-medium">
+                    {language === "hi" ? "फसल का चयन करें" : language === "mr" ? "पीक निवडा" : "Select Crop"}
+                  </Label>
                   <Select value={selectedCrop} onValueChange={setSelectedCrop}>
                     <SelectTrigger className="h-12">
-                      <SelectValue placeholder={language === "hi" ? "फसल चुनें" : "Choose crop"} />
+                      <SelectValue
+                        placeholder={language === "hi" ? "फसल चुनें" : language === "mr" ? "पीक निवडा" : "Choose crop"}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {crops.map((crop) => (
@@ -204,7 +339,6 @@ export default function DiseaseDetection() {
                   </Select>
                 </div>
 
-                {/* Image Upload Area */}
                 <div className="space-y-4">
                   <div
                     className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/50 transition-all duration-200"
@@ -222,7 +356,11 @@ export default function DiseaseDetection() {
                           />
                         </div>
                         <p className="text-sm text-gray-600">
-                          {language === "hi" ? "छवि बदलने के लिए क्लिक करें" : "Click to change image"}
+                          {language === "hi"
+                            ? "छवि बदलने के लिए क्लिक करें"
+                            : language === "mr"
+                              ? "प्रतिमा बदलण्यासाठी क्लिक करा"
+                              : "Click to change image"}
                         </p>
                       </div>
                     ) : (
@@ -230,10 +368,18 @@ export default function DiseaseDetection() {
                         <Upload className="h-16 w-16 text-gray-400 mx-auto" />
                         <div>
                           <p className="text-lg font-medium text-gray-700">
-                            {language === "hi" ? "छवि अपलोड करें" : "Upload Image"}
+                            {language === "hi"
+                              ? "छवि अपलोड करें"
+                              : language === "mr"
+                                ? "प्रतिमा अपलोड करा"
+                                : "Upload Image"}
                           </p>
                           <p className="text-sm text-gray-500">
-                            {language === "hi" ? "PNG, JPG या JPEG (अधिकतम 10MB)" : "PNG, JPG or JPEG (Max 10MB)"}
+                            {language === "hi"
+                              ? "PNG, JPG या JPEG (अधिकतम 10MB)"
+                              : language === "mr"
+                                ? "PNG, JPG असा या JPEG (अधिकतम 10MB)"
+                                : "PNG, JPG or JPEG (Max 10MB)"}
                           </p>
                         </div>
                       </div>
@@ -248,7 +394,6 @@ export default function DiseaseDetection() {
                   />
                 </div>
 
-                {/* Detect Button */}
                 <Button
                   onClick={handleDetectDisease}
                   disabled={isAnalyzing || !selectedImage || !selectedCrop}
@@ -258,52 +403,64 @@ export default function DiseaseDetection() {
                   {isAnalyzing ? (
                     <>
                       <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      {language === "hi" ? "AI विश्लेषण हो रहा है..." : "AI Analyzing..."}
+                      {language === "hi"
+                        ? "AI विश्लेषण हो रहा है..."
+                        : language === "mr"
+                          ? "AI विश्लेषण झाले आहे..."
+                          : "AI Analyzing..."}
                     </>
                   ) : (
                     <>
                       <Brain className="mr-2 h-5 w-5" />
-                      {language === "hi" ? "AI से रोग की पहचान करें" : "Detect Disease with AI"}
+                      {language === "hi"
+                        ? "AI से रोग की पहचान करें"
+                        : language === "mr"
+                          ? "AI साठी रोग पहचाना"
+                          : "Detect Disease with AI"}
                     </>
                   )}
                 </Button>
               </CardContent>
             </Card>
 
-            {/* Detection Results */}
             {detectionResult && (
               <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <AlertTriangle className="h-5 w-5 text-orange-600" />
-                    {language === "hi" ? "AI विश्लेषण परिणाम" : "AI Analysis Results"}
+                    {language === "hi"
+                      ? "AI विश्लेषण परिणाम"
+                      : language === "mr"
+                        ? "AI विश्लेषण परिणाम"
+                        : "AI Analysis Results"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {/* Disease Information */}
                   <div className="flex items-center justify-between p-6 bg-gradient-to-r from-orange-50 to-red-50 rounded-xl border border-orange-200">
                     <div>
                       <h3 className="text-xl font-bold text-orange-800 mb-1">{detectionResult.disease_name}</h3>
                       <p className="text-sm text-orange-600 mb-2">
-                        {language === "hi" ? "फसल:" : "Crop:"} {detectionResult.crop_name}
+                        {language === "hi" ? "फसल:" : language === "mr" ? "पीक:" : "Crop:"} {detectionResult.crop_name}
                       </p>
                       <p className="text-sm text-orange-600">
-                        {language === "hi" ? "गंभीरता:" : "Severity:"} {getSeverityLevel(detectionResult.confidence)}
+                        {language === "hi" ? "गंभीरता:" : language === "mr" ? "गंभीरता:" : "Severity:"}{" "}
+                        {getSeverityLevel(detectionResult.confidence)}
                       </p>
                     </div>
                     <div className="text-right">
                       <Badge className={`${getConfidenceColor(detectionResult.confidence)} border text-lg px-4 py-2`}>
                         {Math.round(detectionResult.confidence * 100)}%
                       </Badge>
-                      <p className="text-xs text-gray-500 mt-1">{language === "hi" ? "विश्वसनीयता" : "Confidence"}</p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {language === "hi" ? "विश्वसनीयता" : language === "mr" ? "विश्वसनीयता" : "Confidence"}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Symptoms */}
                   <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-lg">
                       <AlertTriangle className="h-5 w-5 text-red-600" />
-                      {language === "hi" ? "पहचाने गए लक्षण" : "Identified Symptoms"}
+                      {language === "hi" ? "पहचाने गए लक्षण" : language === "mr" ? "पहचानलेले लक्षण" : "Identified Symptoms"}
                     </h4>
                     <div className="grid gap-3">
                       {detectionResult.symptoms.map((symptom, index) => (
@@ -314,11 +471,14 @@ export default function DiseaseDetection() {
                     </div>
                   </div>
 
-                  {/* Treatment Recommendations */}
                   <div>
                     <h4 className="font-semibold mb-3 flex items-center gap-2 text-lg">
                       <CheckCircle className="h-5 w-5 text-green-600" />
-                      {language === "hi" ? "AI सुझावित उपचार" : "AI Recommended Treatments"}
+                      {language === "hi"
+                        ? "AI सुझावित उपचार"
+                        : language === "mr"
+                          ? "AI सुझावित उपचार"
+                          : "AI Recommended Treatments"}
                     </h4>
                     <div className="grid gap-3">
                       {detectionResult.treatments.map((treatment, index) => (
@@ -334,12 +494,12 @@ export default function DiseaseDetection() {
             )}
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-6">
-            {/* Instructions */}
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-lg">{language === "hi" ? "उपयोग निर्देश" : "How to Use"}</CardTitle>
+                <CardTitle className="text-lg">
+                  {language === "hi" ? "उपयोग निर्देश" : language === "mr" ? "उपयोग निर्देश" : "How to Use"}
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-start gap-3">
@@ -347,7 +507,11 @@ export default function DiseaseDetection() {
                     1
                   </div>
                   <p className="text-sm font-medium">
-                    {language === "hi" ? "अपनी फसल का चयन करें" : "Select your crop type"}
+                    {language === "hi"
+                      ? "अपनी फसल का चयन करें"
+                      : language === "mr"
+                        ? "तुमच्या पीकाचे निवडा करा"
+                        : "Select your crop type"}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -357,7 +521,9 @@ export default function DiseaseDetection() {
                   <p className="text-sm font-medium">
                     {language === "hi"
                       ? "प्रभावित पत्ती या पौधे की स्पष्ट छवि अपलोड करें"
-                      : "Upload clear image of affected leaf or plant"}
+                      : language === "mr"
+                        ? "प्रभावित पत्ती या पौधाची स्पष्ट प्रतिमा अपलोड करा"
+                        : "Upload clear image of affected leaf or plant"}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -365,7 +531,11 @@ export default function DiseaseDetection() {
                     3
                   </div>
                   <p className="text-sm font-medium">
-                    {language === "hi" ? "AI विश्लेषण के लिए प्रतीक्षा करें" : "Wait for AI analysis"}
+                    {language === "hi"
+                      ? "AI विश्लेषण के लिए प्रतीक्षा करें"
+                      : language === "mr"
+                        ? "AI विश्लेषणसाठी प्रतीक्षा करा"
+                        : "Wait for AI analysis"}
                   </p>
                 </div>
                 <div className="flex items-start gap-3">
@@ -373,50 +543,72 @@ export default function DiseaseDetection() {
                     4
                   </div>
                   <p className="text-sm font-medium">
-                    {language === "hi" ? "परिणाम और उपचार सुझाव देखें" : "View results and treatment suggestions"}
+                    {language === "hi"
+                      ? "परिणाम और उपचार सुझाव देखें"
+                      : language === "mr"
+                        ? "परिणाम आणि उपचार सुझाव देखा"
+                        : "View results and treatment suggestions"}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Tips */}
             <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-lg">
-                  {language === "hi" ? "बेहतर परिणाम के लिए सुझाव" : "Tips for Better Results"}
+                  {language === "hi"
+                    ? "बेहतर परिणाम के लिए सुझाव"
+                    : language === "mr"
+                      ? "बेहतर परिणामसाठी सुझाव"
+                      : "Tips for Better Results"}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
                   <h4 className="font-semibold text-green-800 mb-2">
-                    {language === "hi" ? "अच्छी रोशनी" : "Good Lighting"}
+                    {language === "hi" ? "अच्छी रोशनी" : language === "mr" ? "अच्छी रोशनी" : "Good Lighting"}
                   </h4>
                   <p className="text-sm text-green-700">
-                    {language === "hi" ? "प्राकृतिक रोशनी में फोटो लें" : "Take photos in natural light"}
+                    {language === "hi"
+                      ? "प्राकृतिक रोशनी में फोटो लें"
+                      : language === "mr"
+                        ? "प्राकृतिक रोशनीत फोटो ला"
+                        : "Take photos in natural light"}
                   </p>
                 </div>
                 <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                  <h4 className="font-semibold text-blue-800 mb-2">{language === "hi" ? "स्पष्ट छवि" : "Clear Focus"}</h4>
+                  <h4 className="font-semibold text-blue-800 mb-2">
+                    {language === "hi" ? "स्पष्ट छवि" : language === "mr" ? "स्पष्ट प्रतिमा" : "Clear Focus"}
+                  </h4>
                   <p className="text-sm text-blue-700">
-                    {language === "hi" ? "प्रभावित हिस्से पर फोकस करें" : "Focus on the affected area"}
+                    {language === "hi"
+                      ? "प्रभावित हिस्से पर फोकस करें"
+                      : language === "mr"
+                        ? "प्रभावित हिस्सेत फोकस करा"
+                        : "Focus on the affected area"}
                   </p>
                 </div>
                 <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
                   <h4 className="font-semibold text-purple-800 mb-2">
-                    {language === "hi" ? "सही कोण" : "Right Angle"}
+                    {language === "hi" ? "सही कोण" : language === "mr" ? "सही कोण" : "Right Angle"}
                   </h4>
                   <p className="text-sm text-purple-700">
-                    {language === "hi" ? "पत्ती के समानांतर फोटो लें" : "Take photo parallel to the leaf"}
+                    {language === "hi"
+                      ? "पत्ती के समानांतर फोटो लें"
+                      : language === "mr"
+                        ? "पत्तीत समानांतर फोटो ला"
+                        : "Take photo parallel to the leaf"}
                   </p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Analysis History */}
             {analysisHistory.length > 0 && (
               <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
                 <CardHeader>
-                  <CardTitle className="text-lg">{language === "hi" ? "हाल के विश्लेषण" : "Recent Analyses"}</CardTitle>
+                  <CardTitle className="text-lg">
+                    {language === "hi" ? "हाल के विश्लेषण" : language === "mr" ? "हालचस विश्लेषण" : "Recent Analyses"}
+                  </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {analysisHistory.slice(0, 3).map((analysis, index) => (
