@@ -17,9 +17,17 @@ export default async function AdminDataPage() {
 
   const db = await getDb()
 
-  const schemeCategories = await db.collection("scheme_categories").find({}).sort({ name: 1 }).toArray()
+  const schemeCategoriesRaw = await db.collection("scheme_categories").find({}).sort({ name: 1 }).toArray()
+  const schemeCategories = schemeCategoriesRaw.map((cat) => ({
+    id: cat._id.toString(),
+    name: (cat.name as string) || "Unnamed Category",
+  }))
 
-  const cropCategories = await db.collection("crop_categories").find({}).sort({ name: 1 }).toArray()
+  const cropCategoriesRaw = await db.collection("crop_categories").find({}).sort({ name: 1 }).toArray()
+  const cropCategories = cropCategoriesRaw.map((cat) => ({
+    id: cat._id.toString(),
+    name: (cat.name as string) || "Unnamed Category",
+  }))
 
   return (
     <div className="max-w-6xl mx-auto py-8">
@@ -27,7 +35,7 @@ export default async function AdminDataPage() {
       <p className="text-sm text-muted-foreground">
         Manage schemes, crops, and all knowledge datasets pulled from Maharashtra horticulture board, ICAR, and CROPSAP.
       </p>
-      <DataManager schemeCategories={schemeCategories ?? []} cropCategories={cropCategories ?? []} />
+      <DataManager schemeCategories={schemeCategories} cropCategories={cropCategories} />
     </div>
   )
 }
