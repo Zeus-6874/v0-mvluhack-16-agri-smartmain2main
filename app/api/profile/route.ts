@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         { returnDocument: "after" },
       )
     } else {
-      result = await farmersCollection.insertOne({
+      await farmersCollection.insertOne({
         ...profileData,
         created_at: new Date(),
       })
