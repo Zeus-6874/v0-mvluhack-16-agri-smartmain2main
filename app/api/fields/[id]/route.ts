@@ -3,7 +3,8 @@ import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
 import { ObjectId } from "mongodb"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const db = await getDb()
 
     const field = await db.collection("fields").findOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId(id),
       farmer_id: userId,
     })
 
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     }
 
     // Fetch related crop cycles
-    const cropCycles = await db.collection("crop_cycles").find({ field_id: params.id }).toArray()
+    const cropCycles = await db.collection("crop_cycles").find({ field_id: id }).toArray()
 
     return NextResponse.json({ success: true, field: { ...field, crop_cycles: cropCycles } })
   } catch (error) {
@@ -31,7 +32,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -52,7 +54,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const db = await getDb()
 
     const result = await db.collection("fields").findOneAndUpdate(
-      { _id: new ObjectId(params.id), farmer_id: userId },
+      { _id: new ObjectId(id), farmer_id: userId },
       {
         $set: {
           field_name: field_name.trim(),
@@ -77,7 +79,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -89,7 +92,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     // Check for active crop cycles
     const activeCycles = await db
       .collection("crop_cycles")
-      .find({ field_id: params.id, status: { $in: ["planning", "planted", "growing"] } })
+      .find({ field_id: id, status: { $in: ["planning", "planted", "growing"] } })
       .limit(1)
       .toArray()
 
@@ -98,7 +101,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     const result = await db.collection("fields").deleteOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId(id),
       farmer_id: userId,
     })
 

@@ -13,7 +13,8 @@ function assertAdmin(userId?: string | null) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     assertAdmin(userId)
@@ -21,7 +22,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     const db = await getDb()
     const result = await db.collection("schemes").findOneAndUpdate(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       {
         $set: {
           name: payload.name,
@@ -60,13 +61,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     assertAdmin(userId)
 
     const db = await getDb()
-    const result = await db.collection("schemes").deleteOne({ _id: new ObjectId(params.id) })
+    const result = await db.collection("schemes").deleteOne({ _id: new ObjectId(id) })
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Failed to delete scheme" }, { status: 500 })

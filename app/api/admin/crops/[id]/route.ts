@@ -9,7 +9,8 @@ function assertAdmin(userId?: string | null) {
   if (adminIds.length > 0 && !adminIds.includes(userId)) throw new Error("FORBIDDEN")
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     assertAdmin(userId)
@@ -17,7 +18,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const db = await getDb()
 
     const result = await db.collection("crops").findOneAndUpdate(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       {
         $set: {
           common_name: payload.common_name,
@@ -56,13 +57,14 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     assertAdmin(userId)
     const db = await getDb()
 
-    const result = await db.collection("crops").deleteOne({ _id: new ObjectId(params.id) })
+    const result = await db.collection("crops").deleteOne({ _id: new ObjectId(id) })
 
     if (result.deletedCount === 0) {
       return NextResponse.json({ error: "Crop not found" }, { status: 404 })

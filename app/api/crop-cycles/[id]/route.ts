@@ -3,7 +3,8 @@ import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
 import { ObjectId } from "mongodb"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -17,7 +18,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Verify ownership via field
     const cropCycle = await db.collection("crop_cycles").findOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId(id),
     })
 
     if (!cropCycle) {
@@ -35,7 +36,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Update the crop cycle
     const result = await db.collection("crop_cycles").findOneAndUpdate(
-      { _id: new ObjectId(params.id) },
+      { _id: new ObjectId(id) },
       {
         $set: {
           crop_name: crop_name?.trim(),
@@ -58,7 +59,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -69,7 +71,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
 
     // Verify ownership via field
     const cropCycle = await db.collection("crop_cycles").findOne({
-      _id: new ObjectId(params.id),
+      _id: new ObjectId(id),
     })
 
     if (!cropCycle) {
@@ -86,7 +88,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     }
 
     //Delete the crop cycle
-    await db.collection("crop_cycles").deleteOne({ _id: new ObjectId(params.id) })
+    await db.collection("crop_cycles").deleteOne({ _id: new ObjectId(id) })
 
     return NextResponse.json({ success: true, message: "Crop cycle deleted successfully" })
   } catch (error) {
