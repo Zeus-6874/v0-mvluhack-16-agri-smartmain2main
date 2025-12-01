@@ -1,38 +1,37 @@
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const languages = searchParams.get("languages") || "en,hi,mr"
-
-  const apiUrl = process.env.TOLGEE_API_URL
-  const apiKey = process.env.TOLGEE_API_KEY
-
-  if (!apiUrl || !apiKey) {
-    return NextResponse.json({ error: "Tolgee configuration missing" }, { status: 500 })
-  }
-
   try {
-    // Fetch translations from Tolgee API
-    const response = await fetch(`${apiUrl}/v2/projects/translations?languages=${languages}`, {
+    const { searchParams } = new URL(request.url)
+    const languages = searchParams.get("languages") || "en,hi,mr"
+
+    const apiKey = process.env.TOLGEE_API_KEY
+    const apiUrl = process.env.TOLGEE_API_URL
+
+    if (!apiKey || !apiUrl) {
+      return NextResponse.json({ error: "Tolgee not configured" }, { status: 500 })
+    }
+
+    // Fetch translations from Tolgee API server-side
+    const response = await fetch(`${apiUrl}/v2/projects/export?languages=${languages}&format=JSON`, {
       headers: {
         "X-API-Key": apiKey,
       },
-      next: { revalidate: 300 }, // Cache for 5 minutes
     })
 
     if (!response.ok) {
-      throw new Error("Failed to fetch translations")
+      throw new Error(`Tolgee API error: ${response.status}`)
     }
 
-    const data = await response.json()
+    const translations = await response.json()
 
-    return NextResponse.json(data, {
+    return NextResponse.json(translations, {
       headers: {
-        "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
+        "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400",
       },
     })
   } catch (error) {
-    console.error("Translation fetch error:", error)
+    console.error("[v0] Error fetching translations:", error)
     return NextResponse.json({ error: "Failed to fetch translations" }, { status: 500 })
   }
 }

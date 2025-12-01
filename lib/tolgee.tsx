@@ -1,28 +1,11 @@
 "use client"
 
 import { Tolgee, FormatSimple, TolgeeProvider as TolgeeProviderBase } from "@tolgee/react"
-import { useRouter } from "next/navigation"
 import { type ReactNode, useMemo, useEffect, useState } from "react"
 
-const ServerProxyFetch = () => ({
-  getRecord: async ({ language }: { language: string }) => {
-    try {
-      const response = await fetch(`/api/translations?languages=${language}`)
-      if (!response.ok) {
-        throw new Error("Failed to fetch translations")
-      }
-      const data = await response.json()
-      return data[language] || {}
-    } catch (error) {
-      console.error("Failed to load translations:", error)
-      return {}
-    }
-  },
-})
-
 export function TolgeeProvider({ children }: { children: ReactNode }) {
-  const router = useRouter()
   const [currentLocale, setCurrentLocale] = useState<string>("en")
+  const [translations, setTranslations] = useState<Record<string, any>>({})
 
   // Load language from localStorage
   useEffect(() => {
@@ -30,16 +13,34 @@ export function TolgeeProvider({ children }: { children: ReactNode }) {
     setCurrentLocale(savedLanguage)
   }, [])
 
+  useEffect(() => {
+    async function fetchTranslations() {
+      try {
+        const response = await fetch("/api/translations?languages=en,hi,mr")
+        if (response.ok) {
+          const data = await response.json()
+          setTranslations(data)
+        } else {
+          console.error("[v0] Failed to fetch translations from server")
+        }
+      } catch (error) {
+        console.error("[v0] Error fetching translations:", error)
+      }
+    }
+
+    fetchTranslations()
+  }, [])
+
   const tolgee = useMemo(() => {
     return Tolgee()
       .use(FormatSimple())
-      .use(ServerProxyFetch())
       .init({
+        staticData: translations,
         defaultLanguage: currentLocale,
         fallbackLanguage: "en",
         availableLanguages: ["en", "hi", "mr"],
       })
-  }, [currentLocale])
+  }, [currentLocale, translations])
 
   return <TolgeeProviderBase tolgee={tolgee}>{children}</TolgeeProviderBase>
 }
