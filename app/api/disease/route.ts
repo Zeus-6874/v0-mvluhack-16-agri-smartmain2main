@@ -259,7 +259,11 @@ async function processAIPredictions(cropName: string, predictions: any[]) {
     const confidence = topPrediction.probability
 
     // Find matching disease info or use default
-    let diseaseInfo = cropDiseases?.[diseaseName as keyof typeof cropDiseases]
+    let diseaseInfo: {
+      symptoms: string[]
+      treatments: string[]
+      prevention: string[]
+    } | null = cropDiseases?.[diseaseName as keyof typeof cropDiseases] || null
 
     if (!diseaseInfo) {
       // Use first available disease as fallback
