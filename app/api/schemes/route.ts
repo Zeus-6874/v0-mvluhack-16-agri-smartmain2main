@@ -108,23 +108,44 @@ export async function GET(request: NextRequest) {
       const db = await getDb()
       const filter: Filter<MongoScheme> = {}
 
-      const schemesData = await db.collection<MongoScheme>("schemes").find(filter).sort({ scheme_name: 1 }).toArray()
+      const schemesData = await db
+        .collection<MongoScheme>("schemes")
+        .find(filter)
+        .sort({ scheme_name: 1 })
+        .toArray()
 
       if (schemesData && schemesData.length > 0) {
         schemes = schemesData.map((s, index: number) => ({
           id: s._id?.toString() || String(index),
-          ...s,
+
+          scheme_name: s.scheme_name || "Government Scheme",
+          description: s.description || "No description available",
+          eligibility: s.eligibility || "Not specified",
+          benefits: s.benefits || "Not available",
+          application_process: s.application_process || "Visit official website",
+          contact_info: s.contact_info || "N/A",
+
+          state: s.state || "All India",
+          category: s.category || "General",
+          is_active: s.is_active ?? true,
+          beneficiaries_count: Number(s.beneficiaries_count || 0),
+          budget_allocation: s.budget_allocation || "N/A",
+          website_url: s.website_url || "#",
         }))
       }
     } catch (dbError) {
-      console.log("[v0] Database not available, using fallback data")
+      console.log("[Schemes API] Database not available, using fallback data")
     }
 
-    // Apply filters
+    // ---------- FILTERING ----------
     let filteredSchemes = schemes
+
     if (state && state !== "all" && state !== "All India") {
-      filteredSchemes = filteredSchemes.filter((s) => s.state === state || s.state === "All India")
+      filteredSchemes = filteredSchemes.filter(
+        (s) => s.state === state || s.state === "All India"
+      )
     }
+
     if (category && category !== "all") {
       filteredSchemes = filteredSchemes.filter((s) => s.category === category)
     }
@@ -136,7 +157,8 @@ export async function GET(request: NextRequest) {
       filters: { state, category },
     })
   } catch (error) {
-    console.error("[v0] Schemes API Error:", error)
+    console.error("[Schemes API Error]", error)
+
     return NextResponse.json({
       success: true,
       schemes: fallbackSchemes,
