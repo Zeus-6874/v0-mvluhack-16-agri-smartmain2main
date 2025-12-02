@@ -1,49 +1,74 @@
 import type { ObjectId } from "mongodb"
 
+// Helper type for ID queries - MongoDB accepts both string and ObjectId
+export type IdQuery = ObjectId | { $in: ObjectId[] } | { $eq: ObjectId }
+
+// Helper type for string queries with regex support
+export type StringQuery = string | RegExp | { $in: string[] } | { $regex: string }
+
+// Helper type for date range queries
+export type DateRangeQuery = {
+  $gte?: Date
+  $lte?: Date
+  $gt?: Date
+  $lt?: Date
+}
+
+// Helper type for boolean queries
+export type BooleanQuery = boolean | { $eq: boolean }
+
+// Utility function to convert string ID to ObjectId for queries
+export function toObjectIdFilter(id: string | ObjectId): ObjectId {
+  if (typeof id === "string") {
+    return new ObjectId(id)
+  }
+  return id
+}
+
 export interface UserFilter {
-  _id?: ObjectId | string
-  email?: string | RegExp
-  is_admin?: boolean
+  _id?: IdQuery
+  email?: StringQuery
+  is_admin?: BooleanQuery
 }
 
 export interface FarmerFilter {
-  _id?: ObjectId | string
-  user_id?: string
-  state?: string | RegExp
-  district?: string | RegExp
+  _id?: IdQuery
+  user_id?: IdQuery
+  state?: StringQuery
+  district?: StringQuery
 }
 
 export interface FieldFilter {
-  _id?: ObjectId | string
-  farmer_id?: string
-  soil_type?: string | RegExp
+  _id?: IdQuery
+  farmer_id?: IdQuery
+  soil_type?: StringQuery
 }
 
 export interface CropCycleFilter {
-  _id?: ObjectId | string
-  farmer_id?: string
-  field_id?: string | { $in: string[] }
-  status?: string | { $in: string[] }
-  planting_date?: { $gte?: Date; $lte?: Date }
+  _id?: IdQuery
+  farmer_id?: IdQuery
+  field_id?: IdQuery
+  status?: StringQuery
+  planting_date?: DateRangeQuery
 }
 
 export interface SchemeFilter {
-  _id?: ObjectId | string
-  state?: string | RegExp
-  category?: string | RegExp
-  is_active?: boolean
+  _id?: IdQuery
+  state?: StringQuery
+  category?: StringQuery
+  is_active?: BooleanQuery
 }
 
 export interface MarketPriceFilter {
-  crop?: string | RegExp
-  commodity?: string | RegExp
-  state?: string | RegExp
-  date?: { $gte?: Date; $lte?: Date }
+  crop?: StringQuery
+  commodity?: StringQuery
+  state?: StringQuery
+  date?: DateRangeQuery
 }
 
 export interface FieldActivityFilter {
-  _id?: ObjectId | string
-  crop_cycle_id?: string
-  activity_type?: string | RegExp
-  activity_date?: { $gte?: Date; $lte?: Date }
+  _id?: IdQuery
+  crop_cycle_id?: IdQuery
+  activity_type?: StringQuery
+  activity_date?: DateRangeQuery
 }

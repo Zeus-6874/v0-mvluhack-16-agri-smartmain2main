@@ -1,12 +1,20 @@
+import type { Db } from "mongodb"
+
 export interface Field {
   _id: string
   field_name: string
   area_hectares: number
-  coordinates?: string
+  coordinates?: Coordinates
   soil_type?: string
   irrigation_type?: string
   created_at?: Date
   updated_at?: Date
+}
+
+export interface Coordinates {
+  latitude: number
+  longitude: number
+  altitude?: number
 }
 
 export interface Crop {
@@ -49,5 +57,12 @@ export interface CropRecommendationParams {
   season: string
   rainfall: number | null
   temperature: number | null
-  db: any // Db type from mongodb
+  db: Db
+}
+
+export interface RiskAssessment {
+  level: string
+  score: number
+  factors: string[]
+  recommendations?: string[]
 }

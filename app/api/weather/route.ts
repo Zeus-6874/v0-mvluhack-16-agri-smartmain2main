@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
+import type { Db } from "mongodb"
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function fetchOpenMeteo(lat: number, lon: number, locationName: string, db: any) {
+async function fetchOpenMeteo(lat: number, lon: number, locationName: string, db: Db) {
   try {
     const params = new URLSearchParams({
       latitude: lat.toString(),

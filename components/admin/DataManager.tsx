@@ -80,7 +80,6 @@ export default function DataManager({ schemeCategories, cropCategories }: DataMa
   const [editingCrop, setEditingCrop] = useState<Crop | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
-  // Fetch schemes
   const fetchSchemes = async () => {
     try {
       setSchemesLoading(true)
@@ -97,7 +96,6 @@ export default function DataManager({ schemeCategories, cropCategories }: DataMa
     }
   }
 
-  // Fetch crops
   const fetchCrops = async () => {
     try {
       setCropsLoading(true)
@@ -164,8 +162,9 @@ export default function DataManager({ schemeCategories, cropCategories }: DataMa
       await mutateSchemes()
       setEditingScheme(null)
       toast.success(editingScheme ? "Scheme updated" : "Scheme created")
-    } catch (error: any) {
-      toast.error(error.message ?? "Failed to save scheme")
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to save scheme"
+      toast.error(errorMessage)
     } finally {
       setSubmitting(false)
     }
@@ -178,8 +177,9 @@ export default function DataManager({ schemeCategories, cropCategories }: DataMa
       if (!res.ok) throw new Error("Failed to delete scheme")
       await mutateSchemes()
       toast.success("Scheme deleted")
-    } catch (error: any) {
-      toast.error(error.message ?? "Failed to delete scheme")
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete scheme"
+      toast.error(errorMessage)
     }
   }
 
@@ -199,8 +199,9 @@ export default function DataManager({ schemeCategories, cropCategories }: DataMa
       await mutateCrops()
       setEditingCrop(null)
       toast.success(editingCrop ? "Crop updated" : "Crop created")
-    } catch (error: any) {
-      toast.error(error.message ?? "Failed to save crop")
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to save crop"
+      toast.error(errorMessage)
     } finally {
       setSubmitting(false)
     }
@@ -213,8 +214,9 @@ export default function DataManager({ schemeCategories, cropCategories }: DataMa
       if (!res.ok) throw new Error("Failed to delete crop")
       await mutateCrops()
       toast.success("Crop deleted")
-    } catch (error: any) {
-      toast.error(error.message ?? "Failed to delete crop")
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to delete crop"
+      toast.error(errorMessage)
     }
   }
 

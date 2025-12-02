@@ -7,35 +7,14 @@ import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Progress } from "@/components/ui/progress"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  AlertTriangle,
-  TrendingDown,
-  TrendingUp,
-  Droplets,
-  Flame,
-  Zap,
-  Shield,
-  Info,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react"
+import { AlertTriangle, TrendingDown, TrendingUp, Droplet, Sprout, CheckCircle2, RefreshCw, Leaf } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslate, useTolgee } from "@tolgee/react"
-
-interface SoilAnalysis {
-  id: string
-  nitrogen_level: number
-  phosphorus_level: number
-  potassium_level: number
-  ph_level: number
-  organic_matter?: number
-  analysis_date: string
-}
+import type { SoilAnalysis } from "@/types/components"
 
 interface NutrientDeficiencyAlertProps {
-  farmerId: string
-  latestAnalysis?: SoilAnalysis
   analyses: SoilAnalysis[]
+  language: string
 }
 
 interface Deficiency {
@@ -51,23 +30,54 @@ interface Deficiency {
   preventive: string[]
 }
 
-export default function NutrientDeficiencyAlert({ farmerId, latestAnalysis, analyses }: NutrientDeficiencyAlertProps) {
+export default function NutrientDeficiencyAlert({ analyses, language }: NutrientDeficiencyAlertProps) {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage()
   const { toast } = useToast()
   const [deficiencies, setDeficiencies] = useState<Deficiency[]>([])
   const [selectedDeficiency, setSelectedDeficiency] = useState<Deficiency | null>(null)
+  const [activeAlerts, setActiveAlerts] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (latestAnalysis) {
+    if (analyses && analyses.length > 0) {
+      const alerts = checkNutrientLevels(analyses[0])
+      setActiveAlerts(alerts)
+      setLoading(false)
+    }
+  }, [analyses])
+
+  const checkNutrientLevels = (analysis: SoilAnalysis): string[] => {
+    const alerts: string[] = []
+
+    const nitrogenLevel = analysis.nitrogen_level || 0
+    if (nitrogenLevel < 150) {
+      alerts.push("nitrogen")
+    }
+
+    const phosphorusLevel = analysis.phosphorus_level || 0
+    if (phosphorusLevel < 20) {
+      alerts.push("phosphorus")
+    }
+
+    const potassiumLevel = analysis.potassium_level || 0
+    if (potassiumLevel < 100) {
+      alerts.push("potassium")
+    }
+
+    return alerts
+  }
+
+  useEffect(() => {
+    if (analyses && analyses.length > 0) {
       analyzeDeficiencies()
     }
-  }, [latestAnalysis])
+  }, [analyses])
 
   const analyzeDeficiencies = () => {
-    if (!latestAnalysis) return
+    if (!analyses || analyses.length === 0) return
 
+    const latestAnalysis = analyses[0]
     const nutrients = [
       {
         name: language === "hi" ? "नाइट्रोजन" : "Nitrogen",
@@ -260,39 +270,40 @@ export default function NutrientDeficiencyAlert({ farmerId, latestAnalysis, anal
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
       case "critical":
-        return <AlertCircle className="h-5 w-5" />
+        return <AlertTriangle className="h-5 w-5" />
       case "moderate":
         return <AlertTriangle className="h-5 w-5" />
       case "mild":
-        return <Info className="h-5 w-5" />
+        return <Leaf className="h-5 w-5" />
       default:
-        return <CheckCircle className="h-5 w-5" />
+        return <CheckCircle2 className="h-5 w-5" />
     }
   }
 
   const getNutrientIcon = (symbol: string) => {
     switch (symbol) {
       case "N":
-        return <Droplets className="h-6 w-6" />
+        return <Droplet className="h-6 w-6" />
       case "P":
-        return <Flame className="h-6 w-6" />
+        return <Sprout className="h-6 w-6" />
       case "K":
-        return <Zap className="h-6 w-6" />
+        return <Leaf className="h-6 w-6" />
       case "pH":
-        return <Shield className="h-6 w-6" />
+        return <RefreshCw className="h-6 w-6" />
       default:
-        return <Info className="h-6 w-6" />
+        return <Leaf className="h-6 w-6" />
     }
   }
 
   const getStatusTrend = (nutrient: string) => {
     if (analyses.length < 2) return null
 
-    const recent = analyses[0] as any
-    const older = analyses[1] as any
+    const recent = analyses[0]
+    const older = analyses[1]
 
-    const currentValue = recent[nutrient.toLowerCase() + "_level"]
-    const oldValue = older[nutrient.toLowerCase() + "_level"]
+    const nutrientKey = `${nutrient.toLowerCase()}_level` as keyof SoilAnalysis
+    const currentValue = recent[nutrientKey] as number | undefined
+    const oldValue = older[nutrientKey] as number | undefined
 
     if (!currentValue || !oldValue) return null
 
@@ -308,324 +319,332 @@ export default function NutrientDeficiencyAlert({ farmerId, latestAnalysis, anal
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h3 className="text-xl font-semibold text-gray-900">
-          {language === "hi" ? "पोषक तत्व की कमी अलर्ट" : "Nutrient Deficiency Alerts"}
-        </h3>
-        <div className="text-sm text-gray-600">
-          {language === "hi" ? "अंतिम विश्लेषण:" : "Last analysis"}:{" "}
-          {latestAnalysis ? new Date(latestAnalysis.analysis_date).toLocaleDateString() : "-"}
-        </div>
-      </div>
-
-      {/* Critical Alerts */}
-      {criticalDeficiencies.length > 0 && (
-        <Alert className="border-red-200 bg-red-50">
-          <AlertCircle className="h-4 w-4 text-red-600" />
-          <AlertTitle className="text-red-800">
-            {language === "hi" ? "तत्काल ध्यान आवश्यक" : "Immediate Attention Required"}
-          </AlertTitle>
-          <AlertDescription className="text-red-700">
-            {language === "hi"
-              ? `आपकी मिट्टी में ${criticalDeficiencies.length} गंभीर कमियां हैं। तत्काल कार्रवाई की आवश्यकता है।`
-              : `You have ${criticalDeficiencies.length} critical deficiencies that require immediate attention.`}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "गंभीर" : "Critical"}</p>
-                <p className="text-2xl font-bold text-red-600">{criticalDeficiencies.length}</p>
-              </div>
-              <AlertCircle className="h-8 w-8 text-red-600" />
+      {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <>
+          <div className="flex justify-between items-center">
+            <h3 className="text-xl font-semibold text-gray-900">
+              {language === "hi" ? "पोषक तत्व की कमी अलर्ट" : "Nutrient Deficiency Alerts"}
+            </h3>
+            <div className="text-sm text-gray-600">
+              {language === "hi" ? "अंतिम विश्लेषण:" : "Last analysis"}:{" "}
+              {analyses.length > 0 ? new Date(analyses[0].analysis_date).toLocaleDateString() : "-"}
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "मध्यम" : "Moderate"}</p>
-                <p className="text-2xl font-bold text-orange-600">{moderateDeficiencies.length}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
+          {/* Critical Alerts */}
+          {criticalDeficiencies.length > 0 && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertTriangle className="h-4 w-4 text-red-600" />
+              <AlertTitle className="text-red-800">
+                {language === "hi" ? "तत्काल ध्यान आवश्यक" : "Immediate Attention Required"}
+              </AlertTitle>
+              <AlertDescription className="text-red-700">
+                {language === "hi"
+                  ? `आपकी मिट्टी में ${criticalDeficiencies.length} गंभीर कमियां हैं। तत्काल कार्रवाई की आवश्यकता है।`
+                  : `You have ${criticalDeficiencies.length} critical deficiencies that require immediate attention.`}
+              </AlertDescription>
+            </Alert>
+          )}
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "हल्की" : "Mild"}</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {deficiencies.filter((d) => d.severity === "mild").length}
-                </p>
-              </div>
-              <Info className="h-8 w-8 text-yellow-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">{language === "hi" ? "इष्टत" : "Optimal"}</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {deficiencies.filter((d) => d.severity === "none").length}
-                </p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Nutrient Status Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {deficiencies.map((deficiency) => {
-          const trend = getStatusTrend(deficiency.symbol.toLowerCase())
-          const percentage = Math.min(
-            100,
-            Math.max(
-              0,
-              ((deficiency.level - deficiency.optimalRange.min) /
-                (deficiency.optimalRange.max - deficiency.optimalRange.min)) *
-                100,
-            ),
-          )
-
-          return (
-            <Card
-              key={deficiency.symbol}
-              className={`cursor-pointer transition-all hover:shadow-md ${
-                selectedDeficiency?.symbol === deficiency.symbol ? "ring-2 ring-green-500" : ""
-              }`}
-              onClick={() => setSelectedDeficiency(deficiency)}
-            >
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <Card>
               <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    {getNutrientIcon(deficiency.symbol)}
-                    <div>
-                      <h4 className="font-semibold">{deficiency.nutrient}</h4>
-                      <p className="text-sm text-gray-600">{deficiency.level}</p>
-                    </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{language === "hi" ? "गंभीर" : "Critical"}</p>
+                    <p className="text-2xl font-bold text-red-600">{criticalDeficiencies.length}</p>
                   </div>
-                  <div className={`flex items-center gap-1 ${getSeverityColor(deficiency.severity)} p-2 rounded-lg`}>
-                    {getSeverityIcon(deficiency.severity)}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs text-gray-600">
-                    <span>{deficiency.optimalRange.min}</span>
-                    <span>{deficiency.optimalRange.max}</span>
-                  </div>
-                  <Progress
-                    value={percentage}
-                    className="h-2"
-                    // Color based on status
-                    style={{
-                      background: `linear-gradient(to right, ${
-                        deficiency.status === "optimal"
-                          ? "#10b981"
-                          : deficiency.status === "deficient"
-                            ? "#ef4444"
-                            : "#f59e0b"
-                      } ${percentage}%, #e5e7eb ${percentage}%)`,
-                    }}
-                  />
-                  {trend && (
-                    <div className="flex items-center gap-1 text-xs">
-                      {trend === "improving" ? (
-                        <TrendingUp className="h-3 w-3 text-green-600" />
-                      ) : trend === "declining" ? (
-                        <TrendingDown className="h-3 w-3 text-red-600" />
-                      ) : (
-                        <div className="h-3 w-3 bg-gray-400 rounded-full" />
-                      )}
-                      <span
-                        className={
-                          trend === "improving"
-                            ? "text-green-600"
-                            : trend === "declining"
-                              ? "text-red-600"
-                              : "text-gray-600"
-                        }
-                      >
-                        {trend === "improving"
-                          ? language === "hi"
-                            ? "सुधार"
-                            : "Improving"
-                          : trend === "declining"
-                            ? language === "hi"
-                              ? "गिरावट"
-                              : "Declining"
-                            : language === "hi"
-                              ? "स्थिर"
-                              : "Stable"}
-                      </span>
-                    </div>
-                  )}
+                  <AlertTriangle className="h-8 w-8 text-red-600" />
                 </div>
               </CardContent>
             </Card>
-          )
-        })}
-      </div>
 
-      {/* Detailed Deficiency Information */}
-      {selectedDeficiency && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              {getNutrientIcon(selectedDeficiency.symbol)}
-              {selectedDeficiency.nutrient} - {language === "hi" ? "विस्तृत जानकारी" : "Detailed Information"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="overview" className="w-full">
-              <TabsList>
-                <TabsTrigger value="overview">{language === "hi" ? "अवलोकन" : "Overview"}</TabsTrigger>
-                <TabsTrigger value="symptoms">{language === "hi" ? "लक्षण" : "Symptoms"}</TabsTrigger>
-                <TabsTrigger value="remedies">{language === "hi" ? "उपचार" : "Remedies"}</TabsTrigger>
-                <TabsTrigger value="prevention">{language === "hi" ? "रोकथाम" : "Prevention"}</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="overview" className="mt-4">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        {language === "hi" ? "वर्तमान स्तर:" : "Current Level:"}
-                      </span>
-                      <p className="text-2xl font-bold">{selectedDeficiency.level}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-600">
-                        {language === "hi" ? "इष्टम सीमा:" : "Optimal Range:"}
-                      </span>
-                      <p className="text-lg">
-                        {selectedDeficiency.optimalRange.min} - {selectedDeficiency.optimalRange.max}
-                      </p>
-                    </div>
-                  </div>
-
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-sm font-medium text-gray-600">
-                      {language === "hi" ? "स्थिति:" : "Status:"}
-                    </span>
-                    <Badge className={`ml-2 ${getSeverityColor(selectedDeficiency.severity)}`}>
-                      {selectedDeficiency.status === "deficient"
-                        ? language === "hi"
-                          ? "कम"
-                          : "Deficient"
-                        : selectedDeficiency.status === "excessive"
-                          ? language === "hi"
-                            ? "अधिक"
-                            : "Excessive"
-                          : language === "hi"
-                            ? "इष्ट"
-                            : "Optimal"}
-                    </Badge>
+                    <p className="text-sm font-medium text-gray-600">{language === "hi" ? "मध्यम" : "Moderate"}</p>
+                    <p className="text-2xl font-bold text-orange-600">{moderateDeficiencies.length}</p>
                   </div>
+                  <AlertTriangle className="h-8 w-8 text-orange-600" />
+                </div>
+              </CardContent>
+            </Card>
 
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-sm font-medium text-gray-600">
-                      {language === "hi" ? "प्रभाव:" : "Impact:"}
-                    </span>
-                    <p className="mt-1">{selectedDeficiency.impact}</p>
+                    <p className="text-sm font-medium text-gray-600">{language === "hi" ? "हल्की" : "Mild"}</p>
+                    <p className="text-2xl font-bold text-yellow-600">
+                      {deficiencies.filter((d) => d.severity === "mild").length}
+                    </p>
                   </div>
+                  <Leaf className="h-8 w-8 text-yellow-600" />
                 </div>
-              </TabsContent>
+              </CardContent>
+            </Card>
 
-              <TabsContent value="symptoms" className="mt-4">
-                <div className="space-y-3">
-                  {selectedDeficiency.symptoms.map((symptom, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
-                      <p>{symptom}</p>
-                    </div>
-                  ))}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600">{language === "hi" ? "इष्टत" : "Optimal"}</p>
+                    <p className="text-2xl font-bold text-green-600">
+                      {deficiencies.filter((d) => d.severity === "none").length}
+                    </p>
+                  </div>
+                  <CheckCircle2 className="h-8 w-8 text-green-600" />
                 </div>
-              </TabsContent>
-
-              <TabsContent value="remedies" className="mt-4">
-                <div className="space-y-3">
-                  {selectedDeficiency.remedies.map((remedy, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-                      <p>{remedy}</p>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-
-              <TabsContent value="prevention" className="mt-4">
-                <div className="space-y-3">
-                  {selectedDeficiency.preventive.map((preventive, index) => (
-                    <div key={index} className="flex items-start gap-3">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-                      <p>{preventive}</p>
-                    </div>
-                  ))}
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{language === "hi" ? "त्वरित कार्रवाई" : "Quick Actions"}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Button
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-start bg-transparent"
-              onClick={() => (window.location.href = "/soil-health")}
-            >
-              <span className="font-semibold mb-1">{language === "hi" ? "नया विश्लेषण" : "New Analysis"}</span>
-              <span className="text-sm text-left opacity-70">
-                {language === "hi" ? "मिट्टी का नया विश्लेषण करें" : "Conduct new soil analysis"}
-              </span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-start bg-transparent"
-              onClick={() => (window.location.href = "/field-management")}
-            >
-              <span className="font-semibold mb-1">{language === "hi" ? "उर्वरक योजना" : "Fertilizer Plan"}</span>
-              <span className="text-sm text-left opacity-70">
-                {language === "hi" ? "उर्वरक अनुप्रयोग योजना बनाएं" : "Create fertilizer application plan"}
-              </span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-auto p-4 flex flex-col items-start bg-transparent"
-              onClick={() => (window.location.href = "/marketplace")}
-            >
-              <span className="font-semibold mb-1">{language === "hi" ? "उर्वरक खरीदें" : "Buy Fertilizers"}</span>
-              <span className="text-sm text-left opacity-70">
-                {language === "hi" ? "आवश्यक उर्वरक खरीदें" : "Purchase required fertilizers"}
-              </span>
-            </Button>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Nutrient Status Overview */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {deficiencies.map((deficiency) => {
+              const trend = getStatusTrend(deficiency.symbol.toLowerCase())
+              const percentage = Math.min(
+                100,
+                Math.max(
+                  0,
+                  ((deficiency.level - deficiency.optimalRange.min) /
+                    (deficiency.optimalRange.max - deficiency.optimalRange.min)) *
+                    100,
+                ),
+              )
+
+              return (
+                <Card
+                  key={deficiency.symbol}
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    selectedDeficiency?.symbol === deficiency.symbol ? "ring-2 ring-green-500" : ""
+                  }`}
+                  onClick={() => setSelectedDeficiency(deficiency)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        {getNutrientIcon(deficiency.symbol)}
+                        <div>
+                          <h4 className="font-semibold">{deficiency.nutrient}</h4>
+                          <p className="text-sm text-gray-600">{deficiency.level}</p>
+                        </div>
+                      </div>
+                      <div
+                        className={`flex items-center gap-1 ${getSeverityColor(deficiency.severity)} p-2 rounded-lg`}
+                      >
+                        {getSeverityIcon(deficiency.severity)}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs text-gray-600">
+                        <span>{deficiency.optimalRange.min}</span>
+                        <span>{deficiency.optimalRange.max}</span>
+                      </div>
+                      <Progress
+                        value={percentage}
+                        className="h-2"
+                        // Color based on status
+                        style={{
+                          background: `linear-gradient(to right, ${
+                            deficiency.status === "optimal"
+                              ? "#10b981"
+                              : deficiency.status === "deficient"
+                                ? "#ef4444"
+                                : "#f59e0b"
+                          } ${percentage}%, #e5e7eb ${percentage}%)`,
+                        }}
+                      />
+                      {trend && (
+                        <div className="flex items-center gap-1 text-xs">
+                          {trend === "improving" ? (
+                            <TrendingUp className="h-3 w-3 text-green-600" />
+                          ) : trend === "declining" ? (
+                            <TrendingDown className="h-3 w-3 text-red-600" />
+                          ) : (
+                            <div className="h-3 w-3 bg-gray-400 rounded-full" />
+                          )}
+                          <span
+                            className={
+                              trend === "improving"
+                                ? "text-green-600"
+                                : trend === "declining"
+                                  ? "text-red-600"
+                                  : "text-gray-600"
+                            }
+                          >
+                            {trend === "improving"
+                              ? language === "hi"
+                                ? "सुधार"
+                                : "Improving"
+                              : trend === "declining"
+                                ? language === "hi"
+                                  ? "गिरावट"
+                                  : "Declining"
+                                : language === "hi"
+                                  ? "स्थिर"
+                                  : "Stable"}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+
+          {/* Detailed Deficiency Information */}
+          {selectedDeficiency && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  {getNutrientIcon(selectedDeficiency.symbol)}
+                  {selectedDeficiency.nutrient} - {language === "hi" ? "विस्तृत जानकारी" : "Detailed Information"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Tabs defaultValue="overview" className="w-full">
+                  <TabsList>
+                    <TabsTrigger value="overview">{language === "hi" ? "अवलोकन" : "Overview"}</TabsTrigger>
+                    <TabsTrigger value="symptoms">{language === "hi" ? "लक्षण" : "Symptoms"}</TabsTrigger>
+                    <TabsTrigger value="remedies">{language === "hi" ? "उपचार" : "Remedies"}</TabsTrigger>
+                    <TabsTrigger value="prevention">{language === "hi" ? "रोकथाम" : "Prevention"}</TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="overview" className="mt-4">
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">
+                            {language === "hi" ? "वर्तमान स्तर:" : "Current Level:"}
+                          </span>
+                          <p className="text-2xl font-bold">{selectedDeficiency.level}</p>
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-600">
+                            {language === "hi" ? "इष्टम सीमा:" : "Optimal Range:"}
+                          </span>
+                          <p className="text-lg">
+                            {selectedDeficiency.optimalRange.min} - {selectedDeficiency.optimalRange.max}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">
+                          {language === "hi" ? "स्थिति:" : "Status:"}
+                        </span>
+                        <Badge className={`ml-2 ${getSeverityColor(selectedDeficiency.severity)}`}>
+                          {selectedDeficiency.status === "deficient"
+                            ? language === "hi"
+                              ? "कम"
+                              : "Deficient"
+                            : selectedDeficiency.status === "excessive"
+                              ? language === "hi"
+                                ? "अधिक"
+                                : "Excessive"
+                              : language === "hi"
+                                ? "इष्ट"
+                                : "Optimal"}
+                        </Badge>
+                      </div>
+
+                      <div>
+                        <span className="text-sm font-medium text-gray-600">
+                          {language === "hi" ? "प्रभाव:" : "Impact:"}
+                        </span>
+                        <p className="mt-1">{selectedDeficiency.impact}</p>
+                      </div>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="symptoms" className="mt-4">
+                    <div className="space-y-3">
+                      {selectedDeficiency.symptoms.map((symptom, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full mt-2"></div>
+                          <p>{symptom}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="remedies" className="mt-4">
+                    <div className="space-y-3">
+                      {selectedDeficiency.remedies.map((remedy, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
+                          <p>{remedy}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="prevention" className="mt-4">
+                    <div className="space-y-3">
+                      {selectedDeficiency.preventive.map((preventive, index) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
+                          <p>{preventive}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{language === "hi" ? "त्वरित कार्रवाई" : "Quick Actions"}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 flex flex-col items-start bg-transparent"
+                  onClick={() => (window.location.href = "/soil-health")}
+                >
+                  <span className="font-semibold mb-1">{language === "hi" ? "नया विश्लेषण" : "New Analysis"}</span>
+                  <span className="text-sm text-left opacity-70">
+                    {language === "hi" ? "मिट्टी का नया विश्लेषण करें" : "Conduct new soil analysis"}
+                  </span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 flex flex-col items-start bg-transparent"
+                  onClick={() => (window.location.href = "/field-management")}
+                >
+                  <span className="font-semibold mb-1">{language === "hi" ? "उर्वरक योजना" : "Fertilizer Plan"}</span>
+                  <span className="text-sm text-left opacity-70">
+                    {language === "hi" ? "उर्वरक अनुप्रयोग योजना बनाएं" : "Create fertilizer application plan"}
+                  </span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  className="h-auto p-4 flex flex-col items-start bg-transparent"
+                  onClick={() => (window.location.href = "/marketplace")}
+                >
+                  <span className="font-semibold mb-1">{language === "hi" ? "उर्वरक खरीदें" : "Buy Fertilizers"}</span>
+                  <span className="text-sm text-left opacity-70">
+                    {language === "hi" ? "आवश्यक उर्वरक खरीदें" : "Purchase required fertilizers"}
+                  </span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   )
 }

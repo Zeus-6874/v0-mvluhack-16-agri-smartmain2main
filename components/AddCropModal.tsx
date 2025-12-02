@@ -9,11 +9,12 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useTranslate } from "@tolgee/react"
 import { useToast } from "@/hooks/use-toast"
+import type { Field } from "@/types/components"
 
 interface AddCropModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  fields?: any[]
+  fields?: Field[]
 }
 
 export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCropModalProps) {

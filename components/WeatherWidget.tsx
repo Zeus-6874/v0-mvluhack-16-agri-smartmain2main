@@ -46,9 +46,15 @@ export default function WeatherWidget({ language }: WeatherWidgetProps) {
       } else {
         throw new Error(data.error)
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("[v0] Weather fetch error:", err)
-      setError(err.message ?? (language === "hi" ? "मौसम डेटा लोड नहीं हो सका" : "Failed to load weather data"))
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : language === "hi"
+            ? "मौसम डेटा लोड नहीं हो सका"
+            : "Failed to load weather data"
+      setError(errorMessage)
       setWeatherData(null)
     } finally {
       setLoading(false)

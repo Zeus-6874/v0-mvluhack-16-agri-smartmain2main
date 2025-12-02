@@ -12,6 +12,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import Navbar from "@/components/Navbar"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslate, useTolgee } from "@tolgee/react"
+import type { FertilizerRecommendation, MarketInsight } from "@/types/api-responses"
+import type { RiskAssessment } from "@/types/components"
 
 import {
   Sprout,
@@ -43,9 +45,9 @@ interface RecommendationResult {
   soil_health: string
   soil_health_score: number
   crop_recommendations: CropRecommendation[]
-  fertilizer_recommendations: any[]
-  risk_assessment: any
-  market_insights: any[]
+  fertilizer_recommendations: FertilizerRecommendation[]
+  risk_assessment: RiskAssessment
+  market_insights: MarketInsight[]
 }
 
 export default function CropRecommendation() {

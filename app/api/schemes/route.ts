@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
-import type { SchemeFilter } from "@/types/mongodb-filters"
+import type { Filter } from "mongodb"
+import type { MongoScheme } from "@/types/mongo"
 
 const fallbackSchemes = [
   {
@@ -105,9 +106,9 @@ export async function GET(request: NextRequest) {
 
     try {
       const db = await getDb()
-      const filter: SchemeFilter = {}
+      const filter: Filter<MongoScheme> = {}
 
-      const schemesData = await db.collection("schemes").find(filter).sort({ scheme_name: 1 }).toArray()
+      const schemesData = await db.collection<MongoScheme>("schemes").find(filter).sort({ scheme_name: 1 }).toArray()
 
       if (schemesData && schemesData.length > 0) {
         schemes = schemesData.map((s, index: number) => ({

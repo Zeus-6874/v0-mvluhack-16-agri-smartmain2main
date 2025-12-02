@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
-import type { MarketPriceFilter } from "@/types/mongodb-filters"
+import type { Filter } from "mongodb"
+import type { Document } from "mongodb"
 
 const fallbackPrices = [
   {
@@ -126,7 +127,7 @@ export async function GET(request: NextRequest) {
     try {
       const db = await getDb()
       const collection = db.collection("market_prices")
-      const filter: MarketPriceFilter = {}
+      const filter: Filter<Document> = {}
 
       if (crop) {
         filter.crop = new RegExp(crop, "i")

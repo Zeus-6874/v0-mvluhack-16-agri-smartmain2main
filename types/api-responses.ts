@@ -52,4 +52,8 @@ export interface MarketInsight {
   arrival_date: string
   current_price: number | string
   market_status: string
+  price_trend?: string
+  market_demand?: string
+  profit_potential?: string
+  investment_required?: number
 }

@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
+import type { Filter, Document } from "mongodb"
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,8 +11,7 @@ export async function GET(request: NextRequest) {
     const db = await getDb()
     const marketPricesCollection = db.collection("market_prices")
 
-    // Build MongoDB query
-    const query: any = {}
+    const query: Filter<Document> = {}
 
     if (crop) {
       query.crop_name = { $regex: crop, $options: "i" }
@@ -23,9 +23,8 @@ export async function GET(request: NextRequest) {
 
     const pricesData = await marketPricesCollection.find(query).sort({ date: -1 }).limit(50).toArray()
 
-    // Group prices by crop for better organization
-    const groupedPrices = pricesData?.reduce((acc: any, price: any) => {
-      const cropName = price.crop_name
+    const groupedPrices = pricesData?.reduce((acc: Record<string, Document[]>, price: Document) => {
+      const cropName = price.crop_name as string
       if (!acc[cropName]) {
         acc[cropName] = []
       }

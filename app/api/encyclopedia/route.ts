@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
+import type { Filter, Document } from "mongodb"
 
 const fallbackCrops = [
   {
@@ -131,7 +132,7 @@ export async function GET(request: NextRequest) {
     const crop = searchParams.get("crop")
 
     const db = await getDb()
-    let query: any = {}
+    let query: Filter<Document> = {}
 
     if (search) {
       query = {
@@ -153,7 +154,7 @@ export async function GET(request: NextRequest) {
       crops = await db.collection("crops").find(query).sort({ crop_name: 1 }).toArray()
     }
 
-    const formattedCrops = crops.map((c: any) => ({
+    const formattedCrops = crops.map((c: Document) => ({
       id: c._id?.toString(),
       crop_name: c.crop_name,
       scientific_name: c.scientific_name,

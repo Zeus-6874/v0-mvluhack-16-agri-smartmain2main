@@ -12,12 +12,13 @@ import { Badge } from "@/components/ui/badge"
 import { MapPin, Plus, Edit, Trash2, Sprout } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { useTranslate, useTolgee } from "@tolgee/react"
+import type { Coordinates } from "@/types/components"
 
 interface Field {
   id: string
   field_name: string
   area_hectares: number
-  coordinates?: any
+  coordinates?: Coordinates
   soil_type?: string
   irrigation_type?: string
   created_at: string
