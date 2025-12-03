@@ -64,7 +64,7 @@ export default function SchemesPage() {
   const fetchSchemes = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/schemes")
+      const response = await fetch(`/api/schemes?lang=${language}`)
       const data = await response.json()
 
       if (data.success && data.schemes && data.schemes.length > 0) {

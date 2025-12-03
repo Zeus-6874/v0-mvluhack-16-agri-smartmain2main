@@ -83,7 +83,7 @@ export default function DataManager({ schemeCategories, cropCategories }: DataMa
   const fetchSchemes = async () => {
     try {
       setSchemesLoading(true)
-      const response = await fetch("/api/schemes")
+      const response = await fetch(`/api/schemes?lang=${language}`)
       const data = await response.json()
       if (data.success) {
         setSchemes(data.schemes || [])

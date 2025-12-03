@@ -3,166 +3,107 @@ import { getDb } from "@/lib/mongodb/client"
 import type { Filter } from "mongodb"
 import type { MongoScheme } from "@/types/mongo"
 
-const fallbackSchemes = [
-  {
-    id: "1",
-    scheme_name: "PM-KISAN",
-    description: "Direct income support of Rs. 6000 per year to farmer families in three equal installments",
-    eligibility: "All landholding farmer families with cultivable land",
-    benefits: "Rs. 6000 per year in 3 installments of Rs. 2000 each",
-    application_process: "Register on pmkisan.gov.in with Aadhaar and land details",
-    contact_info: "Helpline: 155261, 011-24300606",
-    state: "All India",
-    category: "Income Support",
-    is_active: true,
-    beneficiaries_count: 110000000,
-    budget_allocation: "Rs. 75,000 Crore",
-    website_url: "https://pmkisan.gov.in",
-  },
-  {
-    id: "2",
-    scheme_name: "PM Fasal Bima Yojana",
-    description: "Crop insurance scheme to protect farmers against crop loss due to natural calamities",
-    eligibility: "All farmers growing notified crops in notified areas",
-    benefits: "Insurance coverage for crop damage due to natural calamities, pests, and diseases",
-    application_process: "Apply through bank, CSC center, or insurance company portal",
-    contact_info: "Helpline: 1800-180-1551",
-    state: "All India",
-    category: "Insurance",
-    is_active: true,
-    beneficiaries_count: 55000000,
-    budget_allocation: "Rs. 15,500 Crore",
-    website_url: "https://pmfby.gov.in",
-  },
-  {
-    id: "3",
-    scheme_name: "Kisan Credit Card",
-    description: "Credit facility for farmers at subsidized interest rates for agricultural needs",
-    eligibility: "All farmers, sharecroppers, tenant farmers, and self-help groups",
-    benefits: "Up to Rs. 3 lakh at 4% interest rate with prompt repayment incentive",
-    application_process: "Apply at any bank branch with land documents and identity proof",
-    contact_info: "Contact nearest bank branch",
-    state: "All India",
-    category: "Credit",
-    is_active: true,
-    beneficiaries_count: 70000000,
-    budget_allocation: "Rs. 2,00,000 Crore (Credit limit)",
-    website_url: "https://www.nabard.org",
-  },
-  {
-    id: "4",
-    scheme_name: "Soil Health Card Scheme",
-    description: "Free soil testing and fertilizer recommendations for farmers",
-    eligibility: "All farmers with agricultural land",
-    benefits: "Free soil health card with nutrient status and fertilizer recommendations",
-    application_process: "Contact local agriculture office or register online",
-    contact_info: "Contact District Agriculture Officer",
-    state: "All India",
-    category: "Soil Health",
-    is_active: true,
-    beneficiaries_count: 230000000,
-    budget_allocation: "Rs. 568 Crore",
-    website_url: "https://soilhealth.dac.gov.in",
-  },
-  {
-    id: "5",
-    scheme_name: "PM Krishi Sinchai Yojana",
-    description: "Scheme to expand irrigation coverage and improve water use efficiency",
-    eligibility: "All farmers with agricultural land",
-    benefits: "Subsidy up to 55% on micro-irrigation systems like drip and sprinkler",
-    application_process: "Apply through state agriculture department or online portal",
-    contact_info: "Contact State Agriculture Department",
-    state: "All India",
-    category: "Irrigation",
-    is_active: true,
-    beneficiaries_count: 22000000,
-    budget_allocation: "Rs. 50,000 Crore",
-    website_url: "https://pmksy.gov.in",
-  },
-  {
-    id: "6",
-    scheme_name: "PM Kisan Maan Dhan Yojana",
-    description: "Pension scheme for small and marginal farmers aged 18-40 years",
-    eligibility: "Small and marginal farmers aged 18-40 with less than 2 hectares land",
-    benefits: "Rs. 3000 monthly pension after age 60",
-    application_process: "Register at CSC center with Aadhaar and bank details",
-    contact_info: "Helpline: 1800-267-6888",
-    state: "All India",
-    category: "Pension",
-    is_active: true,
-    beneficiaries_count: 2300000,
-    budget_allocation: "Rs. 900 Crore",
-    website_url: "https://pmkmy.gov.in",
-  },
-]
+const LIBRE_TRANSLATE_URL = "https://libretranslate.com/translate"
 
-export async function GET(request: NextRequest) {
+// ---------------- TRANSLATE ----------------
+async function translate(text: string, target: "hi" | "mr") {
   try {
-    const { searchParams } = new URL(request.url)
+    const res = await fetch(LIBRE_TRANSLATE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ q: text, source: "en", target, format: "text" }),
+    })
+    const data = await res.json()
+    return data.translatedText || text
+  } catch {
+    return text
+  }
+}
+
+// ---------------- API ----------------
+export async function GET(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url)
     const state = searchParams.get("state")
     const category = searchParams.get("category")
+    const lang = (searchParams.get("lang") as "en" | "hi" | "mr") || "en"
 
-    let schemes = fallbackSchemes
+    const db = await getDb()
+    const filter: Filter<MongoScheme> = {}
 
-    try {
-      const db = await getDb()
-      const filter: Filter<MongoScheme> = {}
+    const schemes = await db
+      .collection<MongoScheme>("schemes")
+      .find(filter)
+      .sort({ created_at: -1 })
+      .toArray()
 
-      const schemesData = await db
-        .collection<MongoScheme>("schemes")
-        .find(filter)
-        .sort({ scheme_name: 1 })
-        .toArray()
+    const result = await Promise.all(
+      schemes.map(async (s) => {
 
-      if (schemesData && schemesData.length > 0) {
-        schemes = schemesData.map((s, index: number) => ({
-          id: s._id?.toString() || String(index),
+        let name = s.scheme_name
+        let desc = s.description
+        let eligibility = s.eligibility || "Not specified"
+        let benefits = s.benefits || "Not available"
+        let apply = s.how_to_apply || "Visit official website"
 
-          scheme_name: s.scheme_name || "Government Scheme",
-          description: s.description || "No description available",
-          eligibility: s.eligibility || "Not specified",
-          benefits: s.benefits || "Not available",
-          application_process: s.application_process || "Visit official website",
+        // ---------- TRANSLATE ----------
+        if (lang === "hi") {
+          name = s.scheme_name_hi || await translate(name, "hi")
+          desc = s.description_hi || await translate(desc, "hi")
+          eligibility = s.eligibility_hi || await translate(eligibility, "hi")
+          benefits = s.benefits_hi || await translate(benefits, "hi")
+          apply = s.how_to_apply_hi || await translate(apply, "hi")
+        }
+
+        if (lang === "mr") {
+          name = s.scheme_name_mr || await translate(name, "mr")
+          desc = s.description_mr || await translate(desc, "mr")
+          eligibility = s.eligibility_mr || await translate(eligibility, "mr")
+          benefits = s.benefits_mr || await translate(benefits, "mr")
+          apply = s.how_to_apply_mr || await translate(apply, "mr")
+        }
+
+        return {
+          id: s._id.toString(),                // UI
+          scheme_name: name,
+          description: desc,
+          eligibility,
+          benefits,
+          application_process: apply,         // UI FIX
           contact_info: s.contact_info || "N/A",
-
           state: s.state || "All India",
           category: s.category || "General",
-          is_active: s.is_active ?? true,
-          beneficiaries_count: Number(s.beneficiaries_count || 0),
-          budget_allocation: s.budget_allocation || "N/A",
-          website_url: s.website_url || "#",
-        }))
-      }
-    } catch (dbError) {
-      console.log("[Schemes API] Database not available, using fallback data")
-    }
+          is_active: true,                     // UI FIX
+          created_at: s.created_at || new Date(),
+          beneficiaries_count: 0,             // Optional
+          budget_allocation: "N/A",            // Optional
+          website_url: s.website_url || "#"
+        }
+      })
+    )
 
     // ---------- FILTERING ----------
-    let filteredSchemes = schemes
+    let filtered = result
 
-    if (state && state !== "all" && state !== "All India") {
-      filteredSchemes = filteredSchemes.filter(
-        (s) => s.state === state || s.state === "All India"
+    if (state && state !== "all") {
+      filtered = filtered.filter(s =>
+        s.state === state || s.state === "All India"
       )
     }
 
     if (category && category !== "all") {
-      filteredSchemes = filteredSchemes.filter((s) => s.category === category)
+      filtered = filtered.filter(s => s.category === category)
     }
 
     return NextResponse.json({
       success: true,
-      schemes: filteredSchemes,
-      total: filteredSchemes.length,
-      filters: { state, category },
+      schemes: filtered,
+      total: filtered.length,
+      filters: { state, category, lang }
     })
-  } catch (error) {
-    console.error("[Schemes API Error]", error)
 
-    return NextResponse.json({
-      success: true,
-      schemes: fallbackSchemes,
-      total: fallbackSchemes.length,
-    })
+  } catch (error) {
+    console.error("Schemes API Error:", error)
+    return NextResponse.json({ success: false, schemes: [] })
   }
 }
