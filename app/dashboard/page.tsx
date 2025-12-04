@@ -4,7 +4,6 @@ import { getSession } from "@/lib/auth/session"
 import { getDb } from "@/lib/mongodb/client"
 import Navbar from "@/components/Navbar"
 
-// ✅ Define Profile type here (must match DashboardClient)
 interface Profile {
   full_name: string
   phone: string
@@ -25,7 +24,6 @@ export default async function DashboardPage() {
 
   const db = await getDb()
 
-  // ✅ Fetch raw profile from MongoDB
   const rawProfile = await db.collection("farmers").findOne({
     user_id: session.userId,
   })
@@ -34,7 +32,6 @@ export default async function DashboardPage() {
     redirect("/profile-setup")
   }
 
-  // ✅ Convert MongoDB Document → Typed Profile
   const profile: Profile = {
     full_name: rawProfile.full_name || "",
     phone: rawProfile.phone || "",
@@ -51,7 +48,6 @@ export default async function DashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <main className="max-w-7xl mx-auto">
-        {/* ✅ Now types match perfectly */}
         <DashboardClient profile={profile} />
       </main>
     </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
+import { ObjectId } from "mongodb"
 
 export async function GET() {
   try {
@@ -10,7 +11,7 @@ export async function GET() {
     }
 
     const db = await getDb()
-    const user = await db.collection("users").findOne({ user_id: userId })
+    const user = await db.collection("users").findOne({ _id: new ObjectId(userId) })
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })

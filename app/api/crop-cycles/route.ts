@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
-import { ObjectId } from "mongodb"
+import { ObjectId, type Filter, type Document } from "mongodb"
 import type { MongoCropCycle, MongoField } from "@/types/mongo"
 
 export async function GET(request: NextRequest) {
@@ -17,14 +17,10 @@ export async function GET(request: NextRequest) {
 
     const db = await getDb()
 
-    const filter: any = {}
+    const filter: Filter<Document> = {}
 
     // First verify fields belong to user
-    const userFields = await db
-      .collection("fields")
-      .find<MongoField>({ farmer_id: userId })
-      .project({ _id: 1 })
-      .toArray()
+    const userFields = await db.collection("fields").find<MongoField>({ user_id: userId }).project({ _id: 1 }).toArray()
 
     const fieldIds = userFields.map((f) => f._id)
     filter.field_id = { $in: fieldIds.map((id) => id.toString()) }
@@ -78,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     const field = await db.collection("fields").findOne<MongoField>({
       _id: new ObjectId(field_id),
-      farmer_id: userId,
+      user_id: userId,
     })
 
     if (!field) {
@@ -109,6 +105,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await db.collection("crop_cycles").insertOne({
+      user_id: userId,
       field_id,
       crop_name: crop_name.trim(),
       variety: variety?.trim() || null,

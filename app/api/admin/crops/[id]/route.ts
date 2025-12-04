@@ -49,9 +49,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     return NextResponse.json({ success: true, crop: result })
-  } catch (error: any) {
-    if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     console.error("Admin crop update error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
@@ -71,9 +73,11 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
 
     return NextResponse.json({ success: true })
-  } catch (error: any) {
-    if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     console.error("Admin crop delete error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

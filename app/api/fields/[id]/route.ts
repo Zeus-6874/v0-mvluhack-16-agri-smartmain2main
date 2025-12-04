@@ -3,8 +3,8 @@ import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
 import { ObjectId } from "mongodb"
 
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -15,7 +15,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const field = await db.collection("fields").findOne({
       _id: new ObjectId(id),
-      farmer_id: userId,
+      user_id: userId,
     })
 
     if (!field) {
@@ -32,8 +32,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -54,14 +54,14 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const db = await getDb()
 
     const result = await db.collection("fields").findOneAndUpdate(
-      { _id: new ObjectId(id), farmer_id: userId },
+      { _id: new ObjectId(id), user_id: userId },
       {
         $set: {
-          field_name: field_name.trim(),
-          area_hectares: Number.parseFloat(area_hectares),
-          coordinates: coordinates || null,
-          soil_type: soil_type || null,
-          irrigation_type: irrigation_type || null,
+          name: field_name.trim(),
+          area: Number.parseFloat(area_hectares),
+          location: coordinates || "",
+          soil_type: soil_type || "Unknown",
+          irrigation_type: irrigation_type || "Rainfed",
           updated_at: new Date(),
         },
       },
@@ -79,8 +79,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  const { id } = params
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -102,7 +102,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
 
     const result = await db.collection("fields").deleteOne({
       _id: new ObjectId(id),
-      farmer_id: userId,
+      user_id: userId,
     })
 
     if (result.deletedCount === 0) {

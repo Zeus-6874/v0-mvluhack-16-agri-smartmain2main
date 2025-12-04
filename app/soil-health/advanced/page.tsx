@@ -53,16 +53,14 @@ export default async function AdvancedSoilHealthPage() {
     id: rawProfile._id.toString(),
     full_name: rawProfile.full_name ?? "Farmer",
     location:
-      [rawProfile.village, rawProfile.district, rawProfile.state]
-        .filter(Boolean)
-        .join(", ") || "Unknown location",
+      [rawProfile.village, rawProfile.district, rawProfile.state].filter(Boolean).join(", ") || "Unknown location",
   }
 
   /* -------------------------- FETCH SOIL ANALYSES -------------------------- */
 
   const rawSoilAnalyses = await db
     .collection("soil_analysis")
-    .find<MongoSoilAnalysis>({ farmer_id: userId })
+    .find<MongoSoilAnalysis>({ user_id: userId })
     .sort({ test_date: -1 })
     .limit(10)
     .toArray()
@@ -90,9 +88,7 @@ export default async function AdvancedSoilHealthPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Advanced Soil Health Monitoring
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Advanced Soil Health Monitoring</h1>
           <p className="text-gray-600">
             Comprehensive soil analysis, historical tracking, and improvement recommendations
           </p>
@@ -127,9 +123,7 @@ export default async function AdvancedSoilHealthPage() {
               <Leaf className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {latestAnalysis?.ph_level?.toFixed(1) || "-"}
-              </div>
+              <div className="text-2xl font-bold">{latestAnalysis?.ph_level?.toFixed(1) || "-"}</div>
               <p className="text-xs text-muted-foreground">Current soil pH</p>
             </CardContent>
           </Card>
@@ -156,27 +150,15 @@ export default async function AdvancedSoilHealthPage() {
           </TabsList>
 
           <TabsContent value="history" className="mt-6">
-            <SoilHealthHistory
-              farmerId={userId}
-              analyses={soilAnalyses}
-              latestAnalysis={latestAnalysis}
-            />
+            <SoilHealthHistory farmerId={userId} analyses={soilAnalyses} latestAnalysis={latestAnalysis} />
           </TabsContent>
 
           <TabsContent value="improvement" className="mt-6">
-            <SoilImprovementPlan
-              farmerId={userId}
-              latestAnalysis={latestAnalysis}
-              profile={profile}
-            />
+            <SoilImprovementPlan farmerId={userId} latestAnalysis={latestAnalysis} profile={profile} />
           </TabsContent>
 
           <TabsContent value="alerts" className="mt-6">
-            <NutrientDeficiencyAlert
-              farmerId={userId}
-              latestAnalysis={latestAnalysis}
-              analyses={soilAnalyses}
-            />
+            <NutrientDeficiencyAlert farmerId={userId} latestAnalysis={latestAnalysis} analyses={soilAnalyses} />
           </TabsContent>
         </Tabs>
       </main>

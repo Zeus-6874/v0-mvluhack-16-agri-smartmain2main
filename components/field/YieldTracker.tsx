@@ -33,8 +33,8 @@ interface CropCycle {
   crop_name: string
   variety?: string
   fields: {
-    field_name: string
-    area_hectares: number
+    name: string
+    area: number
   }
 }
 
@@ -86,16 +86,16 @@ export default function YieldTracker({ fieldId, cropCycleId, farmerId }: YieldTr
           crop_name: "Wheat",
           variety: "HD-2967",
           fields: {
-            field_name: "North Field",
-            area_hectares: 5.2,
+            name: "North Field",
+            area: 5.2,
           },
         },
         {
           id: "2",
           crop_name: "Rice",
           fields: {
-            field_name: "South Field",
-            area_hectares: 3.8,
+            name: "South Field",
+            area: 3.8,
           },
         },
       ]
@@ -188,7 +188,7 @@ export default function YieldTracker({ fieldId, cropCycleId, farmerId }: YieldTr
   const calculateYieldPerHectare = (record: YieldRecord) => {
     const cropCycle = cropCycles.find((c) => c.id === record.crop_cycle_id)
     if (!cropCycle) return 0
-    return (record.actual_yield / cropCycle.fields.area_hectares).toFixed(2)
+    return (record.actual_yield / cropCycle.fields.area).toFixed(2)
   }
 
   const getYieldTrendData = () => {
@@ -259,7 +259,7 @@ export default function YieldTracker({ fieldId, cropCycleId, farmerId }: YieldTr
                   <SelectContent>
                     {cropCycles.map((cycle) => (
                       <SelectItem key={cycle.id} value={cycle.id}>
-                        {cycle.crop_name} - {cycle.fields.field_name}
+                        {cycle.crop_name} - {cycle.fields.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -484,7 +484,7 @@ export default function YieldTracker({ fieldId, cropCycleId, farmerId }: YieldTr
                         <h4 className="font-semibold text-lg">{cropCycle?.crop_name || "Unknown Crop"}</h4>
                         {cropCycle?.variety && <p className="text-sm text-gray-600">{cropCycle.variety}</p>}
                         <p className="text-sm text-gray-500">
-                          {cropCycle?.fields.field_name} • {cropCycle?.fields.area_hectares} ha
+                          {cropCycle?.fields.name} • {cropCycle?.fields.area} ha
                         </p>
                       </div>
                       <Badge className={getQualityColor(record.quality_grade)}>{record.quality_grade}</Badge>

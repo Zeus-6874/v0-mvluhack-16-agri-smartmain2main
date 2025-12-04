@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
-import { ObjectId } from "mongodb"
+import { ObjectId, type Filter, type Document } from "mongodb"
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const db = await getDb()
 
-    const filter: any = {}
+    const filter: Filter<Document> = {}
     if (cropCycleId) {
       filter.crop_cycle_id = cropCycleId
     }
@@ -55,7 +55,6 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb()
 
-    // Verify ownership
     const cropCycle = await db.collection("crop_cycles").findOne({ _id: new ObjectId(crop_cycle_id) })
     if (!cropCycle) {
       return NextResponse.json({ error: "Crop cycle not found" }, { status: 404 })
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     const field = await db.collection("fields").findOne({
       _id: new ObjectId(cropCycle.field_id),
-      farmer_id: userId,
+      user_id: userId,
     })
 
     if (!field) {
@@ -71,13 +70,14 @@ export async function POST(request: NextRequest) {
     }
 
     const activity = {
+      user_id: userId,
+      field_id: cropCycle.field_id,
       crop_cycle_id: new ObjectId(crop_cycle_id),
       activity_type: activity_type.trim(),
-      activity_date: activity_date ? new Date(activity_date) : new Date(),
-      materials_used: materials_used || null,
-      cost: cost ? Number.parseFloat(cost) : null,
-      notes: notes?.trim() || null,
+      date: activity_date ? new Date(activity_date) : new Date(),
+      cost: cost ? Number.parseFloat(cost) : 0,
       created_at: new Date(),
+      updated_at: new Date(),
     }
 
     const result = await db.collection("field_activities").insertOne(activity)

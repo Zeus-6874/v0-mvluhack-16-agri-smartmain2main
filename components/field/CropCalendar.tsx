@@ -21,8 +21,8 @@ interface CropCycle {
   created_at: string
   fields?: {
     id: string
-    field_name: string
-    area_hectares: number
+    name: string
+    area: number
   }
 }
 
@@ -185,7 +185,7 @@ export default function CropCalendar({ fieldId, farmerId }: CropCalendarProps) {
                   className={`text-xs px-1 py-0.5 rounded truncate cursor-pointer ${
                     eventType === "planting" ? "bg-green-100 text-green-700" : "bg-orange-100 text-orange-700"
                   }`}
-                  title={`${cycle.crop_name} - ${cycle.fields?.field_name} (${eventType})`}
+                  title={`${cycle.crop_name} - ${cycle.fields?.name} (${eventType})`}
                 >
                   {cycle.crop_name} ({eventType === "planting" ? "🌱" : "🌾"})
                 </div>
@@ -233,7 +233,7 @@ export default function CropCalendar({ fieldId, farmerId }: CropCalendarProps) {
                   <h4 className="font-semibold text-lg">{cycle.crop_name}</h4>
                   {cycle.variety && <p className="text-sm text-gray-600">{cycle.variety}</p>}
                   <p className="text-sm text-gray-500">
-                    {cycle.fields?.field_name} • {cycle.fields?.area_hectares} ha
+                    {cycle.fields?.name} • {cycle.fields?.area} ha
                   </p>
                 </div>
                 <Badge className={`${statusColors[cycle.status]} flex items-center gap-1`}>

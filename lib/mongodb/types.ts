@@ -14,9 +14,8 @@ export interface MongoUser extends MongoDocument {
   is_admin?: boolean
 }
 
-// Farmer/Profile types
 export interface MongoFarmer extends MongoDocument {
-  user_id: string
+  user_id: ObjectId
   name: string
   phone?: string
   village?: string
@@ -25,21 +24,18 @@ export interface MongoFarmer extends MongoDocument {
   language?: string
 }
 
-// Field types
 export interface MongoField extends MongoDocument {
-  farmer_id: string
-  field_name: string
-  location: string
+  user_id: ObjectId
+  name: string
+  location?: string
   area: number
-  area_unit: string
   soil_type?: string
   irrigation_type?: string
 }
 
-// Crop Cycle types
 export interface MongoCropCycle extends MongoDocument {
-  farmer_id: string
-  field_id: string
+  user_id: ObjectId
+  field_id: ObjectId
   crop_name: string
   variety?: string
   planting_date: Date
@@ -50,18 +46,18 @@ export interface MongoCropCycle extends MongoDocument {
   yield_unit?: string
 }
 
-// Field Activity types
 export interface MongoFieldActivity extends MongoDocument {
-  crop_cycle_id: string
+  user_id: ObjectId
+  field_id: ObjectId
+  crop_cycle_id?: ObjectId
   activity_type: string
-  activity_date: Date
+  date: Date
   description?: string
   quantity?: number
   unit?: string
   cost?: number
 }
 
-// Crop types
 export interface MongoCrop extends MongoDocument {
   crop_name: string
   crop_name_hi?: string
@@ -78,7 +74,6 @@ export interface MongoCrop extends MongoDocument {
   photo_url?: string
 }
 
-// Scheme types
 export interface MongoScheme extends MongoDocument {
   scheme_name: string
   scheme_name_hi?: string
@@ -101,9 +96,8 @@ export interface MongoScheme extends MongoDocument {
   website_url?: string
 }
 
-// Disease Report types
 export interface MongoDiseaseReport extends MongoDocument {
-  farmer_id: string
+  user_id: ObjectId
   crop_name: string
   disease_name: string
   confidence: number
@@ -115,7 +109,6 @@ export interface MongoDiseaseReport extends MongoDocument {
   location?: string
 }
 
-// Weather Data types
 export interface MongoWeatherData extends MongoDocument {
   location: string
   date: Date
@@ -126,7 +119,6 @@ export interface MongoWeatherData extends MongoDocument {
   condition: string
 }
 
-// Market Price types
 export interface MongoMarketPrice extends MongoDocument {
   commodity: string
   variety?: string
@@ -139,10 +131,9 @@ export interface MongoMarketPrice extends MongoDocument {
   lastUpdated: Date
 }
 
-// Soil Analysis types
 export interface MongoSoilAnalysis extends MongoDocument {
-  field_id: string
-  farmer_id: string
+  field_id: ObjectId
+  user_id: ObjectId
   test_date: Date
   ph_level?: number
   nitrogen?: number
@@ -152,10 +143,8 @@ export interface MongoSoilAnalysis extends MongoDocument {
   recommendations?: string
 }
 
-// Encyclopedia types (same as MongoCrop but separate collection)
 export type MongoEncyclopedia = MongoCrop
 
-// CropsAP Alert types
 export interface MongoCropsAPAlert extends MongoDocument {
   crop: string
   pest_disease: string
@@ -166,7 +155,6 @@ export interface MongoCropsAPAlert extends MongoDocument {
   state?: string
 }
 
-// Category types
 export interface MongoSchemeCategory extends MongoDocument {
   name: string
   name_hi?: string

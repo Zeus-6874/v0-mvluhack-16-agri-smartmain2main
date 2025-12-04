@@ -2,8 +2,8 @@ import type { Db } from "mongodb"
 
 export interface Field {
   _id: string
-  field_name: string
-  area_hectares: number
+  name: string
+  area: number
   coordinates?: Coordinates
   soil_type?: string
   irrigation_type?: string

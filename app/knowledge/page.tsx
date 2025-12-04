@@ -41,17 +41,31 @@ export default function KnowledgeBase() {
       const data = await response.json()
 
       if (data.success && data.crops) {
-        const knowledgeArticles: KnowledgeArticle[] = data.crops.map((crop: any, index: number) => ({
-          id: crop.id ?? index,
-          category: "Crop Information",
-          categoryHi: "फसल जानकारी",
-          categoryMr: "पीक माहिती",
-          title: crop.common_name ?? crop.crop_name,
-          titleHi: crop.local_name,
-          titleMr: crop.local_name_mr,
-          content: crop.description ?? crop.disease_management,
-          tags: crop.diseases ?? ["agriculture"],
-        }))
+        const knowledgeArticles: KnowledgeArticle[] = data.crops.map(
+          (
+            crop: {
+              id?: string | number
+              common_name?: string
+              crop_name?: string
+              local_name?: string
+              local_name_mr?: string
+              description?: string
+              disease_management?: string
+              diseases?: string[]
+            },
+            index: number,
+          ) => ({
+            id: crop.id ?? index,
+            category: "Crop Information",
+            categoryHi: "फसल जानकारी",
+            categoryMr: "पीक माहिती",
+            title: crop.common_name ?? crop.crop_name ?? "Unknown",
+            titleHi: crop.local_name,
+            titleMr: crop.local_name_mr,
+            content: crop.description ?? crop.disease_management ?? "",
+            tags: crop.diseases ?? ["agriculture"],
+          }),
+        )
         setArticles(knowledgeArticles)
       } else {
         setArticles([])

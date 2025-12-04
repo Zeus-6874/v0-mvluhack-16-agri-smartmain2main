@@ -16,8 +16,8 @@ import type { Coordinates } from "@/types/components"
 
 interface Field {
   id: string
-  field_name: string
-  area_hectares: number
+  name: string
+  area: number
   coordinates?: Coordinates
   soil_type?: string
   irrigation_type?: string
@@ -33,8 +33,8 @@ interface Field {
 }
 
 interface FieldFormData {
-  field_name: string
-  area_hectares: string
+  name: string
+  area: string
   soil_type: string
   irrigation_type: string
 }
@@ -54,8 +54,8 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingField, setEditingField] = useState<Field | null>(null)
   const [formData, setFormData] = useState<FieldFormData>({
-    field_name: "",
-    area_hectares: "",
+    name: "",
+    area: "",
     soil_type: "",
     irrigation_type: "",
   })
@@ -104,7 +104,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.field_name || !formData.area_hectares) {
+    if (!formData.name || !formData.area) {
       toast({
         title: language === "hi" ? "वैलिडेशन त्रुटि" : "Validation Error",
         description: language === "hi" ? "फ़ील्ड का नाम और क्षेत्रफल आवश्यक है" : "Field name and area are required",
@@ -169,8 +169,8 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
   const handleEdit = (field: Field) => {
     setEditingField(field)
     setFormData({
-      field_name: field.field_name,
-      area_hectares: field.area_hectares.toString(),
+      name: field.name,
+      area: field.area.toString(),
       soil_type: field.soil_type || "",
       irrigation_type: field.irrigation_type || "",
     })
@@ -178,7 +178,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
   }
 
   const handleDelete = async (field: Field) => {
-    const confirmMessage = `${t("common.deleteConfirmMessage")} "${field.field_name}"?\n${t("common.deleteConfirmQuestion")}`
+    const confirmMessage = `${t("common.deleteConfirmMessage")} "${field.name}"?\n${t("common.deleteConfirmQuestion")}`
 
     if (!confirm(confirmMessage)) {
       return
@@ -218,8 +218,8 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
 
   const resetForm = () => {
     setFormData({
-      field_name: "",
-      area_hectares: "",
+      name: "",
+      area: "",
       soil_type: "",
       irrigation_type: "",
     })
@@ -263,24 +263,24 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="field_name">{t("fieldManagement.fieldName")}</Label>
+                <Label htmlFor="name">{t("fieldManagement.fieldName")}</Label>
                 <Input
-                  id="field_name"
-                  value={formData.field_name}
-                  onChange={(e) => setFormData({ ...formData, field_name: e.target.value })}
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder={t("fieldManagement.enterFieldName")}
                   required
                 />
               </div>
 
               <div>
-                <Label htmlFor="area_hectares">{t("fieldManagement.areaHectares")}</Label>
+                <Label htmlFor="area">{t("fieldManagement.areaHectares")}</Label>
                 <Input
-                  id="area_hectares"
+                  id="area"
                   type="number"
                   step="0.01"
-                  value={formData.area_hectares}
-                  onChange={(e) => setFormData({ ...formData, area_hectares: e.target.value })}
+                  value={formData.area}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
                   placeholder={t("fieldManagement.enterArea")}
                   required
                 />
@@ -360,7 +360,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
               <CardHeader className="pb-3 bg-gradient-to-r from-green-50 to-blue-50 border-b">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
-                    <CardTitle className="text-xl font-bold text-gray-900">{field.field_name}</CardTitle>
+                    <CardTitle className="text-xl font-bold text-gray-900">{field.name}</CardTitle>
                     <p className="text-sm text-gray-500 mt-1">
                       {t("fieldManagement.field")} #{index + 1}
                     </p>
@@ -389,7 +389,7 @@ export default function FieldManager({ farmerId, onFieldSelect }: FieldManagerPr
                 <div className="flex items-center text-base text-gray-700 bg-gradient-to-r from-gray-50 to-green-50 p-3 rounded-lg border border-gray-200">
                   <MapPin className="h-5 w-5 mr-3 text-green-600" />
                   <span className="font-semibold">
-                    {field.area_hectares} {t("dashboard.hectares")}
+                    {field.area} {t("dashboard.hectares")}
                   </span>
                 </div>
 

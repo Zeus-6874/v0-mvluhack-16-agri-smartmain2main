@@ -20,15 +20,15 @@ export default async function FieldManagementPage() {
   const profile = await db.collection("farmers").findOne({ user_id: userId })
 
   // Fetch field statistics
-  const fields = await db.collection("fields").find({ farmer_id: userId }).toArray()
+  const fields = await db.collection("fields").find({ user_id: userId }).toArray()
 
-  const totalArea = fields.reduce((sum: number, field: any) => sum + (field.area_hectares || 0), 0)
+  const totalArea = fields.reduce((sum: number, field: { area?: number }) => sum + (field.area || 0), 0)
 
   // Fetch active crop cycles
   const activeCrops = await db
     .collection("crop_cycles")
     .find({
-      farmer_id: userId,
+      user_id: userId,
       status: { $in: ["planted", "growing"] },
     })
     .toArray()

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 import { getDb } from "@/lib/mongodb/client"
+import type { Filter, Document } from "mongodb"
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,7 +10,7 @@ export async function GET(request: NextRequest) {
     const severity = searchParams.get("severity")
 
     const db = await getDb()
-    const filter: any = {}
+    const filter: Filter<Document> = {}
 
     if (district) {
       filter.district = { $regex: district, $options: "i" }

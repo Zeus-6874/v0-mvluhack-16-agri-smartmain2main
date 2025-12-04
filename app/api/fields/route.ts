@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     const fields = await db
       .collection("fields")
-      .find<MongoField>({ farmer_id: userId })
+      .find<MongoField>({ user_id: userId })
       .sort({ created_at: -1 })
       .toArray()
 
@@ -61,12 +61,12 @@ export async function POST(request: NextRequest) {
     const db = await getDb()
 
     const result = await db.collection("fields").insertOne({
-      farmer_id: userId,
-      field_name: field_name.trim(),
-      area_hectares: Number.parseFloat(area_hectares),
-      coordinates: coordinates || null,
-      soil_type: soil_type || null,
-      irrigation_type: irrigation_type || null,
+      user_id: userId,
+      name: field_name.trim(),
+      area: Number.parseFloat(area_hectares),
+      location: coordinates || "",
+      soil_type: soil_type || "Unknown",
+      irrigation_type: irrigation_type || "Rainfed",
       created_at: new Date(),
       updated_at: new Date(),
     })

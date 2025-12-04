@@ -11,7 +11,7 @@ export type MongoUser = {
 
 export type MongoFarmer = {
   _id: ObjectId
-  user_id: string
+  user_id: ObjectId
   name: string
   phone?: string
   village?: string
@@ -24,10 +24,10 @@ export type MongoFarmer = {
 
 export type MongoField = {
   _id: ObjectId
-  farmer_id: string
-  field_name: string
-  area_hectares: number
-  coordinates?: string
+  user_id: ObjectId
+  name: string
+  area: number
+  location?: string
   soil_type?: string
   irrigation_type?: string
   created_at?: Date
@@ -36,13 +36,15 @@ export type MongoField = {
 
 export type MongoCropCycle = {
   _id: ObjectId
-  field_id: string
+  user_id: ObjectId
+  field_id: ObjectId
+  crop_id?: ObjectId
   crop_name: string
-  variety?: string
-  planting_date?: Date | string | null
-  expected_harvest_date?: Date | string | null
-  actual_harvest_date?: Date | string | null
   status: "planning" | "planted" | "growing" | "harvested" | "failed"
+  planting_date?: Date
+  expected_harvest_date?: Date
+  actual_harvest_date?: Date
+  variety?: string
   notes?: string
   yield_quantity?: number
   yield_unit?: string
@@ -52,9 +54,11 @@ export type MongoCropCycle = {
 
 export type MongoFieldActivity = {
   _id: ObjectId
-  crop_cycle_id: string
+  user_id: ObjectId
+  field_id: ObjectId
+  crop_cycle_id?: ObjectId
   activity_type: string
-  activity_date: Date | string
+  date: Date
   description?: string
   quantity?: number
   unit?: string
@@ -65,9 +69,10 @@ export type MongoFieldActivity = {
 
 export type MongoCrop = {
   _id: ObjectId
-  crop_name: string
-  crop_name_hi?: string
-  crop_name_mr?: string
+  name: string
+  category?: string
+  season?: string
+  duration_days?: number
   scientific_name?: string
   family?: string
   description?: string
@@ -84,6 +89,7 @@ export type MongoCrop = {
 
 export type MongoScheme = {
   _id: ObjectId
+  id?: string
   scheme_name: string
   scheme_name_hi?: string
   scheme_name_mr?: string
@@ -96,6 +102,7 @@ export type MongoScheme = {
   benefits?: string
   benefits_hi?: string
   benefits_mr?: string
+  application_process?: string
   how_to_apply?: string
   how_to_apply_hi?: string
   how_to_apply_mr?: string
@@ -103,13 +110,17 @@ export type MongoScheme = {
   state?: string
   category?: string
   website_url?: string
+  is_active?: boolean
+  budget_allocation?: string
+  beneficiaries_count?: number
+  application_deadline?: string
   created_at?: Date
   updated_at?: Date
 }
 
 export type MongoDiseaseReport = {
   _id: ObjectId
-  farmer_id: string
+  user_id: ObjectId
   crop_name: string
   disease_name: string
   confidence: number
@@ -149,8 +160,8 @@ export type MongoMarketPrice = {
 
 export type MongoSoilAnalysis = {
   _id: ObjectId
-  field_id: string
-  farmer_id: string
+  field_id: ObjectId
+  user_id: ObjectId
   test_date: Date
   ph_level?: number
   nitrogen?: number
@@ -184,4 +195,18 @@ export type MongoCropCategory = {
   name: string
   name_hi?: string
   name_mr?: string
+}
+
+export type MongoEncyclopedia = {
+  _id: ObjectId
+  title: string
+  title_hi?: string
+  title_mr?: string
+  category: string
+  content: string
+  content_hi?: string
+  content_mr?: string
+  image_url?: string
+  created_at?: Date
+  updated_at?: Date
 }

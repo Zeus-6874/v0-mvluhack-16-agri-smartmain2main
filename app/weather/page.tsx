@@ -8,11 +8,19 @@ import WeatherWidget from "@/components/WeatherWidget"
 import { Droplets, AlertTriangle, Info, Bell, Loader2, RefreshCw } from "lucide-react"
 import { useTranslate, useTolgee } from "@tolgee/react"
 
+interface WeatherAlert {
+  type: string
+  title: string
+  message: string
+  time: string
+  severity: string
+}
+
 export default function WeatherAlerts() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
   const language = tolgee.getLanguage() || "en"
-  const [weatherAlerts, setWeatherAlerts] = useState<any[]>([])
+  const [weatherAlerts, setWeatherAlerts] = useState<WeatherAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -23,7 +31,7 @@ export default function WeatherAlerts() {
 
       if (data.success && data.weather) {
         // Create alerts based on weather conditions
-        const alerts: any[] = []
+        const alerts: WeatherAlert[] = []
 
         if (data.weather.rainfall > 50) {
           alerts.push({

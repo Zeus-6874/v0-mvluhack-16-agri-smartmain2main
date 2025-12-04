@@ -118,7 +118,7 @@ export default function AddCropModal({ open, onOpenChange, fields = [] }: AddCro
                 <SelectContent>
                   {fields.map((field, index) => (
                     <SelectItem key={field._id || index} value={field._id?.toString() || ""}>
-                      {field.field_name}
+                      {field.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

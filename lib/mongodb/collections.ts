@@ -37,18 +37,52 @@ export async function initializeCollections() {
   // Farmers collection
   await db.collection(COLLECTIONS.FARMERS).createIndex({ user_id: 1 }, { unique: true })
   await db.collection(COLLECTIONS.FARMERS).createIndex({ phone: 1 })
+  await db.collection(COLLECTIONS.FARMERS).createIndex({ state: 1 })
 
   // Fields collection
-  await db.collection(COLLECTIONS.FIELDS).createIndex({ farmer_id: 1 })
+  await db.collection(COLLECTIONS.FIELDS).createIndex({ user_id: 1 })
+  await db.collection(COLLECTIONS.FIELDS).createIndex({ user_id: 1, name: 1 })
 
   // Crop cycles collection
+  await db.collection(COLLECTIONS.CROP_CYCLES).createIndex({ user_id: 1 })
   await db.collection(COLLECTIONS.CROP_CYCLES).createIndex({ field_id: 1 })
-  await db.collection(COLLECTIONS.CROP_CYCLES).createIndex({ farmer_id: 1 })
+  await db.collection(COLLECTIONS.CROP_CYCLES).createIndex({ status: 1 })
+
+  // Field activities collection
+  await db.collection(COLLECTIONS.FIELD_ACTIVITIES).createIndex({ user_id: 1 })
+  await db.collection(COLLECTIONS.FIELD_ACTIVITIES).createIndex({ field_id: 1 })
+  await db.collection(COLLECTIONS.FIELD_ACTIVITIES).createIndex({ activity_type: 1 })
+
+  // Crops collection
+  await db.collection(COLLECTIONS.CROPS).createIndex({ name: 1 }, { unique: true })
+  await db.collection(COLLECTIONS.CROPS).createIndex({ category: 1 })
+  await db.collection(COLLECTIONS.CROPS).createIndex({ season: 1 })
+
+  // Schemes collection
+  await db.collection(COLLECTIONS.SCHEMES).createIndex({ state: 1 })
+  await db.collection(COLLECTIONS.SCHEMES).createIndex({ category: 1 })
+  await db.collection(COLLECTIONS.SCHEMES).createIndex({ id: 1 }, { unique: true })
+
+  // Disease reports collection
+  await db.collection(COLLECTIONS.DISEASE_REPORTS).createIndex({ user_id: 1 })
+  await db.collection(COLLECTIONS.DISEASE_REPORTS).createIndex({ reported_date: -1 })
+
+  // Soil analysis collection
+  await db.collection(COLLECTIONS.SOIL_ANALYSIS).createIndex({ field_id: 1 })
+  await db.collection(COLLECTIONS.SOIL_ANALYSIS).createIndex({ user_id: 1 })
+
+  // Weather data collection
+  await db.collection(COLLECTIONS.WEATHER_DATA).createIndex({ location: 1, date: -1 })
 
   // Market prices collection
   await db.collection(COLLECTIONS.MARKET_PRICES).createIndex({ commodity: 1, date: -1 })
+  await db.collection(COLLECTIONS.MARKET_PRICES).createIndex({ state: 1 })
 
-  console.log("MongoDB collections initialized with indexes")
+  // Encyclopedia collection
+  await db.collection(COLLECTIONS.ENCYCLOPEDIA).createIndex({ title: 1 })
+  await db.collection(COLLECTIONS.ENCYCLOPEDIA).createIndex({ category: 1 })
+
+  console.log("MongoDB collections initialized with comprehensive indexes matching agrismart-init.mongodb.js schema")
 }
 
 export async function isUserAdmin(userId: string): Promise<boolean> {

@@ -41,9 +41,11 @@ export async function POST(request: NextRequest) {
     const crop = await db.collection("crops").findOne({ _id: result.insertedId })
 
     return NextResponse.json({ success: true, crop })
-  } catch (error: any) {
-    if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+    }
     console.error("Admin crop create error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }

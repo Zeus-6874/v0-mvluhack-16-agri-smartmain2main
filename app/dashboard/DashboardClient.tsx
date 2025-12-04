@@ -9,6 +9,26 @@ import { useTranslate, useTolgee } from "@tolgee/react"
 import { useToast } from "@/hooks/use-toast"
 import CropCard from "@/components/CropCard"
 import AddCropModal from "@/components/AddCropModal"
+import type { MongoCropCycle } from "@/types/mongo"
+import type { Field } from "@/types/components"
+
+interface WeatherInfo {
+  temperature?: number
+  humidity?: number
+  rainfall?: number
+  windSpeed?: number
+  main?: { temp?: number; humidity?: number }
+  wind?: { speed?: number }
+  [key: string]: unknown
+}
+
+interface DashboardAlert {
+  type: string
+  title: string
+  message: string
+  time: string
+  severity: string
+}
 
 interface Profile {
   full_name: string
@@ -39,17 +59,27 @@ const cropIcons: Record<string, string> = {
   soybean: "🫘",
 }
 
+interface CropForCard {
+  id: string | number
+  name: string
+  area: number
+  health: number
+  daysToHarvest: number
+  expectedYield: number
+  image: string
+}
+
 export default function DashboardClient({ profile }: DashboardClientProps) {
   const router = useRouter()
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
-  const language = tolgee.getLanguage() || "en" // Added fallback to "en" for language
+  const language = tolgee.getLanguage() || "en"
   const { toast } = useToast()
-  const [weather, setWeather] = useState<any>(null)
+  const [weather, setWeather] = useState<WeatherInfo | null>(null)
   const [weatherLoading, setWeatherLoading] = useState(true)
-  const [activeCrops, setActiveCrops] = useState<any[]>([])
-  const [upcomingTasks, setUpcomingTasks] = useState<any[]>([])
-  const [fields, setFields] = useState<any[]>([])
+  const [activeCrops, setActiveCrops] = useState<MongoCropCycle[]>([])
+  const [upcomingTasks, setUpcomingTasks] = useState<unknown[]>([])
+  const [fields, setFields] = useState<Field[]>([])
   const [showAddCropModal, setShowAddCropModal] = useState(false)
 
   useEffect(() => {
@@ -85,8 +115,14 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
     try {
       const cropsRes = await fetch("/api/crop-cycles")
       const cropsData = await cropsRes.json()
+
+      const fieldsRes = await fetch("/api/fields")
+      const fieldsData = await fieldsRes.json()
+
       if (cropsData.success && cropsData.crop_cycles) {
-        setActiveCrops(cropsData.crop_cycles.filter((c: any) => c.status === "growing" || c.status === "planted"))
+        setActiveCrops(
+          cropsData.crop_cycles.filter((c: MongoCropCycle) => c.status === "growing" || c.status === "planted"),
+        )
       }
 
       const tasksRes = await fetch("/api/field-activities")
@@ -95,17 +131,25 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
         setUpcomingTasks(tasksData.activities.slice(0, 3))
       }
 
-      const fieldsRes = await fetch("/api/fields")
-      const fieldsData = await fieldsRes.json()
       if (fieldsData.success && fieldsData.fields) {
-        setFields(fieldsData.fields)
+        const transformedFields: Field[] = fieldsData.fields.map((f: Field) => ({
+          _id: f._id.toString(),
+          name: f.name,
+          area: f.area,
+          coordinates: f.coordinates,
+          soil_type: f.soil_type,
+          irrigation_type: f.irrigation_type,
+          created_at: f.created_at ? new Date(f.created_at).toISOString() : new Date().toISOString(),
+          updated_at: f.updated_at ? new Date(f.updated_at).toISOString() : new Date().toISOString(),
+        }))
+        setFields(transformedFields)
       }
     } catch (error) {
       console.error("Error fetching user data:", error)
     }
   }
 
-  const handleDeleteCrop = async (cropId: number) => {
+  const handleDeleteCrop = async (cropId: number | string) => {
     if (!confirm(t("feedback.confirmDelete"))) {
       return
     }
@@ -138,6 +182,37 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
         description: t("feedback.error"),
         variant: "destructive",
       })
+    }
+  }
+
+  const transformCropCycleToCard = (cropCycle: MongoCropCycle, field?: Field): CropForCard => {
+    const plantingDate = cropCycle.planting_date ? new Date(cropCycle.planting_date) : new Date()
+    const expectedHarvestDate = cropCycle.expected_harvest_date
+      ? new Date(cropCycle.expected_harvest_date)
+      : new Date(plantingDate.getTime() + 90 * 24 * 60 * 60 * 1000)
+
+    const today = new Date()
+    const daysToHarvest = Math.max(
+      0,
+      Math.ceil((expectedHarvestDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)),
+    )
+
+    let health = 85
+    if (cropCycle.status === "growing") health = 90
+    if (cropCycle.status === "planted") health = 80
+    if (cropCycle.status === "planning") health = 75
+
+    const area = field?.area || 0
+    const expectedYield = area * 3000
+
+    return {
+      id: cropCycle._id.toString(),
+      name: cropCycle.crop_name,
+      area: area,
+      health: health,
+      daysToHarvest: daysToHarvest,
+      expectedYield: Math.round(expectedYield),
+      image: `/placeholder.svg?height=100&width=100&query=${encodeURIComponent(cropCycle.crop_name)}`,
     }
   }
 
@@ -179,7 +254,7 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
   const generateWeatherAlerts = () => {
     if (!weather) return []
 
-    const alerts: any[] = []
+    const alerts: DashboardAlert[] = []
     const temp = weather.main?.temp ?? weather.temperature
     const humidity = weather.main?.humidity ?? weather.humidity
     const rainfall = weather.rainfall ?? 0
@@ -294,9 +369,8 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-4 sm:gap-6">
-          {/* Left Column - Crops */}
+          {/* Active Crops Section */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-            {/* Active Crops */}
             <Card className="border-2 border-gray-200 shadow-md bg-white">
               <CardHeader className="pb-3 bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 border-b-2 border-gray-200">
                 <CardTitle className="flex items-center justify-between text-lg sm:text-xl">
@@ -331,9 +405,18 @@ export default function DashboardClient({ profile }: DashboardClientProps) {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {activeCrops.map((crop, index) => (
-                      <CropCard key={`crop-${index}`} crop={crop} language={language} onDelete={handleDeleteCrop} />
-                    ))}
+                    {activeCrops.map((cropCycle) => {
+                      const field = fields.find((f) => f._id === cropCycle.field_id)
+                      const cropData = transformCropCycleToCard(cropCycle, field)
+                      return (
+                        <CropCard
+                          key={cropCycle._id.toString()}
+                          crop={cropData}
+                          language={language}
+                          onDelete={handleDeleteCrop}
+                        />
+                      )
+                    })}
                   </div>
                 )}
               </CardContent>

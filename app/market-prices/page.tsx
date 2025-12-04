@@ -170,11 +170,25 @@ export default function MarketPrices() {
 
       if (data.success && data.prices && data.prices.length > 0) {
         setPrices(
-          data.prices.map((p: any) => ({
-            ...p,
-            cropMr: p.cropMr || p.cropHi || p.crop,
-            marketMr: p.marketMr || p.marketHi || p.market,
-          })),
+          data.prices.map(
+            (p: {
+              crop: string
+              cropHi: string
+              cropMr?: string
+              marketMr?: string
+              marketHi: string
+              market: string
+              price: number
+              unit: string
+              trend: "up" | "down" | "stable"
+              change: number
+              lastUpdated: string
+            }) => ({
+              ...p,
+              cropMr: p.cropMr || p.cropHi || p.crop,
+              marketMr: p.marketMr || p.marketHi || p.market,
+            }),
+          ),
         )
       } else {
         setPrices(fallbackPrices)

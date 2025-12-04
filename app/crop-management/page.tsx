@@ -10,6 +10,18 @@ import { CROP_SEASONS } from "@/lib/constants"
 import { Sprout, Plus, Calendar, TrendingUp, Loader2 } from "lucide-react"
 import { useTranslate, useTolgee } from "@tolgee/react"
 
+interface CropDisplay {
+  id: string | number
+  name: string
+  area: number
+  health: number
+  daysToHarvest: number
+  expectedYield: number
+  image: string
+  season: string
+  status: string
+}
+
 export default function CropManagement() {
   const { t } = useTranslate()
   const tolgee = useTolgee(["language"])
@@ -17,27 +29,36 @@ export default function CropManagement() {
   const [selectedSeason, setSelectedSeason] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [loading, setLoading] = useState(true)
-  const [crops, setCrops] = useState<any[]>([])
+  const [crops, setCrops] = useState<CropDisplay[]>([])
 
   useEffect(() => {
-    // Fetch crops from encyclopedia API
     const fetchCrops = async () => {
       try {
         const response = await fetch("/api/encyclopedia")
         const data = await response.json()
         if (data.success && data.crops) {
-          // Convert encyclopedia crops to display format
-          const convertedCrops = data.crops.slice(0, 8).map((crop: any, index: number) => ({
-            id: crop.id || index,
-            name: crop.crop_name || crop.common_name || "Unknown",
-            area: 0, // User's crop area would come from their profile/farm data
-            health: 85, // Default health
-            daysToHarvest: 60, // Default
-            expectedYield: 0,
-            image: crop.image_url || "/placeholder.jpg",
-            season: crop.planting_season || "all",
-            status: "Growing", // Default status
-          }))
+          const convertedCrops = data.crops.slice(0, 8).map(
+            (
+              crop: {
+                id?: string | number
+                crop_name?: string
+                common_name?: string
+                image_url?: string
+                planting_season?: string
+              },
+              index: number,
+            ): CropDisplay => ({
+              id: crop.id || index,
+              name: crop.crop_name || crop.common_name || "Unknown",
+              area: 0,
+              health: 85,
+              daysToHarvest: 60,
+              expectedYield: 0,
+              image: crop.image_url || "/placeholder.jpg",
+              season: crop.planting_season || "all",
+              status: "Growing",
+            }),
+          )
           setCrops(convertedCrops)
         }
       } catch (error) {
