@@ -31,15 +31,10 @@ export async function GET(req: NextRequest) {
     const db = await getDb()
     const filter: Filter<MongoScheme> = {}
 
-    const schemes = await db
-      .collection<MongoScheme>("schemes")
-      .find(filter)
-      .sort({ created_at: -1 })
-      .toArray()
+    const schemes = await db.collection<MongoScheme>("schemes").find(filter).sort({ created_at: -1 }).toArray()
 
     const result = await Promise.all(
       schemes.map(async (s) => {
-
         let name = s.scheme_name
         let desc = s.description
         let eligibility = s.eligibility || "Not specified"
@@ -48,60 +43,56 @@ export async function GET(req: NextRequest) {
 
         // ---------- TRANSLATE ----------
         if (lang === "hi") {
-          name = s.scheme_name_hi || await translate(name, "hi")
-          desc = s.description_hi || await translate(desc, "hi")
-          eligibility = s.eligibility_hi || await translate(eligibility, "hi")
-          benefits = s.benefits_hi || await translate(benefits, "hi")
-          apply = s.how_to_apply_hi || await translate(apply, "hi")
+          name = s.scheme_name_hi || (await translate(name, "hi"))
+          desc = s.description_hi || (await translate(desc, "hi"))
+          eligibility = s.eligibility_hi || (await translate(eligibility, "hi"))
+          benefits = s.benefits_hi || (await translate(benefits, "hi"))
+          apply = s.how_to_apply_hi || (await translate(apply, "hi"))
         }
 
         if (lang === "mr") {
-          name = s.scheme_name_mr || await translate(name, "mr")
-          desc = s.description_mr || await translate(desc, "mr")
-          eligibility = s.eligibility_mr || await translate(eligibility, "mr")
-          benefits = s.benefits_mr || await translate(benefits, "mr")
-          apply = s.how_to_apply_mr || await translate(apply, "mr")
+          name = s.scheme_name_mr || (await translate(name, "mr"))
+          desc = s.description_mr || (await translate(desc, "mr"))
+          eligibility = s.eligibility_mr || (await translate(eligibility, "mr"))
+          benefits = s.benefits_mr || (await translate(benefits, "mr"))
+          apply = s.how_to_apply_mr || (await translate(apply, "mr"))
         }
 
         return {
-          id: s._id.toString(),                // UI
+          id: s._id.toString(),
           scheme_name: name,
           description: desc,
           eligibility,
           benefits,
-          application_process: apply,         // UI FIX
+          application_process: apply,
           contact_info: s.contact_info || "N/A",
           state: s.state || "All India",
           category: s.category || "General",
-          is_active: true,                     // UI FIX
-          created_at: s.created_at || new Date(),
-          beneficiaries_count: 0,             // Optional
-          budget_allocation: "N/A",            // Optional
-          website_url: s.website_url || "#"
+          is_active: true,
+          beneficiaries_count: 0,
+          budget_allocation: "N/A",
+          website_url: s.website_url || "#",
         }
-      })
+      }),
     )
 
     // ---------- FILTERING ----------
     let filtered = result
 
     if (state && state !== "all") {
-      filtered = filtered.filter(s =>
-        s.state === state || s.state === "All India"
-      )
+      filtered = filtered.filter((s) => s.state === state || s.state === "All India")
     }
 
     if (category && category !== "all") {
-      filtered = filtered.filter(s => s.category === category)
+      filtered = filtered.filter((s) => s.category === category)
     }
 
     return NextResponse.json({
       success: true,
       schemes: filtered,
       total: filtered.length,
-      filters: { state, category, lang }
+      filters: { state, category, lang },
     })
-
   } catch (error) {
     console.error("Schemes API Error:", error)
     return NextResponse.json({ success: false, schemes: [] })
