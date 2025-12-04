@@ -3,8 +3,12 @@ import { getCurrentUserId } from "@/lib/auth/utils"
 import { getDb } from "@/lib/mongodb/client"
 import { ObjectId } from "mongodb"
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
   const { id } = params
+
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -12,7 +16,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     }
 
     const body = await request.json()
-    const { crop_name, variety, planting_date, expected_harvest_date, actual_harvest_date, status, notes } = body
+    const {
+      crop_name,
+      variety,
+      planting_date,
+      expected_harvest_date,
+      actual_harvest_date,
+      status,
+      notes,
+    } = body
 
     const db = await getDb()
 
@@ -30,10 +42,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     })
 
     if (!field) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+      // 403 is “Forbidden” (user is logged in but not allowed)
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Update the crop cycle
     const result = await db.collection("crop_cycles").findOneAndUpdate(
       { _id: new ObjectId(id) },
       {
@@ -51,15 +63,24 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       { returnDocument: "after" },
     )
 
-    return NextResponse.json({ success: true, crop_cycle: result })
+    // Safety check: if somehow nothing was updated
+    if (!result.value) {
+      return NextResponse.json({ error: "Crop cycle not found" }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true, crop_cycle: result.value })
   } catch (error) {
     console.error("[v0] API Error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
   const { id } = params
+
   try {
     const userId = await getCurrentUserId()
     if (!userId) {
@@ -82,10 +103,9 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     })
 
     if (!field) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
-    // Delete the crop cycle
     await db.collection("crop_cycles").deleteOne({ _id: new ObjectId(id) })
 
     return NextResponse.json({ success: true, message: "Crop cycle deleted successfully" })
