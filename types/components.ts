@@ -61,8 +61,10 @@ export interface CropRecommendationParams {
 }
 
 export interface RiskAssessment {
+  overall_risk: string
   level: string
   score: number
+  risk_factors: string[]
   factors: string[]
   recommendations?: string[]
 }
