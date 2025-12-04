@@ -9,11 +9,16 @@ function assertAdmin(userId?: string | null) {
   if (adminIds.length > 0 && !adminIds.includes(userId)) throw new Error("FORBIDDEN")
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const { id } = params
+
   try {
     const userId = await getCurrentUserId()
     assertAdmin(userId)
+
     const payload = await request.json()
     const db = await getDb()
 
@@ -59,13 +64,17 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const { id } = params
+
   try {
     const userId = await getCurrentUserId()
     assertAdmin(userId)
-    const db = await getDb()
 
+    const db = await getDb()
     const result = await db.collection("crops").deleteOne({ _id: new ObjectId(id) })
 
     if (result.deletedCount === 0) {
