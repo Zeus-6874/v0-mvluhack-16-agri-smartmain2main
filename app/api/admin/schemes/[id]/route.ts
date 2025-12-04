@@ -13,14 +13,19 @@ function assertAdmin(userId?: string | null) {
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const { id } = params
+
   try {
     const userId = await getCurrentUserId()
     assertAdmin(userId)
-    const payload = await request.json()
 
+    const payload = await request.json()
     const db = await getDb()
+
     const result = await db.collection("schemes").findOneAndUpdate(
       { _id: new ObjectId(id) },
       {
@@ -44,23 +49,32 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       { returnDocument: "after" },
     )
 
-    if (!result) {
+    // result.value is the updated document
+    if (!result.value) {
       return NextResponse.json({ error: "Failed to update scheme" }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, scheme: result })
+    return NextResponse.json({ success: true, scheme: result.value })
   } catch (error: unknown) {
     if (error instanceof Error) {
-      if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-      if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      if (error.message === "UNAUTHORIZED") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      if (error.message === "FORBIDDEN") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
     }
     console.error("[v0] Admin scheme update error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  const { id } = params
+
   try {
     const userId = await getCurrentUserId()
     assertAdmin(userId)
@@ -75,8 +89,12 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     return NextResponse.json({ success: true })
   } catch (error: unknown) {
     if (error instanceof Error) {
-      if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-      if (error.message === "FORBIDDEN") return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      if (error.message === "UNAUTHORIZED") {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      }
+      if (error.message === "FORBIDDEN") {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+      }
     }
     console.error("[v0] Admin scheme delete error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
