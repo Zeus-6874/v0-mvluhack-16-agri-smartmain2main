@@ -11,9 +11,11 @@ function assertAdmin(userId?: string | null) {
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  // 👇 widen the type so it's compatible with Next's RouteHandlerConfig
+  { params }: { params: any },
 ) {
-  const { id } = params
+  // At runtime `params` is just { id: string }
+  const { id } = params as { id: string }
 
   try {
     const userId = await getCurrentUserId()
@@ -49,11 +51,12 @@ export async function PUT(
       { returnDocument: "after" },
     )
 
-    if (!result) {
+    // result.value is the updated document
+    if (!result.value) {
       return NextResponse.json({ error: "Crop not found" }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, crop: result })
+    return NextResponse.json({ success: true, crop: result.value })
   } catch (error: unknown) {
     if (error instanceof Error) {
       if (error.message === "UNAUTHORIZED") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -66,9 +69,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  // 👇 same trick here
+  { params }: { params: any },
 ) {
-  const { id } = params
+  const { id } = params as { id: string }
 
   try {
     const userId = await getCurrentUserId()
